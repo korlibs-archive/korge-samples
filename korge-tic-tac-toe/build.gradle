@@ -4,4 +4,5 @@ apply plugin: 'kotlin'
 
 dependencies {
     compile "com.soywiz:korge:$korVersion"
+    compile "com.soywiz:korge-ext-swf:$korVersion"
 }
