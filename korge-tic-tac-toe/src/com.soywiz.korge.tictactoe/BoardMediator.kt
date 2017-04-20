@@ -19,6 +19,17 @@ fun Board.Cell.set(type: Chip) {
 	})
 }
 
+fun Board.Cell.highlight(highlight: Boolean) {
+	view["highlight"].play(if (highlight) "highlight" else "none")
+}
+
+fun Board.reset() {
+	for (cell in cells) {
+		cell.set(Chip.EMPTY)
+		cell.highlight(false)
+	}
+}
+
 fun Board.Cell.init(view: View) {
 	this.view = view
 	set(this.value)
