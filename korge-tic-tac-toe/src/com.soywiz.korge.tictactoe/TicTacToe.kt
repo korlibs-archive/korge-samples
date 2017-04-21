@@ -57,9 +57,8 @@ class TicTacToeMainScene(
 					is Game.Result.DRAW -> results["result"].setText("DRAW")
 					is Game.Result.WIN -> {
 						results["result"].setText("WIN")
-						for (cell in result.cells) {
-							cell.highlight(true)
-						}
+						for (cell in result.cells) cell.highlight(true)
+						for (cell in game.board.cells.toList() - result.cells) cell.lowlight(true)
 					}
 				}
 				sceneView += results
@@ -91,7 +90,7 @@ class Game(val board: Board, val players: List<Player>) {
 				val pos = currentPlayer.move()
 				println(pos)
 				if (board.cells[pos].value == Chip.EMPTY) {
-					board.cells[pos].set(currentPlayer.chip)
+					board.cells[pos].setAnimate(currentPlayer.chip)
 					break
 				}
 			}

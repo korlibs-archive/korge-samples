@@ -49,8 +49,9 @@ class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = wid
 	val moreMovements: Boolean get() = cells.any { it.value == Chip.EMPTY }
 
 	val winnerLine: List<Cell>? get() {
-		for (line in lines) if (line.chipLine != null) return line
-		return null
+		val out = arrayListOf<Cell>()
+		for (line in lines) if (line.chipLine != null) out += line
+		return if (out.isEmpty()) null else out.toSet().toList()
 	}
 
 	val winner: Chip? get() {
