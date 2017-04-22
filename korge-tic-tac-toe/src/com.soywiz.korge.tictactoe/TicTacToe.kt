@@ -2,6 +2,9 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
+import com.soywiz.korge.animate.AnTextField
+import com.soywiz.korge.bitmapfont.BitmapFont
+import com.soywiz.korge.html.Html
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.resources.Path
 import com.soywiz.korge.scene.Module
@@ -26,7 +29,8 @@ object TicTacToeModule : Module() {
 
 // Controller
 class TicTacToeMainScene(
-	@Path("main.swf") val mainLibrary: AnLibrary
+	@Path("main.swf") val mainLibrary: AnLibrary,
+	@Path("font/font.fnt") val font: BitmapFont
 ) : Scene() {
 	val board = Board(3, 3)
 	lateinit var game: Game
@@ -53,6 +57,7 @@ class TicTacToeMainScene(
 				println(result)
 
 				val results = mainLibrary.createMovieClip("Results")
+				//(results["result"] as AnTextField).format?.face = Html.FontFace.Bitmap(font)
 				when (result) {
 					is Game.Result.DRAW -> results["result"].setText("DRAW")
 					is Game.Result.WIN -> {
