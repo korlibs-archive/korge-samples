@@ -15,7 +15,7 @@ val Board.Cell.onPress by Extra.Property { Signal<Unit>() }
 
 fun Board.Cell.set(type: Chip) {
 	this.value = type
-	view.play(when (type) {
+	view["chip"].play(when (type) {
 		Chip.EMPTY -> "empty"
 		Chip.CIRCLE -> "circle"
 		Chip.CROSS -> "cross"
@@ -26,8 +26,8 @@ fun Board.Cell.setAnimate(type: Chip) {
 	set(type)
 	async {
 		view.tween(
-			(vview::alpha..0.7..1.0).linear(),
-			(vview::scale..0.8..1.0).easeOutElastic(),
+			(view["chip"]!!::alpha..0.7..1.0).linear(),
+			(view["chip"]!!::scale..0.8..1.0).easeOutElastic(),
 			time = 300
 		)
 	}
@@ -35,11 +35,11 @@ fun Board.Cell.setAnimate(type: Chip) {
 
 fun Board.Cell.highlight(highlight: Boolean) {
 	view["highlight"].play(if (highlight) "highlight" else "none")
-	async {
+	if (highlight) async {
 		view.tween(
-			vview::scale..0.1..1.2,
-			vview::rotationDegrees..360.0,
-			time = 600, easing = Easings.EASE_OUT_ELASTIC
+			(view["chip"]!!::scale..0.1..1.2).easeOutElastic(),
+			//vview::rotationDegrees..0.0..360.0,
+			time = 600
 		)
 	}
 }
@@ -47,8 +47,8 @@ fun Board.Cell.highlight(highlight: Boolean) {
 fun Board.Cell.lowlight(lowlight: Boolean) {
 	async {
 		view.tween(
-			vview::scale..0.8,
-			vview::alpha..0.5,
+			view!!::scale..1.0..0.8,
+			view!!::alpha..0.5,
 			time = 300, easing = Easings.EASE_OUT_QUAD
 		)
 	}
@@ -58,6 +58,10 @@ fun Board.reset() {
 	for (cell in cells) {
 		cell.set(Chip.EMPTY)
 		cell.highlight(false)
+		cell.view!!.scale = 1.0
+		cell.view!!.alpha = 1.0
+		cell.view["chip"]!!.scale = 1.0
+		cell.view["chip"]!!.alpha = 1.0
 	}
 }
 
