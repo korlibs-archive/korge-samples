@@ -1,0 +1,17 @@
+%!Adobe-FontList 1.18
+%Locale:0xc0a
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Invalid
+OutlineFileName:C:\Users\soywiz\projects\kor\korge-samples\korge-tic-tac-toe\resources\Font\font.fnt
+FileModTime:1488980629
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Invalid
+OutlineFileName:C:\Users\soywiz\projects\kor\korge-samples\korge-tic-tac-toe\resources\Font\font.png
+FileModTime:1488980629
+%EndFont
+

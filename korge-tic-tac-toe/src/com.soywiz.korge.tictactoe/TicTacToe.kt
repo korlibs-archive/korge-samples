@@ -2,9 +2,7 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
-import com.soywiz.korge.animate.AnTextField
 import com.soywiz.korge.bitmapfont.BitmapFont
-import com.soywiz.korge.html.Html
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.resources.Path
 import com.soywiz.korge.scene.Module
@@ -16,8 +14,7 @@ import com.soywiz.korge.view.setText
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.go
 import com.soywiz.korio.async.waitOne
-import com.soywiz.korma.geom.IPoint
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
+import com.soywiz.korma.geom.PointInt
 
 fun main(args: Array<String>) = Korge(TicTacToeModule)
 
@@ -78,7 +75,7 @@ class TicTacToeMainScene(
 
 interface Player {
 	val chip: Chip
-	suspend fun move(): IPoint
+	suspend fun move(): PointInt
 }
 
 class Game(val board: Board, val players: List<Player>) {
@@ -107,7 +104,7 @@ class Game(val board: Board, val players: List<Player>) {
 }
 
 class BotPlayer(val board: Board, override val chip: Chip) : Player {
-	suspend override fun move(): IPoint {
+	suspend override fun move(): PointInt {
 		for (cell in board.cells) {
 			if (cell.value == Chip.EMPTY) {
 				return cell.pos
@@ -118,7 +115,7 @@ class BotPlayer(val board: Board, override val chip: Chip) : Player {
 }
 
 class InteractivePlayer(val board: Board, override val chip: Chip) : Player {
-	val clicked = Signal<IPoint>()
+	val clicked = Signal<PointInt>()
 
 	init {
 		for (cell in board.cells) {
@@ -128,7 +125,7 @@ class InteractivePlayer(val board: Board, override val chip: Chip) : Player {
 		}
 	}
 
-	suspend override fun move(): IPoint {
+	suspend override fun move(): PointInt {
 		return clicked.waitOne()
 	}
 

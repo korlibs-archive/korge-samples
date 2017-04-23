@@ -2,13 +2,13 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korio.util.Extra
 import com.soywiz.korma.ds.Array2
-import com.soywiz.korma.geom.IPoint
+import com.soywiz.korma.geom.PointInt
 
 enum class Chip { EMPTY, CROSS, CIRCLE }
 
 class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = width) {
 	class Cell(val x: Int, val y: Int) : Extra by Extra.Mixin() {
-		val pos = IPoint(x, y)
+		val pos = PointInt(x, y)
 		var value = Chip.EMPTY
 	}
 

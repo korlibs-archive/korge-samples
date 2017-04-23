@@ -26,33 +26,35 @@ fun Board.Cell.setAnimate(type: Chip) {
 	set(type)
 	async {
 		view.tween(
-			(view["chip"]!!::alpha..0.7..1.0).linear(),
-			(view["chip"]!!::scale..0.8..1.0).easeOutElastic(),
+			(view["chip"]!!::alpha[0.7, 1.0]).linear(),
+			(view["chip"]!!::scale[0.8, 1.0]).easeOutElastic(),
 			time = 300
 		)
 	}
 }
 
+var Board.Cell.highlighting by Extra.Property { false }
+
 fun Board.Cell.highlight(highlight: Boolean) {
 	view["highlight"].play(if (highlight) "highlight" else "none")
+	this.highlighting = highlight
 	if (highlight) {
 		async {
-			while (true) {
-				val hl = view["highlight"]!!
-				while (true) {
-					hl.tween((hl::alpha..0.7).easeInOutQuad(), time = 300)
-					hl.tween((hl::alpha..1.0).easeInOutQuad(), time = 200)
-				}
+
+			val hl = view["highlight"]!!
+			while (highlighting) {
+				hl.tween((hl::alpha[0.7]).easeInOutQuad(), time = 300)
+				hl.tween((hl::alpha[1.0]).easeInOutQuad(), time = 200)
 			}
 		}
 
 		async {
 			val ch = view["chip"]!!
-			view.tween((ch::scale..0.4).easeOutQuad(), time = 100)
-			view.tween((ch::scale..1.2).easeOutElastic(), time = 300)
-			while (true) {
-				view.tween((ch::scale..1.0).easeOutQuad(), time = 300)
-				view.tween((ch::scale..1.2).easeOutElastic(), time = 300)
+			ch.tween((ch::scale..0.4).easeOutQuad(), time = 100)
+			ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300)
+			while (highlighting) {
+				ch.tween((ch::scale[1.0]).easeOutQuad(), time = 300)
+				ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300)
 			}
 		}
 	}
@@ -61,8 +63,8 @@ fun Board.Cell.highlight(highlight: Boolean) {
 fun Board.Cell.lowlight(lowlight: Boolean) {
 	async {
 		view.tween(
-			view!!::scale..1.0..0.7,
-			view!!::alpha..0.3,
+			view!!::scale[1.0, 0.7],
+			view!!::alpha[0.3],
 			time = 300, easing = Easings.EASE_OUT_QUAD
 		)
 	}
@@ -70,6 +72,7 @@ fun Board.Cell.lowlight(lowlight: Boolean) {
 
 fun Board.reset() {
 	for (cell in cells) {
+		//cell.view?.removeAllComponents()
 		cell.set(Chip.EMPTY)
 		cell.highlight(false)
 		cell.view!!.scale = 1.0
