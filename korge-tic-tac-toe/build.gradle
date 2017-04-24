@@ -1,8 +1,17 @@
 apply from: "../include.gradle"
 
 apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = "com.soywiz.korge.tictactoe.TicTacToeKt"
 
 dependencies {
     compile "com.soywiz:korge:$korVersion"
     compile "com.soywiz:korge-ext-swf:$korVersion"
+}
+
+jtransc {
+    minimizeNames = true
+    treeshaking = true
+    assets("resources")
 }
