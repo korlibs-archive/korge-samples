@@ -1,12 +1,11 @@
 buildscript {
     repositories {
         mavenLocal()
-        jcenter()
         mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "com.jtransc:jtransc-gradle-plugin:$jtranscVersion"
+        classpath "com.soywiz:korge-gradle-plugin:$korVersion"
     }
 }
 
@@ -25,3 +24,4 @@ allprojects {
         mavenCentral()
     }
 }
+

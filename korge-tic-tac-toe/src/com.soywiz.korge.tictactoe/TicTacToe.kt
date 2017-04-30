@@ -4,8 +4,8 @@ import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
 import com.soywiz.korge.bitmapfont.BitmapFont
 import com.soywiz.korge.input.mouse
-import com.soywiz.korge.resources.Mipmaps
 import com.soywiz.korge.resources.Path
+import com.soywiz.korge.resources.ResourcesRoot
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.view.Container
@@ -15,6 +15,7 @@ import com.soywiz.korge.view.setText
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.go
 import com.soywiz.korio.async.waitOne
+import com.soywiz.korio.inject.AsyncInjector
 import com.soywiz.korma.geom.PointInt
 
 fun main(args: Array<String>) = Korge(TicTacToeModule)
@@ -23,11 +24,16 @@ object TicTacToeModule : Module() {
 	override val mainScene: Class<out Scene> = TicTacToeMainScene::class.java
 	override val title: String = "tic-tac-toe"
 	override val icon: String = "icon.png"
+
+	suspend override fun init(injector: AsyncInjector) {
+		//injector.get<ResourcesRoot>().mapExtensions("swf" to "ani")
+		//injector.get<ResourcesRoot>().mapExtensionsJustInJTransc("swf" to "ani")
+	}
 }
 
 // Controller
 class TicTacToeMainScene(
-	@Mipmaps @Path("main.swf") val mainLibrary: AnLibrary,
+	@Path("main.swf") val mainLibrary: AnLibrary,
 	@Path("font/font.fnt") val font: BitmapFont
 ) : Scene() {
 	val board = Board(3, 3)

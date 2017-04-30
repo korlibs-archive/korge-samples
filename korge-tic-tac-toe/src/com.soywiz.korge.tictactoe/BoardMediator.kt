@@ -1,5 +1,6 @@
 package com.soywiz.korge.tictactoe
 
+import com.soywiz.korge.animate.AnMovieClip
 import com.soywiz.korge.animate.play
 import com.soywiz.korge.input.onClick
 import com.soywiz.korge.tween.*
@@ -7,6 +8,7 @@ import com.soywiz.korge.view.View
 import com.soywiz.korge.view.get
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.async
+import com.soywiz.korio.async.sleep
 import com.soywiz.korio.util.Extra
 
 var Board.Cell.view by Extra.Property<View?> { null }
@@ -22,7 +24,7 @@ fun Board.Cell.set(type: Chip) {
 	})
 }
 
-fun Board.Cell.setAnimate(type: Chip) {
+suspend fun Board.Cell.setAnimate(type: Chip) {
 	set(type)
 	async {
 		view.tween(
@@ -35,7 +37,7 @@ fun Board.Cell.setAnimate(type: Chip) {
 
 var Board.Cell.highlighting by Extra.Property { false }
 
-fun Board.Cell.highlight(highlight: Boolean) {
+suspend fun Board.Cell.highlight(highlight: Boolean) {
 	view["highlight"].play(if (highlight) "highlight" else "none")
 	this.highlighting = highlight
 	if (highlight) {
@@ -60,7 +62,7 @@ fun Board.Cell.highlight(highlight: Boolean) {
 	}
 }
 
-fun Board.Cell.lowlight(lowlight: Boolean) {
+suspend fun Board.Cell.lowlight(lowlight: Boolean) {
 	async {
 		view.tween(
 			view!!::scale[1.0, 0.7],
@@ -70,7 +72,7 @@ fun Board.Cell.lowlight(lowlight: Boolean) {
 	}
 }
 
-fun Board.reset() {
+suspend fun Board.reset() {
 	for (cell in cells) {
 		//cell.view?.removeAllComponents()
 		cell.set(Chip.EMPTY)
