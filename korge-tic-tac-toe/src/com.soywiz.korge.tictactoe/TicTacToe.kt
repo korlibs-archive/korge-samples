@@ -2,10 +2,8 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
-import com.soywiz.korge.bitmapfont.BitmapFont
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.resources.Path
-import com.soywiz.korge.resources.ResourcesRoot
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.view.Container
@@ -33,8 +31,7 @@ object TicTacToeModule : Module() {
 
 // Controller
 class TicTacToeMainScene(
-	@Path("main.swf") val mainLibrary: AnLibrary,
-	@Path("font/font.fnt") val font: BitmapFont
+	@Path("main.ani") val mainLibrary: AnLibrary
 ) : Scene() {
 	val board = Board(3, 3)
 	lateinit var game: Game

@@ -77,10 +77,10 @@ suspend fun Board.reset() {
 		//cell.view?.removeAllComponents()
 		cell.set(Chip.EMPTY)
 		cell.highlight(false)
-		cell.view!!.scale = 1.0
-		cell.view!!.alpha = 1.0
-		cell.view["chip"]!!.scale = 1.0
-		cell.view["chip"]!!.alpha = 1.0
+		cell.view?.scale = 1.0
+		cell.view?.alpha = 1.0
+		cell.view["chip"]?.scale = 1.0
+		cell.view["chip"]?.alpha = 1.0
 	}
 }
 
