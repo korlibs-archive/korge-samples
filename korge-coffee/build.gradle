@@ -1,0 +1,42 @@
+apply from: "../include.gradle"
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = "com.soywiz.korge.games.coffee.KorgeCoffeeModule"
+
+sourceSets {
+    generated.resources.srcDirs = [ 'genresources' ]
+
+    main.kotlin.srcDirs = [ 'src' ]
+    main.resources.srcDirs = [ 'resources', 'genresources' ]
+    test.kotlin.srcDirs = [ 'test' ]
+}
+
+
+dependencies {
+    compile "com.soywiz:korge:$korVersion"
+    compile "com.soywiz:korge-ext-swf:$korVersion"
+    compile "com.soywiz:korau-mp3:$korVersion"
+
+    nojtransc "com.soywiz:korge-ext-swf:$korVersion"
+    nojtransc "com.soywiz:korau-mp3:$korVersion"
+}
+
+jtransc {
+    minimizeNames = true
+    treeshaking = true
+
+    assets("resources")
+    assets("genresources")
+
+    skipServiceLoader("com.soywiz.korim.format.JPEG")
+    skipServiceLoader("com.soywiz.korim.format.PNG")
+
+    skipServiceLoader("com.soywiz.korau.format.MP3")
+    skipServiceLoader("com.soywiz.korau.format.OGG")
+}
+
+jar.enabled = false
+distTar.enabled = false
+distZip.enabled = false
