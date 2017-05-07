@@ -1,14 +1,13 @@
 package com.soywiz.korge.tictactoe
 
-import com.soywiz.korge.animate.AnMovieClip
 import com.soywiz.korge.animate.play
 import com.soywiz.korge.input.onClick
+import com.soywiz.korge.time.milliseconds
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.View
 import com.soywiz.korge.view.get
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.async
-import com.soywiz.korio.async.sleep
 import com.soywiz.korio.util.Extra
 
 var Board.Cell.view by Extra.Property<View?> { null }
@@ -30,7 +29,7 @@ suspend fun Board.Cell.setAnimate(type: Chip) {
 		view.tween(
 			(view["chip"]!!::alpha[0.7, 1.0]).linear(),
 			(view["chip"]!!::scale[0.8, 1.0]).easeOutElastic(),
-			time = 300
+			time = 300.milliseconds
 		)
 	}
 }
@@ -45,18 +44,18 @@ suspend fun Board.Cell.highlight(highlight: Boolean) {
 
 			val hl = view["highlight"]!!
 			while (highlighting) {
-				hl.tween((hl::alpha[0.7]).easeInOutQuad(), time = 300)
-				hl.tween((hl::alpha[1.0]).easeInOutQuad(), time = 200)
+				hl.tween((hl::alpha[0.7]).easeInOutQuad(), time = 300.milliseconds)
+				hl.tween((hl::alpha[1.0]).easeInOutQuad(), time = 200.milliseconds)
 			}
 		}
 
 		async {
 			val ch = view["chip"]!!
-			ch.tween((ch::scale..0.4).easeOutQuad(), time = 100)
-			ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300)
+			ch.tween((ch::scale[0.4]).easeOutQuad(), time = 100.milliseconds)
+			ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300.milliseconds)
 			while (highlighting) {
-				ch.tween((ch::scale[1.0]).easeOutQuad(), time = 300)
-				ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300)
+				ch.tween((ch::scale[1.0]).easeOutQuad(), time = 300.milliseconds)
+				ch.tween((ch::scale[1.2]).easeOutElastic(), time = 300.milliseconds)
 			}
 		}
 	}
@@ -67,7 +66,7 @@ suspend fun Board.Cell.lowlight(lowlight: Boolean) {
 		view.tween(
 			view!!::scale[1.0, 0.7],
 			view!!::alpha[0.3],
-			time = 300, easing = Easings.EASE_OUT_QUAD
+			time = 300.milliseconds, easing = Easings.EASE_OUT_QUAD
 		)
 	}
 }

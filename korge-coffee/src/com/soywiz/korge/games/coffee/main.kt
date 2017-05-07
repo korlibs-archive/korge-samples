@@ -2,6 +2,7 @@ package com.soywiz.korge.games.coffee
 
 import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
+import com.soywiz.korge.animate.playAndWaitEvent
 import com.soywiz.korge.component.docking.jekllyButton
 import com.soywiz.korge.resources.Path
 import com.soywiz.korge.scene.*
@@ -11,10 +12,7 @@ import com.soywiz.korge.time.sleep
 import com.soywiz.korge.tween.Easing
 import com.soywiz.korge.tween.get
 import com.soywiz.korge.tween.tween
-import com.soywiz.korge.view.Camera
-import com.soywiz.korge.view.Container
-import com.soywiz.korge.view.camera
-import com.soywiz.korge.view.get
+import com.soywiz.korge.view.*
 import com.soywiz.korim.color.ColorTransform
 import com.soywiz.korio.async.AsyncSignal
 import com.soywiz.korio.async.go
@@ -31,9 +29,6 @@ object KorgeCoffeeModule : Module() {
 	override val virtualHeight: Int = 1280
 	override val virtualWidth: Int = 720
 	override val icon: String = "icon.png"
-
-	object StartMessage
-	//object CloseCredits
 
 	@Singleton
 	class LibraryContainer(
@@ -72,16 +67,11 @@ object KorgeCoffeeModule : Module() {
 			creditsSC = views.sceneContainer()
 			sceneView += creditsSC
 			sceneView["playButton"].jekllyButton(1.2).onClick {
-				//bus.send(StartMessage)
 				onStart(Unit)
 			}
 			sceneView["creditsButton"].jekllyButton(1.2).onClick {
 				creditsSC.pushTo<CreditsScene>(time = 0.2.seconds)
 			}
-			//o {
-			//	sleep(1.seconds)
-			//	bus.send(StartMessage)
-			//
 		}
 
 		suspend override fun sceneBeforeLeaving() {
@@ -94,16 +84,8 @@ object KorgeCoffeeModule : Module() {
 		val lib: LibraryContainer
 	) : Scene() {
 		lateinit var camera: Camera
+		lateinit var hud: View
 		lateinit var mainMenuSC: SceneContainer
-
-		//@BusHandler suspend fun handle(s: StartMessage) {
-		//	//views.clearEachFrame = false
-		//	go {
-		//		mainMenuSC.changeTo<EmptyScene>(time = 1.seconds, transition = AlphaTransition.withEasing(Easing.EASE_OUT_QUAD))
-		//	}
-		//	startGame()
-		//	//views.clearEachFrame = true
-		//}
 
 		suspend override fun sceneInit(sceneView: Container) {
 			camera = views.camera()
@@ -112,6 +94,9 @@ object KorgeCoffeeModule : Module() {
 			sceneView += camera.apply {
 				this += lib.library.createMovieClip("Ingame")
 			}
+			hud = lib.library.createMovieClip("Hud")
+			sceneView += hud
+			hud.alpha = 0.0
 			mainMenuSC = views.sceneContainer()
 			sceneView += mainMenuSC
 			val mainMenu = mainMenuSC.pushTo<MainMenuScene>()
@@ -121,11 +106,7 @@ object KorgeCoffeeModule : Module() {
 				}
 				startGame()
 			}
-			//println(sceneView["action"])
-			//println(sceneView["menuCamera"]?.getGlobalBounds())
-			//println(sceneView["ingameCamera"]?.getGlobalBounds())
 
-			//println(camera.getLocalMatrixFittingView(sceneView["ingameCamera"]!!))
 			camera.setTo(sceneView["menuCamera"]!!)
 			sceneView["action"]?.colorTransform = ColorTransform.Add(-255, -255, -255, 0)
 		}
@@ -135,7 +116,12 @@ object KorgeCoffeeModule : Module() {
 				val action = sceneView["action"]
 				action?.tween(action::colorTransform[ColorTransform.Add(0, 0, 0, 0)], time = 5.seconds, easing = Easing.LINEAR)
 			}
+			go {
+				hud?.tween(hud::alpha[1.0], time = 2.seconds, easing = Easing.LINEAR)
+			}
 			camera.tweenTo(sceneView["showCamera"], time = 2.seconds, easing = Easing.EASE_IN_OUT_QUAD)
+			sceneView["messages"]?.speed = 0.7
+			sceneView["messages"].playAndWaitEvent("destroy", "destroy_continue")
 			camera.sleep(0.5.seconds)
 			go {
 				val background = sceneView["background"]
