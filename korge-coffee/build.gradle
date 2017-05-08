@@ -25,6 +25,7 @@ dependencies {
 
 jtransc {
     minimizeNames = true
+	//minimizeNames = false
     treeshaking = true
 
     assets("resources")
