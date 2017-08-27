@@ -30,6 +30,7 @@ import com.soywiz.korio.inject.Singleton
 import com.soywiz.korio.util.closeable
 import com.soywiz.korma.geom.Anchor
 import com.soywiz.korma.geom.Point2d
+import com.soywiz.korma.geom.SizeInt
 import com.soywiz.korma.random.get
 import java.net.URL
 import java.util.*
@@ -50,10 +51,8 @@ object KorgeCoffeeModule : Module() {
 
 	override val title: String = "KorGE Coffee"
 	override val mainScene: Class<out Scene> = MainScene::class.java
-	override val width: Int = (720 * 0.75).toInt()
-	override val height: Int = (1280 * 0.75).toInt()
-	override val virtualHeight: Int = 1280
-	override val virtualWidth: Int = 720
+	override val size: SizeInt = SizeInt(720, 1280)
+	override val windowSize: SizeInt = size * 0.75
 	override val icon: String = "icon.png"
 
 	@Singleton

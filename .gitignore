@@ -1,6 +1,9 @@
-.idea
-.gradle
+/.idea
+/.gradle
 /build
 /classes
+/out
+/genresources
 RECUP_*.fla
 game.storage
+*.iml

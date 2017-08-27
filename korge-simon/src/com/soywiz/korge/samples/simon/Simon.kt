@@ -24,6 +24,7 @@ import com.soywiz.korio.async.waitOne
 import com.soywiz.korio.inject.Optional
 import com.soywiz.korio.util.substr
 import com.soywiz.korma.geom.ISize
+import com.soywiz.korma.geom.SizeInt
 import com.soywiz.korma.random.get
 import com.soywiz.korui.geom.len.Padding
 import com.soywiz.korui.geom.len.em
@@ -36,11 +37,8 @@ import java.util.*
 object Simon : Module() {
 	@JvmStatic fun main(args: Array<String>) = Korge(this)
 
-	override val virtualWidth: Int = 1280
-	override val virtualHeight: Int = 720
-
-	override val width: Int = (virtualWidth * 0.75).toInt()
-	override val height: Int = (virtualHeight * 0.75).toInt()
+	override val size: SizeInt = SizeInt(1280, 720)
+	override val windowSize: SizeInt = size * 0.75
 
 	override val title: String = "Kotlin Simon"
 

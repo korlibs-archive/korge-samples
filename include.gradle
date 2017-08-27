@@ -16,47 +16,47 @@ targetCompatibility = 1.7
 kotlin { experimental { coroutines 'enable' } }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+	mavenLocal()
+	mavenCentral()
 }
 
 sourceSets {
-    main.java.srcDirs = ['src']
-    test.java.srcDirs = ['test']
-    main.resources.srcDirs = ['resources']
-    test.resources.srcDirs = ['testresources']
-    main.java.srcDirs += 'src/main/kotlin'
+	main.java.srcDirs = ['src']
+	test.java.srcDirs = ['test']
+	main.resources.srcDirs = ['resources']
+	test.resources.srcDirs = ['testresources']
+	main.java.srcDirs += 'src/main/kotlin'
 }
 
 dependencies {
-    compile "com.soywiz:korio-core:$korVersion"
-    compile "com.soywiz:korim-core:$korVersion"
-    compile "com.soywiz:korag-core:$korVersion"
-    compile "com.soywiz:korau-core:$korVersion"
-    compile "com.soywiz:korui-core:$korVersion"
-    //compile "com.soywiz:korte:$korVersion"
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+	compile "com.soywiz:korio-core:$korVersion"
+	compile "com.soywiz:korim-core:$korVersion"
+	compile "com.soywiz:korag-core:$korVersion"
+	compile "com.soywiz:korau-core:$korVersion"
+	compile "com.soywiz:korui-core:$korVersion"
+	//compile "com.soywiz:korte:$korVersion"
+	testCompile group: 'junit', name: 'junit', version: '4.11'
+	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 }
 
 task javadoc2(type: Javadoc) {
-    failOnError = false
+	failOnError = false
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc2) {
-    classifier = 'javadoc'
-    from 'build/docs/javadoc'
+	classifier = 'javadoc'
+	from 'build/docs/javadoc'
 }
 
 task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
+	from sourceSets.main.allSource
+	classifier = 'sources'
 }
 
 artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
+	archives jar
+	archives javadocJar
+	archives sourcesJar
 }
 
 task deploy(dependsOn: ['install', 'uploadArchives']) {
