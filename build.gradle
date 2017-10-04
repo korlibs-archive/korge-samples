@@ -1,8 +1,9 @@
 buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
+	repositories {
+		mavenLocal()
+		maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+		mavenCentral()
+	}
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "com.soywiz:korge-gradle-plugin:$korVersion"
@@ -21,6 +22,7 @@ allprojects {
     repositories {
         mavenLocal()
         jcenter()
+		maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         mavenCentral()
     }
 }

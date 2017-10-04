@@ -2,6 +2,6 @@ rootProject.name = 'korge-samples'
 
 include(
 	'korge-tic-tac-toe',
-	'korge-coffee',
-	'korge-simon',
+	//'korge-coffee',
+	//'korge-simon',
 )

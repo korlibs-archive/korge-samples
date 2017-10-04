@@ -19,10 +19,11 @@ dependencies {
     compile "com.soywiz:korge-ext-swf:$korVersion"
     compile "com.soywiz:korau-mp3:$korVersion"
 
-    nojtransc "com.soywiz:korge-ext-swf:$korVersion"
-    nojtransc "com.soywiz:korau-mp3:$korVersion"
+    //nojtransc "com.soywiz:korge-ext-swf:$korVersion"
+    //nojtransc "com.soywiz:korau-mp3:$korVersion"
 }
 
+/*
 jtransc {
     minimizeNames = true
 	//minimizeNames = false
@@ -37,6 +38,7 @@ jtransc {
     skipServiceLoader("com.soywiz.korau.format.MP3")
     skipServiceLoader("com.soywiz.korau.format.OGG")
 }
+*/
 
 jar.enabled = false
 distTar.enabled = false

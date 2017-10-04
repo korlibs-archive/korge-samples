@@ -2,7 +2,9 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korge.Korge
 import com.soywiz.korge.animate.AnLibrary
+import com.soywiz.korge.animate.AnLibraryPlugin
 import com.soywiz.korge.input.mouse
+import com.soywiz.korge.plugin.KorgePlugin
 import com.soywiz.korge.resources.Path
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.Scene
@@ -13,15 +15,23 @@ import com.soywiz.korge.view.setText
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.go
 import com.soywiz.korio.async.waitOne
+import com.soywiz.korio.error.invalidOp
 import com.soywiz.korio.inject.AsyncInjector
+import com.soywiz.korio.lang.JvmStatic
 import com.soywiz.korma.geom.PointInt
 
-fun main(args: Array<String>) = Korge(TicTacToeModule)
+object TicTacToe {
+	@JvmStatic
+	fun main(args: Array<String>) = Korge(TicTacToeModule, injector = AsyncInjector().generatedInject())
+}
 
 object TicTacToeModule : Module() {
-	override val mainScene: Class<out Scene> = TicTacToeMainScene::class.java
+	override val mainScene = TicTacToeMainScene::class
 	override val title: String = "tic-tac-toe"
 	override val icon: String = "icon.png"
+	override val plugins: List<KorgePlugin> = super.plugins + listOf(
+		AnLibraryPlugin
+	)
 
 	suspend override fun init(injector: AsyncInjector) {
 		//injector.get<ResourcesRoot>().mapExtensions("swf" to "ani")
@@ -50,7 +60,7 @@ class TicTacToeMainScene(
 		//val p2 = InteractivePlayer(board, Chip.CIRCLE)
 
 		game = Game(board, listOf(p1, p2))
-		destroyCancellables += go {
+		cancellables += go {
 			while (true) {
 				game.board.reset()
 				val result = game.game()
@@ -114,7 +124,7 @@ class BotPlayer(val board: Board, override val chip: Chip) : Player {
 				return cell.pos
 			}
 		}
-		throw IllegalStateException("No more movements")
+		invalidOp("No more movements")
 	}
 }
 

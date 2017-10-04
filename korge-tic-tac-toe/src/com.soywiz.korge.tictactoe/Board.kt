@@ -3,6 +3,7 @@ package com.soywiz.korge.tictactoe
 import com.soywiz.korio.util.Extra
 import com.soywiz.korma.ds.Array2
 import com.soywiz.korma.geom.PointInt
+import kotlin.collections.ArrayList
 
 enum class Chip { EMPTY, CROSS, CIRCLE }
 
@@ -22,14 +23,14 @@ class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = wid
 		return (0 until size).map { cells[x + dx * it, y + dy * it] }
 	}
 
-	val lines = arrayListOf<List<Cell>>()
+	val lines = kotlin.collections.ArrayList<List<Cell>>()
 
 	init {
 		fun addLine(line: List<Cell>?) {
 			if (line != null) lines += line
 		}
-		for (y in 0 .. height) {
-			for (x in 0 .. width) {
+		for (y in 0..height) {
+			for (x in 0..width) {
 				addLine(select(x, y, 1, 0, lineSize))
 				addLine(select(x, y, 0, 1, lineSize))
 				addLine(select(x, y, 1, 1, lineSize))
@@ -41,20 +42,23 @@ class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = wid
 	operator fun get(x: Int, y: Int) = cells[x, y]
 	operator fun set(x: Int, y: Int, value: Chip) = run { cells[x, y].value = value }
 
-	val Iterable<Cell>.chipLine: Chip? get() {
-		val expected = this.first().value
-		return if (expected == Chip.EMPTY) null else if (this.all { it.value == expected }) expected else null
-	}
+	val Iterable<Cell>.chipLine: Chip?
+		get() {
+			val expected = this.first().value
+			return if (expected == Chip.EMPTY) null else if (this.all { it.value == expected }) expected else null
+		}
 
 	val moreMovements: Boolean get() = cells.any { it.value == Chip.EMPTY }
 
-	val winnerLine: List<Cell>? get() {
-		val out = arrayListOf<Cell>()
-		for (line in lines) if (line.chipLine != null) out += line
-		return if (out.isEmpty()) null else out.toSet().toList()
-	}
+	val winnerLine: List<Cell>?
+		get() {
+			val out = kotlin.collections.ArrayList<Cell>()
+			for (line in lines) if (line.chipLine != null) out += line
+			return if (out.isEmpty()) null else out.toSet().toList()
+		}
 
-	val winner: Chip? get() {
-		return winnerLine?.firstOrNull()?.value
-	}
+	val winner: Chip?
+		get() {
+			return winnerLine?.firstOrNull()?.value
+		}
 }
