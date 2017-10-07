@@ -140,11 +140,15 @@ object Simon : Module() {
 				cpuTurn(turn)
 				if (!playerTurn(turn)) {
 					println("FAILED!")
-					failSound.play().await()
+					val sound = failSound.play()
+					//sound.await()
+					sleep(0.5.seconds)
 					break
 				} else {
 					println("SUCCESS START")
-					successSound.play().await()
+					val sound = successSound.play()
+					//sound.await()
+					sleep(0.5.seconds)
 					println("SUCCESS END")
 				}
 				turn++
@@ -184,11 +188,15 @@ object Simon : Module() {
 		}
 
 		suspend fun highlight(index: Int) {
+			println("PLAY START")
 			val sound = soundSystem.play(sounds[index])
+			println("PLAY PROGRESS")
 			images[index].colorMul = Colors["#ff7f7f"]
 			sleep(0.3.seconds)
 			images[index].colorMul = Colors.WHITE
-			sound.await()
+			//sound.await()
+			sleep(0.5.seconds)
+			println("PLAY END")
 		}
 	}
 }

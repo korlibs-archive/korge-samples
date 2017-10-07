@@ -1,0 +1,14 @@
+apply plugin: 'kotlin-platform-js'
+
+sourceSets {
+	main.resources.srcDirs = [ '../common/src/main/resources', '../common/src/generated/resources' ]
+}
+
+dependencies {
+	implement project(":korge-simon:common")
+
+	compile "com.soywiz:korge-js:$korVersion"
+	compile "com.soywiz:korge-ext-swf-js:$korVersion"
+	compile "com.soywiz:korge-ext-ui-js:$korVersion"
+	compile "com.soywiz:korau-mp3-js:$korVersion"
+}

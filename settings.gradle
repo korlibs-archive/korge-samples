@@ -9,6 +9,8 @@ include(
 	'korge-simon:js',
 	'korge-simon:jvm',
 
-	//'korge-coffee',
-	//'korge-simon',
+	'korge-coffee:common',
+	'korge-coffee:js',
+	'korge-coffee:jvm',
 )
+

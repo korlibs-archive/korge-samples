@@ -6,10 +6,8 @@ import com.soywiz.korge.bitmapfont.BitmapFont
 import com.soywiz.korge.component.docking.jellyButton
 import com.soywiz.korge.event.addEventListener
 import com.soywiz.korge.input.mouse
-import com.soywiz.korge.input.onDown
-import com.soywiz.korge.input.onUp
-import com.soywiz.korge.input.onUpAnywhere
 import com.soywiz.korge.resources.Path
+import com.soywiz.korge.resources.getPath
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.service.Browser
 import com.soywiz.korge.service.storage.Storage
@@ -23,37 +21,53 @@ import com.soywiz.korim.color.ColorTransform
 import com.soywiz.korio.async.AsyncSignal
 import com.soywiz.korio.async.Promise
 import com.soywiz.korio.async.go
-import com.soywiz.korio.async.waitOne
 import com.soywiz.korio.inject.AsyncInjector
 import com.soywiz.korio.inject.Optional
 import com.soywiz.korio.inject.Singleton
+import com.soywiz.korio.lang.JvmStatic
 import com.soywiz.korio.util.closeable
 import com.soywiz.korma.geom.Anchor
 import com.soywiz.korma.geom.Point2d
 import com.soywiz.korma.geom.SizeInt
+import com.soywiz.korma.random.MtRand
 import com.soywiz.korma.random.get
-import java.net.URL
-import java.util.*
+import kotlin.math.max
 
 @Suppress("unused")
 object KorgeCoffeeModule : Module() {
-	@JvmStatic fun main(args: Array<String>) = Korge(KorgeCoffeeModule)
+	@JvmStatic
+	fun main(args: Array<String>) = Korge(KorgeCoffeeModule, injector = AsyncInjector().prepareKoffee())
+
+	fun AsyncInjector.prepareKoffee() = this.apply {
+		mapSingleton { Storage() }
+		mapSingleton { com.soywiz.korge.service.Browser() }
+		mapSingleton { GameStorage(get()) }
+		mapSingleton { LibraryContainer(getPath("font.fnt"), getPath("main.ani")) }
+		mapPrototype { CreditsScene(get(), get(), get()) }
+		mapPrototype { MainMenuScene(get(), get()) }
+		mapPrototype { MainScene(get(), getOrNull(), get()) }
+	}
 
 	object MainDebug {
-		@JvmStatic fun main(args: Array<String>) = Korge(KorgeCoffeeModule, sceneClass = MainScene::class.java, sceneInjects = listOf(MainScene.State.MAIN_MENU), debug = true)
+		@JvmStatic
+		fun main(args: Array<String>) = Korge(KorgeCoffeeModule, sceneClass = MainScene::class, injector = AsyncInjector().prepareKoffee(), sceneInjects = listOf(MainScene.State.MAIN_MENU), debug = true)
 	}
 
 	// Go directly to ingame to avoid testing main menu
 	object IngameDebug {
 		//@JvmStatic fun main(args: Array<String>) = Korge.invoke(KorgeCoffeeModule, sceneClass = MainScene::class.java, sceneInjects = listOf(MainScene.State.INGAME), debug = true)
-		@JvmStatic fun main(args: Array<String>) = Korge.invoke(KorgeCoffeeModule, sceneClass = MainScene::class.java, sceneInjects = listOf(MainScene.State.INGAME), debug = false)
+		@JvmStatic
+		fun main(args: Array<String>) = Korge.invoke(KorgeCoffeeModule, sceneClass = MainScene::class, injector = AsyncInjector().prepareKoffee(), sceneInjects = listOf(MainScene.State.INGAME), debug = false)
 	}
 
 	override val title: String = "KorGE Coffee"
-	override val mainScene: Class<out Scene> = MainScene::class.java
+	override val mainScene = MainScene::class
 	override val size: SizeInt = SizeInt(720, 1280)
 	override val windowSize: SizeInt = size * 0.75
 	override val icon: String = "icon.png"
+	override val plugins = super.plugins + listOf(
+		AnLibraryPlugin
+	)
 
 	@Singleton
 	class GameStorage(
@@ -82,12 +96,12 @@ object KorgeCoffeeModule : Module() {
 		val lib = libraryContainer.library
 		suspend override fun sceneInit(sceneView: Container) {
 			sceneView += lib.createMovieClip("Credits")
-			sceneView["korge"].jellyButton(1.2).onClick { browser.browse(URL("http://korge.soywiz.com/")) }
-			sceneView["kotlin"].jellyButton(1.2).onClick { browser.browse(URL("https://kotlinlang.org/")) }
-			sceneView["animate"].jellyButton(1.2).onClick { browser.browse(URL("http://www.adobe.com/products/animate.html")) }
-			sceneView["github"].jellyButton(1.2).onClick { browser.browse(URL("https://github.com/soywiz/korge-samples/tree/master/korge-coffee")) }
-			sceneView["soywiz"].jellyButton(1.2).onClick { browser.browse(URL("http://soywiz.com/")) }
-			sceneView["tamy"].jellyButton(1.2).onClick { browser.browse(URL("http://comic.tamy.es/")) }
+			sceneView["korge"].jellyButton(1.2).onClick { browser.browse("http://korge.soywiz.com/") }
+			sceneView["kotlin"].jellyButton(1.2).onClick { browser.browse("https://kotlinlang.org/") }
+			sceneView["animate"].jellyButton(1.2).onClick { browser.browse("http://www.adobe.com/products/animate.html") }
+			sceneView["github"].jellyButton(1.2).onClick { browser.browse("https://github.com/soywiz/korge-samples/tree/master/korge-coffee") }
+			sceneView["soywiz"].jellyButton(1.2).onClick { browser.browse("http://soywiz.com/") }
+			sceneView["tamy"].jellyButton(1.2).onClick { browser.browse("http://comic.tamy.es/") }
 			sceneView["close"].jellyButton(1.2).onClick { this.sceneContainer.back(time = 0.3.seconds) }
 		}
 
@@ -288,7 +302,7 @@ object KorgeCoffeeModule : Module() {
 		var running = true
 
 		private fun updateHiScore() {
-			gameStorage.HiScore = Math.max(gameStorage.HiScore, score)
+			gameStorage.HiScore = max(gameStorage.HiScore, score)
 		}
 
 		suspend fun allowSpeedUp(callback: suspend () -> Unit) {
@@ -403,7 +417,7 @@ object KorgeCoffeeModule : Module() {
 			return kotlinHigh
 		}
 
-		val random = Random()
+		val random = MtRand()
 
 		data class DifficultyConfig(
 			val spawnCount: Int = 2,

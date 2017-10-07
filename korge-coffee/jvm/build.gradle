@@ -1,0 +1,18 @@
+apply plugin: 'kotlin-platform-jvm'
+
+apply plugin: 'application'
+
+mainClassName = "com.soywiz.korge.games.coffee.KorgeCoffeeModule"
+
+sourceSets {
+	main.resources.srcDirs = [ '../common/src/main/resources', '../common/src/generated/resources' ]
+}
+
+dependencies {
+	implement project(":korge-coffee:common")
+
+	compile "com.soywiz:korge:$korVersion"
+	compile "com.soywiz:korge-ext-swf:$korVersion"
+	compile "com.soywiz:korau-mp3:$korVersion"
+	testCompile "com.soywiz:korge-tests:$korVersion"
+}
