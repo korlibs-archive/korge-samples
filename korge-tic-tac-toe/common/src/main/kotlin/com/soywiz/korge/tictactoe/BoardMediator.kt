@@ -2,6 +2,7 @@ package com.soywiz.korge.tictactoe
 
 import com.soywiz.korge.animate.play
 import com.soywiz.korge.input.onClick
+import com.soywiz.korge.input.onUp
 import com.soywiz.korge.time.milliseconds
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.View
@@ -86,7 +87,7 @@ suspend fun Board.reset() {
 fun Board.Cell.init(view: View) {
 	this.view = view
 	set(this.value)
-	view["hit"].onClick {
+	view["hit"].onUp {
 		onPress(Unit)
 	}
 }

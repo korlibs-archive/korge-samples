@@ -5,6 +5,10 @@ include(
 	'korge-tic-tac-toe:js',
 	'korge-tic-tac-toe:jvm',
 
+	'korge-simon:common',
+	'korge-simon:js',
+	'korge-simon:jvm',
+
 	//'korge-coffee',
 	//'korge-simon',
 )

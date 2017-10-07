@@ -1,0 +1,12 @@
+apply plugin: 'kotlin-platform-common'
+
+sourceSets {
+	main.resources.srcDirs = [ 'src/main/resources', 'src/generated/resources' ]
+}
+
+dependencies {
+	compile "com.soywiz:korge-common:$korVersion"
+	compile "com.soywiz:korge-ext-swf-common:$korVersion"
+	compile "com.soywiz:korge-ext-ui-common:$korVersion"
+	compile "com.soywiz:korau-mp3-common:$korVersion"
+}

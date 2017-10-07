@@ -1,0 +1,17 @@
+apply plugin: 'kotlin-platform-jvm'
+apply plugin: 'application'
+
+mainClassName = 'com.soywiz.korge.samples.simon.Simon'
+
+sourceSets {
+	main.resources.srcDirs = [ '../common/src/main/resources', '../common/src/generated/resources' ]
+}
+
+dependencies {
+	implement project(":korge-simon:common")
+
+	compile "com.soywiz:korge:$korVersion"
+	compile "com.soywiz:korge-ext-swf:$korVersion"
+	compile "com.soywiz:korge-ext-ui:$korVersion"
+	compile "com.soywiz:korau-mp3:$korVersion"
+}

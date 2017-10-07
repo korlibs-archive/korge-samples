@@ -5,26 +5,32 @@ import com.soywiz.korge.atlas.Atlas
 import com.soywiz.korge.audio.SoundFile
 import com.soywiz.korge.audio.SoundSystem
 import com.soywiz.korge.audio.readSoundFile
-import com.soywiz.korge.html.Html
 import com.soywiz.korge.input.mouse
+import com.soywiz.korge.plugin.KorgePlugin
 import com.soywiz.korge.resources.Path
+import com.soywiz.korge.resources.getPath
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.ScaledScene
 import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.scene.sleep
 import com.soywiz.korge.time.seconds
 import com.soywiz.korge.ui.UIFactory
+import com.soywiz.korge.ui.UIPlugin
 import com.soywiz.korge.ui.korui.koruiFrame
 import com.soywiz.korge.util.AutoClose
-import com.soywiz.korge.view.*
+import com.soywiz.korge.view.Container
+import com.soywiz.korge.view.Image
+import com.soywiz.korge.view.image
 import com.soywiz.korim.color.Colors
 import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.go
 import com.soywiz.korio.async.waitOne
+import com.soywiz.korio.inject.AsyncInjector
 import com.soywiz.korio.inject.Optional
-import com.soywiz.korio.util.substr
+import com.soywiz.korio.lang.JvmStatic
 import com.soywiz.korma.geom.ISize
 import com.soywiz.korma.geom.SizeInt
+import com.soywiz.korma.random.MtRand
 import com.soywiz.korma.random.get
 import com.soywiz.korui.geom.len.Padding
 import com.soywiz.korui.geom.len.em
@@ -32,29 +38,38 @@ import com.soywiz.korui.style.padding
 import com.soywiz.korui.ui.button
 import com.soywiz.korui.ui.click
 import com.soywiz.korui.ui.horizontal
-import java.util.*
 
 object Simon : Module() {
-	@JvmStatic fun main(args: Array<String>) = Korge(this)
+	@JvmStatic
+	fun main(args: Array<String>) = Korge(this, injector = AsyncInjector()
+		.mapPrototype { SelectLevelScene(getPath("kotlin.atlas"), get()) }
+		.mapPrototype {
+			IngameScene(
+				getPath(Atlas::class, "kotlin.atlas"),
+				getPath(SoundFile::class, "sounds/success.wav"),
+				getPath(SoundFile::class, "sounds/fail.mp3"),
+				getOrNull(),
+				get()
+			)
+		}
+	)
 
-	override val size: SizeInt = SizeInt(1280, 720)
-	override val windowSize: SizeInt = size * 0.75
+	override val size = SizeInt(1280, 720)
+	override val windowSize = size * 0.75
+	override val title = "Kotlin Simon"
+	override val icon = "kotlin/0.png"
+	override val mainScene = SelectLevelScene::class
 
-	override val title: String = "Kotlin Simon"
-
-	override val icon: String = "kotlin/0.png"
-	//override val mainScene: Class<out Scene> = MainScene::class.java
-	override val mainScene: Class<out Scene> = SelectLevelScene::class.java
-
+	override val plugins: List<KorgePlugin> = super.plugins + listOf(UIPlugin)
 
 	class Sequence(
 		val max: Int,
-		val random: Random = Random()
+		val random: MtRand = MtRand()
 	) {
-		val items = arrayListOf<Int>()
+		val items = ArrayList<Int>()
 
 		fun ensure(num: Int): List<Int> {
-			while (items.size < num) items += random[0, max]
+			while (items.size < num) items.add(random[0, max])
 			return items
 		}
 	}
