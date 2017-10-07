@@ -1,7 +1,10 @@
 rootProject.name = 'korge-samples'
 
 include(
-	'korge-tic-tac-toe',
+	'korge-tic-tac-toe:common',
+	'korge-tic-tac-toe:js',
+	'korge-tic-tac-toe:jvm',
+
 	//'korge-coffee',
 	//'korge-simon',
 )

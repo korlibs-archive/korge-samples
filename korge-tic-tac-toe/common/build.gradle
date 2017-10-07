@@ -1,10 +1,15 @@
-apply from: "../include_js.gradle"
-
-apply plugin: 'kotlin2js'
+apply plugin: 'kotlin-platform-common'
 //apply plugin: 'application'
 
 //mainClassName = "com.soywiz.korge.tictactoe.TicTacToe"
 
+sourceSets {
+	//generated.resources.srcDirs = ['src/generated/resources']
+	//main.resources.srcDirs = [ 'src/main/resources' ]
+	main.resources.srcDirs = [ 'src/main/resources', 'src/generated/resources' ]
+}
+
+/*
 sourceSets {
 	generated.resources.srcDirs = [ 'genresources' ]
 
@@ -12,17 +17,20 @@ sourceSets {
 	main.resources.srcDirs = [ 'resources', 'genresources' ]
 	test.kotlin.srcDirs = [ 'test' ]
 }
+*/
 
 
 dependencies {
-	compile "com.soywiz:korge-js:$korVersion"
-	compile "com.soywiz:korge-ext-swf-js:$korVersion"
-	compile "com.soywiz:korau-mp3-js:$korVersion"
+	compile "com.soywiz:korge-common:$korVersion"
+	compile "com.soywiz:korge-ext-swf-common:$korVersion"
+	compile "com.soywiz:korau-mp3-common:$korVersion"
+	testCompile "com.soywiz:korge-tests-common:$korVersion"
 	//compile "com.soywiz:korge:$korVersion"
 	//compile "com.soywiz:korge-ext-swf:$korVersion"
 	//compile "com.soywiz:korau-mp3:$korVersion"
 }
 
+/*
 compileKotlin2Js {
 	kotlinOptions.outputFile = "${projectDir}/web/output.js"
 	//kotlinOptions.moduleKind = "amd"
@@ -58,6 +66,7 @@ compileKotlin2Js.doLast {
 }
 
 jar.enabled = false
+*/
 //distTar.enabled = false
 //distZip.enabled = false
 

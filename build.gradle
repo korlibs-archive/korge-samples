@@ -8,6 +8,20 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "com.soywiz:korge-gradle-plugin:$korVersion"
     }
+
+	ext {
+		libraries = [
+			kotlin_stdlib_common: "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion",
+			kotlin_stdlib_jvm   : "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+			kotlin_stdlib_js    : "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlinVersion",
+
+			kotlin_test_common  : "org.jetbrains.kotlin:kotlin-test-common:$kotlinVersion",
+			kotlin_test_jvm     : "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
+			kotlin_test_js      : "org.jetbrains.kotlin:kotlin-test-js:$kotlinVersion",
+
+			kotlin_reflect      : "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
+		]
+	}
 }
 
 configurations {
@@ -25,5 +39,44 @@ allprojects {
 		maven {     url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         mavenCentral()
     }
+
+	it.afterEvaluate {
+		if (it.plugins.hasPlugin("kotlin-platform-common")) {
+			dependencies {
+				compile libraries.kotlin_stdlib_common
+				testCompile libraries.kotlin_test_common
+			}
+
+			kotlin {
+				experimental { coroutines 'enable' }
+			}
+		}
+		if (it.plugins.hasPlugin("kotlin-platform-jvm") || it.plugins.hasPlugin("kotlin")) {
+			dependencies {
+				compile libraries.kotlin_stdlib_jvm
+				testCompile libraries.kotlin_test_jvm
+				testCompile "junit:junit:4.12"
+			}
+
+			kotlin {
+				experimental { coroutines 'enable' }
+			}
+		}
+		if (it.plugins.hasPlugin("kotlin-platform-js") || it.plugins.hasPlugin("kotlin2js")) {
+			dependencies {
+				compile libraries.kotlin_stdlib_js
+				testCompile libraries.kotlin_test_js
+			}
+
+			kotlin {
+				experimental { coroutines 'enable' }
+			}
+
+			compileKotlin2Js {
+				kotlinOptions.moduleKind = "umd"
+				kotlinOptions.sourceMap = true
+			}
+		}
+	}
 }
 
