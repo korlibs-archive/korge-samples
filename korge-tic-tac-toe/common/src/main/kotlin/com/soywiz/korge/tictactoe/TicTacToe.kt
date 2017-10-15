@@ -5,7 +5,7 @@ import com.soywiz.korge.animate.AnLibrary
 import com.soywiz.korge.animate.AnLibraryPlugin
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.plugin.KorgePlugin
-import com.soywiz.korge.resources.Path
+import com.soywiz.korge.resources.getPath
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.Scene
 import com.soywiz.korge.view.Container
@@ -40,11 +40,17 @@ object TicTacToeModule : Module() {
 }
 
 // Controller
-class TicTacToeMainScene(
-	@Path("main.ani") val mainLibrary: AnLibrary
-) : Scene() {
+class TicTacToeMainScene : Scene() {
+	private lateinit var mainLibrary: AnLibrary
+
 	val board = Board(3, 3)
 	lateinit var game: Game
+
+	override suspend fun init(injector: AsyncInjector) {
+		super.init(injector)
+
+		mainLibrary = injector.getPath(AnLibrary::class, "main.ani")
+	}
 
 	suspend override fun sceneInit(sceneView: Container) {
 		sceneView += mainLibrary.createMainTimeLine()

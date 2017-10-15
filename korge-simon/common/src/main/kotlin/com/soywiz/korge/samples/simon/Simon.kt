@@ -7,7 +7,6 @@ import com.soywiz.korge.audio.SoundSystem
 import com.soywiz.korge.audio.readSoundFile
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.plugin.KorgePlugin
-import com.soywiz.korge.resources.Path
 import com.soywiz.korge.resources.getPath
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.ScaledScene
@@ -26,7 +25,7 @@ import com.soywiz.korio.async.Signal
 import com.soywiz.korio.async.go
 import com.soywiz.korio.async.waitOne
 import com.soywiz.korio.inject.AsyncInjector
-import com.soywiz.korio.inject.Optional
+import com.soywiz.korio.inject.InjectorAsyncDependency
 import com.soywiz.korio.lang.JvmStatic
 import com.soywiz.korma.geom.ISize
 import com.soywiz.korma.geom.SizeInt
@@ -42,16 +41,8 @@ import com.soywiz.korui.ui.horizontal
 object Simon : Module() {
 	@JvmStatic
 	fun main(args: Array<String>) = Korge(this, injector = AsyncInjector()
-		.mapPrototype { SelectLevelScene(getPath("kotlin.atlas"), get()) }
-		.mapPrototype {
-			IngameScene(
-				getPath(Atlas::class, "kotlin.atlas"),
-				getPath(SoundFile::class, "sounds/success.wav"),
-				getPath(SoundFile::class, "sounds/fail.mp3"),
-				getOrNull(),
-				get()
-			)
-		}
+		.mapPrototype { SelectLevelScene() }
+		.mapPrototype { IngameScene() }
 	)
 
 	override val size = SizeInt(1280, 720)
@@ -78,11 +69,20 @@ object Simon : Module() {
 		EASY(3), MEDIUM(4), HARD(6)
 	}
 
-	class SelectLevelScene(
-		@Path("kotlin.atlas") val atlas: Atlas,
-		val ui: UIFactory
-	) : Scene() {
+	class SelectLevelScene : Scene(), InjectorAsyncDependency {
+		lateinit var atlas: Atlas; private set
+		lateinit var ui: UIFactory; private set
+
+		override suspend fun init(injector: AsyncInjector) {
+			super.init(injector)
+
+			atlas = injector.getPath(Atlas::class, "kotlin.atlas")
+			ui = injector.get(UIFactory::class)
+		}
+
 		suspend override fun sceneInit(sceneView: Container) {
+			// BUG: Kotlin-JS
+
 			sceneView += ui.koruiFrame {
 				horizontal {
 					padding = Padding(0.2.em)
@@ -91,23 +91,41 @@ object Simon : Module() {
 					button("HARD").click { sceneContainer.pushTo<IngameScene>(Difficulty.HARD) }
 				}
 			}
+
+			//sceneView += ui.koruiFrame {
+			//	add(com.soywiz.korui.ui.Container(this.app, HorizontalLayout(app)).apply {
+			//		padding = Padding(0.2.em)
+			//		button("EASY").click { sceneContainer.pushTo<IngameScene>(Difficulty.EASY) }
+			//		button("MEDIUM").click { sceneContainer.pushTo<IngameScene>(Difficulty.MEDIUM) }
+			//		button("HARD").click { sceneContainer.pushTo<IngameScene>(Difficulty.HARD) }
+			//	})
+			//}
 		}
 	}
 
-	class IngameScene(
-		@Path("kotlin.atlas") val atlas: Atlas,
-		@Path("sounds/success.wav") val successSound: SoundFile,
-		@Path("sounds/fail.mp3") val failSound: SoundFile,
-		@Optional val optDifficulty: Difficulty?,
-		val soundSystem: SoundSystem
-	) : ScaledScene() {
-		val difficulty = optDifficulty ?: Difficulty.MEDIUM
+	class IngameScene : ScaledScene() {
+		private lateinit var atlas: Atlas
+		private lateinit var successSound: SoundFile
+		private lateinit var failSound: SoundFile
+		private lateinit var difficulty: Difficulty
+		private lateinit var soundSystem: SoundSystem
+
 		override val sceneSize = ISize(128, 72)
 		override val sceneScale: Double = 10.0
 
-		val sequence = Sequence(difficulty.items)
+		val sequence by lazy { Sequence(difficulty.items) }
 		val images = arrayListOf<Image>()
 		lateinit var sounds: List<SoundFile>
+
+		override suspend fun init(injector: AsyncInjector) {
+			super.init(injector)
+			atlas = injector.getPath(Atlas::class, "kotlin.atlas")
+			successSound = injector.getPath(SoundFile::class, "sounds/success.wav")
+			failSound = injector.getPath(SoundFile::class, "sounds/fail.mp3")
+			difficulty = injector.getOrNull(Difficulty::class) ?: Difficulty.MEDIUM
+			soundSystem = injector.get(SoundSystem::class)
+			println("IngameScene.difficulty: $difficulty")
+		}
 
 		suspend override fun sceneInit(sceneView: Container) {
 			sounds = (0..8).map { resourcesRoot["sounds/$it.mp3"].readSoundFile(soundSystem) }

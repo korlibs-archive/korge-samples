@@ -76,6 +76,39 @@ allprojects {
 				kotlinOptions.moduleKind = "umd"
 				kotlinOptions.sourceMap = true
 			}
+
+
+			compileKotlin2Js {
+				kotlinOptions.outputFile = "${projectDir}/web/output.js"
+				kotlinOptions.sourceMap = false
+			}
+
+			clean {
+				delete new File("${projectDir}/web")
+			}
+
+			compileKotlin2Js.doLast {
+				configurations.compile.each { File file ->
+					copy {
+						includeEmptyDirs = false
+
+						from zipTree(file.absolutePath)
+						into "${projectDir}/web"
+						include { fileTreeElement ->
+							def path = fileTreeElement.path
+							(path.endsWith(".js") || path.endsWith(".js.map")) && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
+						}
+					}
+				}
+
+				copy {
+					from sourceSets.main.resources.srcDirs
+					into "${projectDir}/web"
+				}
+			}
+
+			jar.enabled = false
+
 		}
 	}
 }

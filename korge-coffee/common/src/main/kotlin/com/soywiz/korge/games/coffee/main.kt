@@ -6,7 +6,6 @@ import com.soywiz.korge.bitmapfont.BitmapFont
 import com.soywiz.korge.component.docking.jellyButton
 import com.soywiz.korge.event.addEventListener
 import com.soywiz.korge.input.mouse
-import com.soywiz.korge.resources.Path
 import com.soywiz.korge.resources.getPath
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.service.Browser
@@ -22,6 +21,7 @@ import com.soywiz.korio.async.AsyncSignal
 import com.soywiz.korio.async.Promise
 import com.soywiz.korio.async.go
 import com.soywiz.korio.inject.AsyncInjector
+import com.soywiz.korio.inject.InjectorAsyncDependency
 import com.soywiz.korio.inject.Optional
 import com.soywiz.korio.inject.Singleton
 import com.soywiz.korio.lang.JvmStatic
@@ -41,11 +41,11 @@ object KorgeCoffeeModule : Module() {
 	fun AsyncInjector.prepareKoffee() = this.apply {
 		mapSingleton { Storage() }
 		mapSingleton { com.soywiz.korge.service.Browser() }
-		mapSingleton { GameStorage(get()) }
-		mapSingleton { LibraryContainer(getPath("font.fnt"), getPath("main.ani")) }
-		mapPrototype { CreditsScene(get(), get(), get()) }
-		mapPrototype { MainMenuScene(get(), get()) }
-		mapPrototype { MainScene(get(), getOrNull(), get()) }
+		mapSingleton { GameStorage(get(Storage::class)) }
+		mapSingleton { LibraryContainer() }
+		mapPrototype { CreditsScene(get(LibraryContainer::class), get(Browser::class), get(GameStorage::class)) }
+		mapPrototype { MainMenuScene(get(LibraryContainer::class), get(GameStorage::class)) }
+		mapPrototype { MainScene(get(LibraryContainer::class), getOrNull(com.soywiz.korge.games.coffee.KorgeCoffeeModule.MainScene.State::class), get(GameStorage::class)) }
 	}
 
 	object MainDebug {
@@ -83,10 +83,15 @@ object KorgeCoffeeModule : Module() {
 	}
 
 	@Singleton
-	class LibraryContainer(
-		@Path("font.fnt") val font: BitmapFont,
-		@Path("main.ani") val library: AnLibrary
-	)
+	class LibraryContainer : InjectorAsyncDependency {
+		lateinit var font: BitmapFont; private set
+		lateinit var library: AnLibrary; private set
+
+		suspend override fun init(injector: AsyncInjector) {
+			font = injector.getPath(BitmapFont::class, "font.fnt")
+			library = injector.getPath(AnLibrary::class, "main.ani")
+		}
+	}
 
 	class CreditsScene(
 		val libraryContainer: LibraryContainer,
@@ -195,14 +200,14 @@ object KorgeCoffeeModule : Module() {
 					openMainMenu(transition = false) {
 						closeMainMenu()
 						startGame()
-						ingame()
+						doIngame()
 					}
 				}
 				State.INGAME -> {
 					camera.setTo(sceneView["ingameCamera"]!!)
 					sceneView["action"]?.colorTransform = ColorTransform.Add(0, 0, 0, 0)
 					sceneView["background"]?.alpha = 1.0
-					ingame()
+					doIngame()
 				}
 			}
 
@@ -458,7 +463,7 @@ object KorgeCoffeeModule : Module() {
 			)
 		}
 
-		suspend fun spawner() {
+		suspend fun doSpawner() {
 			val spawnZones = sceneView.descendantsWithProp("spawnZone")
 
 			var step = 0
@@ -473,10 +478,10 @@ object KorgeCoffeeModule : Module() {
 			}
 		}
 
-		suspend fun ingame() {
+		suspend fun doIngame() {
 			sceneView["pauseButton"]?.mouseEnabled = true
 			spawner = go {
-				spawner()
+				doSpawner()
 			}
 		}
 	}

@@ -1,8 +1,11 @@
 apply plugin: 'kotlin-platform-js'
+//apply plugin: 'kotlin-dce-js'
+//runDceKotlinJs.keep "korge-coffee-js.com.soywiz.korge.games.coffee.KorgeCoffeeModule.main", "korge-coffee-js.com.soywiz.korge.games.coffee.KorgeCoffeeModule"
 
 //apply plugin: 'application'
 
 //mainClassName = "com.soywiz.korge.games.coffee.KorgeCoffeeModule"
+
 
 sourceSets {
 	main.resources.srcDirs = [ '../common/src/main/resources', '../common/src/generated/resources' ]
