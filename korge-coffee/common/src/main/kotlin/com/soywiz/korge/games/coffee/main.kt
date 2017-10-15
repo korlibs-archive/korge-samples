@@ -105,8 +105,8 @@ object KorgeCoffeeModule : Module() {
 			sceneView["kotlin"].jellyButton(1.2).onClick { browser.browse("https://kotlinlang.org/") }
 			sceneView["animate"].jellyButton(1.2).onClick { browser.browse("http://www.adobe.com/products/animate.html") }
 			sceneView["github"].jellyButton(1.2).onClick { browser.browse("https://github.com/soywiz/korge-samples/tree/master/korge-coffee") }
-			sceneView["soywiz"].jellyButton(1.2).onClick { browser.browse("http://soywiz.com/") }
-			sceneView["tamy"].jellyButton(1.2).onClick { browser.browse("http://comic.tamy.es/") }
+			sceneView["soywiz"].jellyButton(1.2).onClick { browser.browse("https://blog.soywiz.com/") }
+			sceneView["tamy"].jellyButton(1.2).onClick { browser.browse("https://tamy.es/") }
 			sceneView["close"].jellyButton(1.2).onClick { this.sceneContainer.back(time = 0.3.seconds) }
 		}
 
