@@ -1,5 +1,3 @@
-package com.soywiz.korge.sample1
-
 import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.tween.*
