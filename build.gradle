@@ -18,3 +18,13 @@ dependencies {
     commonMainApi "com.soywiz:korge-dragonbones:$korgeVersion"
 }
 
+korge {
+    id = "com.soywiz.sample1"
+    name = "Sample1"
+    description = "A sample using Korge and the gradle plugin"
+    orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
+    cordovaPlugin("cordova-launch-review")
+    cordovaPlugin("cordova-plugin-camera")
+    cordovaPlugin("cordova-plugin-admob-free", ["ADMOB_APP_ID": "ca-app-pub-xxxxxxxx~yyyyyy"])
+}
+
