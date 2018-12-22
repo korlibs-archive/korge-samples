@@ -16,6 +16,7 @@ mainClassName = "Sample1Kt"
 
 dependencies {
     commonMainApi "com.soywiz:korge-dragonbones:$korgeVersion"
+	commonMainApi "com.soywiz:kbox2d:0.0.1"
 }
 
 korge {
