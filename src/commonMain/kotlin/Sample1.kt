@@ -1,9 +1,7 @@
 import com.soywiz.korge.*
-import com.soywiz.korge.component.*
+import com.soywiz.korge.box2d.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
-import org.jbox2d.collision.shapes.*
-import org.jbox2d.common.*
 import org.jbox2d.dynamics.*
 
 fun main() = Korge {
@@ -20,25 +18,13 @@ fun main() = Korge {
 		}
 		position(100, 100)
 	}
-	addChild(WorldView())
-}
+	worldView {
+		position(200, 200).scale(20)
 
-inline fun bodyDef(callback: BodyDef.() -> Unit): BodyDef = BodyDef().apply(callback)
-inline fun World.createBody(callback: BodyDef.() -> Unit): Body = createBody(bodyDef(callback))
-inline fun Body.fixture(callback: FixtureDef.() -> Unit): Body = this.also { createFixture(FixtureDef().apply(callback)) }
-inline fun Body.setView(view: View): Body = this.also { userData = view }
-
-class WorldView(val world: World = World(Vec2(0f, -10f))) : Container() {
-	init {
-		addUpdatable {
-			world.step(it.toFloat() / 1000f, velocityIterations = 6, positionIterations = 2)
-			updateViews()
-		}
-
-		val groundBody = world.createBody {
-			position.set(0f, -10f)
+		createBody {
+			setPosition(0, -10)
 		}.fixture {
-			shape = PolygonShape().apply { setAsBox(50f, 10f) }
+			shape = BoxShape(100, 20)
 			density = 0f
 		}.setView(graphics {
 			fill(Colors.RED) {
@@ -48,25 +34,20 @@ class WorldView(val world: World = World(Vec2(0f, -10f))) : Container() {
 		})
 
 		// Dynamic Body
-		val body = world.createBody {
+		createBody {
 			type = BodyType.DYNAMIC
-			position.set(0f, 10f)
+			setPosition(0, 10)
 		}.fixture {
-			shape = PolygonShape().apply { setAsBox(1f, 1f) }
-			density = 1f
+			shape = BoxShape(2f, 2f)
+			density = 0.5f
 			friction = 0.2f
-		}.setView(graphics {
-			fill(Colors.BLUE) {
-				drawRect(-1f, -1f, 2f, 2f)
-			}
-			//anchor(0.5, 0.5)
-		})
+		}.setView(solidRect(2f, 2f, Colors.GREEN).anchor(.5, .5))
 
-		world.createBody {
+		createBody {
 			type = BodyType.DYNAMIC
-			position.set(0.75f, 15f)
+			setPosition(0.75, 15)
 		}.fixture {
-			shape = PolygonShape().apply { setAsBox(1f, 1f) }
+			shape = BoxShape(2f, 2f)
 			density = 1f
 			friction = 0.2f
 		}.setView(graphics {
@@ -74,22 +55,5 @@ class WorldView(val world: World = World(Vec2(0f, -10f))) : Container() {
 				drawRect(-1f, -1f, 2f, 2f)
 			}
 		})
-
-		x = 200.0
-		y = 200.0
-		scale = 20.0
-	}
-
-	fun updateViews() {
-		var node = world.bodyList
-		while (node != null) {
-			val userData = node.userData
-			if (userData is View) {
-				userData.x = node.position.x.toDouble()
-				userData.y = -node.position.y.toDouble()
-				userData.rotationRadians = -node.angle.toDouble()
-			}
-			node = node.m_next
-		}
 	}
 }
