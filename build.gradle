@@ -6,7 +6,7 @@ buildscript {
 		maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.soywiz:korge-gradle-plugin:1.0.0-alpha-1'
+        classpath 'com.soywiz:korge-gradle-plugin:1.0.0-alpha-2'
     }
 }
 
@@ -15,6 +15,8 @@ apply plugin: 'korge'
 mainClassName = "Sample1Kt"
 
 dependencies {
+	commonMainApi "com.soywiz:korma-shape-ops:$korgeVersion"
+	commonMainApi "com.soywiz:korma-triangulate-pathfind:$korgeVersion"
     commonMainApi "com.soywiz:korge-dragonbones:$korgeVersion"
 	commonMainApi "com.soywiz:korge-box2d:$korgeVersion"
 }

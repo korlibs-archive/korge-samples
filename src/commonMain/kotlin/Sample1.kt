@@ -3,6 +3,7 @@ import com.soywiz.korge.box2d.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
+import com.soywiz.korma.geom.vector.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
@@ -11,13 +12,13 @@ fun main() = Korge {
 	//solidRect(300, 200, Colors.DARKCYAN)
 	graphics {
 		fill(Colors.DARKCYAN) {
-			drawRect(-100, -100, 300, 200)
+			rect(-100, -100, 300, 200)
 		}
 		fill(Colors.AQUAMARINE) {
-			drawCircle(0, 0, 100)
+			circle(0, 0, 100)
 		}
 		fill(Colors.AQUAMARINE) {
-			drawCircle(100, 0, 100)
+			circle(100, 0, 100)
 		}
 		position(100, 100)
 	}
@@ -50,7 +51,7 @@ fun main() = Korge {
 			friction = 0.2f
 		}.setView(graphics {
 			fill(Colors.BLUE) {
-				drawRect(-1f, -1f, 2f, 2f)
+				rect(-1f, -1f, 2f, 2f)
 			}
 		})
 
@@ -63,10 +64,10 @@ fun main() = Korge {
 			friction = 3f
 		}.setView(graphics {
 			fill(Colors.BLUE) {
-				drawCircle(0, 0, 200)
+				circle(0, 0, 200)
 			}
 			fill(Colors.DARKCYAN) {
-				drawCircle(100, 100, 20)
+				circle(100, 100, 20)
 			}
 			scale(1f / 100f)
 		})
