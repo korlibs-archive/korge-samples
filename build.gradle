@@ -29,5 +29,8 @@ korge {
     cordovaPlugin("cordova-launch-review")
     cordovaPlugin("cordova-plugin-camera")
     cordovaPlugin("cordova-plugin-admob-free", ["ADMOB_APP_ID": "ca-app-pub-xxxxxxxx~yyyyyy"])
+
+	// @TODO: Enable when using android emulator. This will require 1.0.0-alpha-3 so can't enable for now.
+	//cordovaUseCrosswalk()
 }
 
