@@ -4,10 +4,11 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.vector.*
+import com.soywiz.korui.light.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
-fun main() = Korge {
+fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 	//sceneContainer(views)
 	//solidRect(300, 200, Colors.DARKCYAN)
 	graphics {

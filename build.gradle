@@ -6,7 +6,8 @@ buildscript {
 		maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.soywiz:korge-gradle-plugin:1.0.0-alpha-2'
+        //classpath 'com.soywiz:korge-gradle-plugin:1.0.0-alpha-4'
+		classpath 'com.soywiz:korge-gradle-plugin:1.0.0-alpha-3'
     }
 }
 
@@ -15,8 +16,8 @@ apply plugin: 'korge'
 mainClassName = "Sample1Kt"
 
 dependencies {
-	commonMainApi "com.soywiz:korma-shape-ops:$korgeVersion"
-	commonMainApi "com.soywiz:korma-triangulate-pathfind:$korgeVersion"
+	commonMainApi "com.soywiz:korma-shape-ops:$kormaVersion"
+	commonMainApi "com.soywiz:korma-triangulate-pathfind:$kormaVersion"
     commonMainApi "com.soywiz:korge-dragonbones:$korgeVersion"
 	commonMainApi "com.soywiz:korge-box2d:$korgeVersion"
 }
@@ -30,7 +31,7 @@ korge {
     cordovaPlugin("cordova-plugin-camera")
     cordovaPlugin("cordova-plugin-admob-free", ["ADMOB_APP_ID": "ca-app-pub-xxxxxxxx~yyyyyy"])
 
-	// @TODO: Enable when using android emulator. This will require 1.0.0-alpha-3 so can't enable for now.
-	//cordovaUseCrosswalk()
+	// This allows to support android emulator + android < 5.0 (lollipop)
+	cordovaUseCrosswalk()
 }
 
