@@ -1,6 +1,6 @@
 import com.soywiz.korge.*
 import com.soywiz.korge.box2d.*
-import com.soywiz.korge.scene.*
+import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.vector.*
@@ -22,7 +22,7 @@ fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 			circle(100, 0, 100)
 		}
 		position(100, 100)
-	}
+	}.interactive()
 	worldView {
 		position(400, 400).scale(20)
 
@@ -31,7 +31,7 @@ fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 		}.fixture {
 			shape = BoxShape(100, 20)
 			density = 0f
-		}.setViewWithContainer(solidRect(100, 20, Colors.RED).position(-50, -10))
+		}.setViewWithContainer(solidRect(100, 20, Colors.RED).position(-50, -10).interactive())
 
 		// Dynamic Body
 		createBody {
@@ -41,7 +41,7 @@ fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 			shape = BoxShape(2f, 2f)
 			density = 0.5f
 			friction = 0.2f
-		}.setView(solidRect(2f, 2f, Colors.GREEN).anchor(.5, .5))
+		}.setView(solidRect(2f, 2f, Colors.GREEN).anchor(.5, .5).interactive())
 
 		createBody {
 			type = BodyType.DYNAMIC
@@ -54,7 +54,7 @@ fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 			fill(Colors.BLUE) {
 				rect(-1f, -1f, 2f, 2f)
 			}
-		})
+		}.interactive())
 
 		createBody {
 			type = BodyType.DYNAMIC
@@ -71,6 +71,12 @@ fun main() = Korge(quality = LightQuality.PERFORMANCE) {
 				circle(100, 100, 20)
 			}
 			scale(1f / 100f)
-		})
+		}.interactive())
 	}
+}
+
+fun <T : View> T.interactive(): T = this.apply {
+	alpha = 0.5
+	onOver { alpha = 1.0 }
+	onOut { alpha = 0.5 }
 }
