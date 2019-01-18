@@ -2,13 +2,14 @@ import com.soywiz.korge.*
 import com.soywiz.korge.box2d.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
+import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.vector.*
-import com.soywiz.korui.light.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
-fun main() = Korge(quality = LightQuality.PERFORMANCE) {
+
+fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
 	//sceneContainer(views)
 	//solidRect(300, 200, Colors.DARKCYAN)
 	graphics {
