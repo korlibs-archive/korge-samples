@@ -4,14 +4,17 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.format.readBitmap
+import com.soywiz.korio.file.std.resourcesVfs
 import com.soywiz.korma.geom.vector.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
-
-fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
+suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
 	//sceneContainer(views)
-	//solidRect(300, 200, Colors.DARKCYAN)
+	views.clearColor = Colors.DARKGREEN
+	//views.clearColor = Colors.BLUE
+	solidRect(300, 200, Colors.DARKCYAN)
 	graphics {
 		fill(Colors.DARKCYAN) {
 			rect(-100, -100, 300, 200)
@@ -74,6 +77,7 @@ fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
 			scale(1f / 100f)
 		}.interactive())
 	}
+	image(resourcesVfs["korge.png"].readBitmap())
 }
 
 fun <T : View> T.interactive(): T = this.apply {
