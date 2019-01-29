@@ -4,6 +4,7 @@
 /classes
 /out
 /genresources
+/packages-lock.json
 RECUP_*.fla
 game.storage
 *.iml
