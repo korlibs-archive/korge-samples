@@ -225,13 +225,14 @@ tasks.create("prepareKotlinNativeIosProject") {
 						line("rootGameMain?.runMain()")
 						line("reshape = true")
 					}
-
+					line("let width = Int32(view.bounds.width * view.contentScaleFactor)")
+					line("let height = Int32(view.bounds.height * view.contentScaleFactor)")
 					line("if reshape") {
 						line("reshape = false")
-						line("gameWindow2?.gameWindow.dispatchReshapeEvent(x: 0, y: 0, width: Int32(view.bounds.width), height: Int32(view.bounds.height))")
+						line("gameWindow2?.gameWindow.dispatchReshapeEvent(x: 0, y: 0, width: width, height: height)")
 					}
 
-					line("gameWindow2?.gameWindow.ag.setViewport(x: 0, y: 0, width: Int32(view.bounds.width), height: Int32(view.bounds.height))")
+					line("gameWindow2?.gameWindow.ag.setViewport(x: 0, y: 0, width: width, height: height)")
 					line("gameWindow2?.gameWindow.frame()")
 				}
 
@@ -431,10 +432,11 @@ tasks.create("prepareKotlinNativeIosProject") {
 			line("options:")
 			line("  bundleIdPrefix: ${korge.id}")
 			line("  minimumXcodeGenVersion: 2.0.0")
-			//if (korge.appleDevelopmentTeamId != null) {
-			//	line("setting:")
-			//	line("  DEVELOPMENT_TEAM: ${korge.appleDevelopmentTeamId}")
-			//}
+			line("settings:")
+			line("  PRODUCT_NAME: ${korge.name}")
+			if (korge.appleDevelopmentTeamId != null) {
+				line("  DEVELOPMENT_TEAM: ${korge.appleDevelopmentTeamId}")
+			}
 			line("targets:")
 			line("  app:")
 			line("    platform: iOS")
