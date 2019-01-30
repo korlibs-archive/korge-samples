@@ -1,8 +1,7 @@
 import com.soywiz.korge.gradle.*
-import com.soywiz.korge.gradle.util.Indenter
-import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
-import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
-import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
+import com.soywiz.korge.gradle.util.*
+import java.io.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.*
 
 buildscript {
 	repositories {
@@ -114,146 +113,159 @@ tasks.create("prepareKotlinNativeIosProject") {
 	dependsOn("installXcodeGen", "prepareKotlinNativeBootstrapIos", "prepareKotlinNativeBootstrap")
 	doLast {
 		val folder = File(buildDir, "platforms/ios")
-		folder["app/AppDelegate.swift"].ensureParents().writeText(Indenter {
-			line("import UIKit")
-			line("@UIApplicationMain")
-			line("class AppDelegate: UIResponder, UIApplicationDelegate") {
-				line("var window: UIWindow?")
-				line("func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool") {
-					line("return true")
-				}
-				line("func applicationWillResignActive(_ application: UIApplication)") {
-				}
-				line("func applicationDidEnterBackground(_ application: UIApplication)") {
-				}
-				line("func applicationWillEnterForeground(_ application: UIApplication)") {
-				}
-				line("func applicationDidBecomeActive(_ application: UIApplication)") {
-				}
-				line("func applicationWillTerminate(_ application: UIApplication)") {
-				}
-			}
-		})
-
-		folder["app/ViewController.swift"].ensureParents().writeText(Indenter {
-			line("import UIKit")
-			line("import GLKit")
-			line("import GameMain")
-
-			line("class ViewController: GLKViewController") {
-				line("var context: EAGLContext? = nil")
-				line("var gameWindow2: MyIosGameWindow2? = nil")
-				line("var rootGameMain: RootGameMain? = nil")
-
-				line("deinit") {
-					line("self.tearDownGL()")
-
-					line("if EAGLContext.current() === self.context") {
-						line("EAGLContext.setCurrent(nil)")
+		val swift = true
+		if (swift) {
+			folder["app/AppDelegate.swift"].ensureParents().writeText(Indenter {
+				line("import UIKit")
+				line("@UIApplicationMain")
+				line("class AppDelegate: UIResponder, UIApplicationDelegate") {
+					line("var window: UIWindow?")
+					line("func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool") {
+						line("return true")
+					}
+					line("func applicationWillResignActive(_ application: UIApplication)") {
+					}
+					line("func applicationDidEnterBackground(_ application: UIApplication)") {
+					}
+					line("func applicationWillEnterForeground(_ application: UIApplication)") {
+					}
+					line("func applicationDidBecomeActive(_ application: UIApplication)") {
+					}
+					line("func applicationWillTerminate(_ application: UIApplication)") {
 					}
 				}
+			})
 
-				line("override func viewDidLoad()") {
-					line("super.viewDidLoad()")
+			folder["app/ViewController.swift"].ensureParents().writeText(Indenter {
+				line("import UIKit")
+				line("import GLKit")
+				line("import GameMain")
 
-					line("self.gameWindow2 = MyIosGameWindow2.init()")
-					line("self.rootGameMain = RootGameMain.init()")
+				line("class ViewController: GLKViewController") {
+					line("var context: EAGLContext? = nil")
+					line("var gameWindow2: MyIosGameWindow2? = nil")
+					line("var rootGameMain: RootGameMain? = nil")
 
-					line("context = EAGLContext(api: .openGLES2)")
-					line("if context == nil") {
-						line("print(\"Failed to create ES context\")")
-					}
-
-					line("let view = self.view as! GLKView")
-					line("view.context = self.context!")
-					line("view.drawableDepthFormat = .format24")
-
-					line("self.setupGL()")
-				}
-
-				line("override func didReceiveMemoryWarning()") {
-					line("super.didReceiveMemoryWarning()")
-
-					line("if self.isViewLoaded && self.view.window != nil") {
-						line("self.view = nil")
-
+					line("deinit") {
 						line("self.tearDownGL()")
 
 						line("if EAGLContext.current() === self.context") {
 							line("EAGLContext.setCurrent(nil)")
 						}
-						line("self.context = nil")
-					}
-				}
-
-				line("func setupGL()") {
-					line("EAGLContext.setCurrent(self.context)")
-
-					// Change the working directory so that we can use C code to grab resource files
-					line("if let path = Bundle.main.resourcePath") {
-						line("let rpath = \"\\(path)/include/app/resources\"")
-						line("FileManager.default.changeCurrentDirectoryPath(rpath)")
-						line("self.gameWindow2?.setCustomCwd(cwd: rpath)")
 					}
 
-					line("engineInitialize()")
+					line("override func viewDidLoad()") {
+						line("super.viewDidLoad()")
 
-					line("let width = Float(view.frame.size.width) // * view.contentScaleFactor)")
-					line("let height = Float(view.frame.size.height) // * view.contentScaleFactor)")
-					line("engineResize(width: width, height: height)")
-				}
+						line("self.gameWindow2 = MyIosGameWindow2.init()")
+						line("self.rootGameMain = RootGameMain.init()")
 
-				line("func tearDownGL()") {
-					line("EAGLContext.setCurrent(self.context)")
+						line("context = EAGLContext(api: .openGLES2)")
+						line("if context == nil") {
+							line("print(\"Failed to create ES context\")")
+						}
 
-					line("engineFinalize()")
-				}
+						line("let view = self.view as! GLKView")
+						line("view.context = self.context!")
+						line("view.drawableDepthFormat = .format24")
 
-				// MARK: - GLKView and GLKViewController delegate methods
-				line("func update()") {
-					line("engineUpdate()")
-				}
-
-				// Render
-				line("var initialized = false")
-				line("var reshape = true")
-				line("override func glkView(_ view: GLKView, drawIn rect: CGRect)") {
-					//glClearColor(1.0, 0.5, Float(n) / 60.0, 1.0);
-					line("if !initialized") {
-						line("initialized = true")
-						line("gameWindow2?.gameWindow.dispatchInitEvent()")
-						line("rootGameMain?.runMain()")
-						line("reshape = true")
-					}
-					line("let width = Int32(view.bounds.width * view.contentScaleFactor)")
-					line("let height = Int32(view.bounds.height * view.contentScaleFactor)")
-					line("if reshape") {
-						line("reshape = false")
-						line("gameWindow2?.gameWindow.dispatchReshapeEvent(x: 0, y: 0, width: width, height: height)")
+						line("self.setupGL()")
 					}
 
-					line("gameWindow2?.gameWindow.ag.setViewport(x: 0, y: 0, width: width, height: height)")
-					line("gameWindow2?.gameWindow.frame()")
-				}
+					line("override func didReceiveMemoryWarning()") {
+						line("super.didReceiveMemoryWarning()")
 
-				line("private func engineInitialize()") {
-					//print("init[a]")
-					//glClearColor(1.0, 0.5, Float(n) / 60.0, 1.0);
-					//glClear(GLbitfield(GL_COLOR_BUFFER_BIT));
-					//gameWindow2?.gameWindow.frame()
-					//print("init[b]")
-				}
+						line("if self.isViewLoaded && self.view.window != nil") {
+							line("self.view = nil")
 
-				line("private func engineFinalize()") {
-				}
+							line("self.tearDownGL()")
 
-				line("private func engineResize(width: Float, height: Float)") {
-				}
+							line("if EAGLContext.current() === self.context") {
+								line("EAGLContext.setCurrent(nil)")
+							}
+							line("self.context = nil")
+						}
+					}
 
-				line("private func engineUpdate()") {
+					line("func setupGL()") {
+						line("EAGLContext.setCurrent(self.context)")
+
+						// Change the working directory so that we can use C code to grab resource files
+						line("if let path = Bundle.main.resourcePath") {
+							line("let rpath = \"\\(path)/include/app/resources\"")
+							line("FileManager.default.changeCurrentDirectoryPath(rpath)")
+							line("self.gameWindow2?.setCustomCwd(cwd: rpath)")
+						}
+
+						line("engineInitialize()")
+
+						line("let width = Float(view.frame.size.width) // * view.contentScaleFactor)")
+						line("let height = Float(view.frame.size.height) // * view.contentScaleFactor)")
+						line("engineResize(width: width, height: height)")
+					}
+
+					line("func tearDownGL()") {
+						line("EAGLContext.setCurrent(self.context)")
+
+						line("engineFinalize()")
+					}
+
+					// MARK: - GLKView and GLKViewController delegate methods
+					line("func update()") {
+						line("engineUpdate()")
+					}
+
+					// Render
+					line("var initialized = false")
+					line("var reshape = true")
+					line("override func glkView(_ view: GLKView, drawIn rect: CGRect)") {
+						//glClearColor(1.0, 0.5, Float(n) / 60.0, 1.0);
+						line("if !initialized") {
+							line("initialized = true")
+							line("gameWindow2?.gameWindow.dispatchInitEvent()")
+							line("rootGameMain?.runMain()")
+							line("reshape = true")
+						}
+						line("let width = Int32(view.bounds.width * view.contentScaleFactor)")
+						line("let height = Int32(view.bounds.height * view.contentScaleFactor)")
+						line("if reshape") {
+							line("reshape = false")
+							line("gameWindow2?.gameWindow.dispatchReshapeEvent(x: 0, y: 0, width: width, height: height)")
+						}
+
+						line("gameWindow2?.gameWindow.ag.setViewport(x: 0, y: 0, width: width, height: height)")
+						line("gameWindow2?.gameWindow.frame()")
+					}
+
+					line("private func engineInitialize()") {
+						//print("init[a]")
+						//glClearColor(1.0, 0.5, Float(n) / 60.0, 1.0);
+						//glClear(GLbitfield(GL_COLOR_BUFFER_BIT));
+						//gameWindow2?.gameWindow.frame()
+						//print("init[b]")
+					}
+
+					line("private func engineFinalize()") {
+					}
+
+					line("private func engineResize(width: Float, height: Float)") {
+					}
+
+					line("private func engineUpdate()") {
+					}
 				}
-			}
-		})
+			})
+		} else {
+			folder["app/main.m"].ensureParents().writeText(Indenter {
+				line("#import <UIKit/UIKit.h>")
+				line("#import \"AppDelegate.h\"")
+				line("int main(int argc, char * argv[])") {
+					line("@autoreleasepool") {
+						line("return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));")
+					}
+				}
+			})
+		}
 
 		folder["app/Info.plist"].ensureParents().writeText(Indenter {
 			line("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
@@ -430,38 +442,51 @@ tasks.create("prepareKotlinNativeIosProject") {
 		folder["project.yml"].ensureParents().writeText(Indenter {
 			line("name: app")
 			line("options:")
-			line("  bundleIdPrefix: ${korge.id}")
-			line("  minimumXcodeGenVersion: 2.0.0")
+			indent {
+				line("bundleIdPrefix: ${korge.id}")
+				line("minimumXcodeGenVersion: 2.0.0")
+			}
 			line("settings:")
-			line("  PRODUCT_NAME: ${korge.name}")
-			if (korge.appleDevelopmentTeamId != null) {
-				line("  DEVELOPMENT_TEAM: ${korge.appleDevelopmentTeamId}")
+			indent {
+				line("PRODUCT_NAME: ${korge.name}")
+				line("ENABLE_BITCODE: NO")
+				if (korge.appleDevelopmentTeamId != null) {
+					line("DEVELOPMENT_TEAM: ${korge.appleDevelopmentTeamId}")
+				}
 			}
 			line("targets:")
-			line("  app:")
-			line("    platform: iOS")
-			line("    type: application")
-			line("    deploymentTarget: \"10.0\"")
-			line("    sources:")
-			line("      - app")
-			line("      - path: ../../../src/commonMain/resources")
-			line("        name: assets")
-			line("        optional: true")
-			line("        buildPhase:")
-			line("          copyFiles:")
-			line("            destination: resources")
-			//line("            subpath: include/\$(PRODUCT_NAME)")
-			line("            subpath: include/app")
-			line("        type: folder")
-			line("    settings:")
-			line("      configs:")
-			line("        debug:")
-			line("          - ENABLE_BITCODE: NO")
-			line("        release:")
-			line("          - ENABLE_BITCODE: NO")
-			line("    dependencies:")
-			line("      - framework: ../../bin/iosX64/mainDebugFramework/GameMain.framework")
-		})
+
+			indent {
+				for (target in listOf("X64", "Arm64", "Arm32")) {
+					line("app-$target:")
+					indent {
+						line("platform: iOS")
+						line("type: application")
+						line("deploymentTarget: \"10.0\"")
+						line("sources:")
+						indent {
+							line("- app")
+							line("- path: ../../../src/commonMain/resources")
+							indent {
+								line("name: assets")
+								line("optional: true")
+								line("buildPhase:")
+								indent {
+									line("copyFiles:")
+									indent {
+										line("destination: resources")
+										line("subpath: include/app")
+									}
+								}
+								line("type: folder")
+							}
+						}
+						line("dependencies:")
+						line("  - framework: ../../bin/ios$target/mainDebugFramework/GameMain.framework")
+					}
+				}
+			}
+		}.replace("\t", "  "))
 
 		exec {
 			workingDir(folder)
@@ -478,18 +503,60 @@ tasks.create<Exec>("iosShutdownSimulator") {
 	commandLine("xcrun", "simctl", "shutdown", "booted")
 }
 
-tasks.create<Exec>("iosBuildXcode") {
+fun execOutput(vararg cmds: String): String {
+	val stdout = ByteArrayOutputStream()
+	exec {
+		commandLine(*cmds)
+		standardOutput = stdout
+	}
+	return stdout.toString("UTF-8")
+}
+
+data class IosDevice(val booted: Boolean, val isAvailable: Boolean, val name: String, val udid: String)
+
+fun appleGetDevices(os: String = "iOS"): List<IosDevice> {
+	val res = Json.parse(execOutput("xcrun", "simctl", "list", "-j", "devices"))
+	return KDynamic {
+		val devices = res["devices"]
+		val oses = devices.keys.map { it.str }
+		//val iosOs = oses.firstOrNull { it.contains(os) } ?: error("No iOS devices created")
+		val iosOs = oses.firstOrNull { it.contains(os) } ?: listOf()
+		return devices[iosOs].list.map {
+			IosDevice(it["state"].str == "Booted", it["isAvailable"].bool, it["name"].str, it["udid"].str)
+		}
+	}
+}
+
+fun appleGetBootedDevice(os: String = "iOS"): IosDevice? {
+	return appleGetDevices(os).firstOrNull { it.booted }
+}
+
+tasks.create<Exec>("iosCreateIphone7") {
+	onlyIf { appleGetDevices().none { it.name == "iPhone 7" } }
+	commandLine("xcrun", "simctl", "create", "iPhone 7", "com.apple.CoreSimulator.SimDeviceType.iPhone-7", "com.apple.CoreSimulator.SimRuntime.iOS-12-1")
+}
+
+tasks.create<Exec>("iosBuildSimulator") {
+	dependsOn("prepareKotlinNativeIosProject")
+	outputs.file(buildDir["platforms/ios/app.xcodeproj/build/Build/Products/Debug-iphonesimulator/${korge.name}.app/${korge.name}"])
 	workingDir(buildDir["platforms/ios/app.xcodeproj"])
-	commandLine("xcrun", "xcodebuild", "-scheme", "app", "-project", ".", "-configuration", "Debug", "-destination", "platform=iOS Simulator,name=iPhone X,OS=latest", "-derivedDataPath", "build")
+	commandLine("xcrun", "xcodebuild", "-scheme", "app-X64", "-project", ".", "-configuration", "Debug", "-destination", "platform=iOS Simulator,name=iPhone XR,OS=latest", "-derivedDataPath", "build")
 }
 
 tasks.create<Exec>("iosInstallSimulator") {
-	val appFolder = buildDir["platforms/ios/app.xcodeproj/build/Build/Products/Debug-iphonesimulator/app.app"]
+	dependsOn("iosBuildSimulator")
+	val appFolder = tasks.getByName("iosBuildSimulator").outputs.files.first().parentFile
 	commandLine("xcrun", "simctl", "install", "booted", appFolder.absolutePath)
 }
 
-tasks.create<Exec>("iosLaunchSimulator") {
-	commandLine("xcrun", "simctl", "launch", "--console-pty", "booted", "${korge.id}.app")
+//tasks.create<Exec>("iosLaunchSimulator") {
+	//commandLine("xcrun", "simctl", "launch", "--console-pty", "booted", "${korge.id}.app")
+//}
+
+tasks.create<Task>("iosEraseAllSimulators") {
+	doLast { exec { commandLine("osascript", "-e", "tell application \"iOS Simulator\" to quit") } }
+	doLast { exec { commandLine("osascript", "-e", "tell application \"Simulator\" to quit") } }
+	doLast { exec { commandLine("xcrun", "simctl", "erase", "all") } }
 }
 
 //task iosLaunchSimulator(type: Exec, dependsOn: [iosInstallSimulator]) {
@@ -502,3 +569,9 @@ tasks.create<Exec>("iosLaunchSimulator") {
 // security find-identity -v -p codesigning
 // codesign -s 'iPhone Developer: Thomas Kollbach (7TPNXN7G6K)' Example.app
 // codesign -f -s 'iPhone Developer: Thomas Kollbach (7TPNXN7G6K)' Example.app
+
+//osascript -e 'tell application "iOS Simulator" to quit'
+//osascript -e 'tell application "Simulator" to quit'
+//xcrun simctl erase all
+
+// xcrun lipo
