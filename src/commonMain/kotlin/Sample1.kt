@@ -1,19 +1,31 @@
 import com.soywiz.korge.*
+import com.soywiz.korge.admob.Admob
+import com.soywiz.korge.admob.AdmobCreate
 import com.soywiz.korge.box2d.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.readBitmap
+import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korio.file.std.resourcesVfs
+import com.soywiz.korio.lang.printStackTrace
 import com.soywiz.korma.geom.vector.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
-suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
-	//sceneContainer(views)
+suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My Awesome Box2D Game!") {
+	val admob = AdmobCreate(testing = true)
+
+	launchImmediately {
+		try {
+			admob.bannerPrepareAndShow(Admob.Config("ca-app-pub-xxx/xxx"))
+		} catch (e: Throwable) {
+			e.printStackTrace()
+		}
+	}
+
 	views.clearColor = Colors.DARKGREEN
-	//views.clearColor = Colors.BLUE
 	solidRect(300, 200, Colors.DARKCYAN)
 	graphics {
 		fill(Colors.DARKCYAN) {
@@ -78,6 +90,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE) {
 		}.interactive())
 	}
 	image(resourcesVfs["korge.png"].readBitmap())
+
 }
 
 fun <T : View> T.interactive(): T = this.apply {

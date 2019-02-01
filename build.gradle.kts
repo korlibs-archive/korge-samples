@@ -8,7 +8,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath("com.soywiz:korge-gradle-plugin:1.0.0")
+		classpath("com.soywiz:korge-gradle-plugin:1.0.2")
 	}
 }
 
@@ -34,10 +34,6 @@ korge {
 	description = "A sample using Korge and the gradle plugin"
 	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 	jvmMainClassName = "Sample1Kt"
-	cordovaPlugin("cordova-launch-review")
-	cordovaPlugin("cordova-plugin-camera")
-	cordovaPlugin("cordova-plugin-admob-free", mapOf("ADMOB_APP_ID" to "ca-app-pub-xxxxxxxx~yyyyyy"))
 
-	// This allows to support cordova android emulator + android < 5.0 (lollipop)
-	//cordovaUseCrosswalk()
+	admob("ca-app-pub-xxxxxxxx~yyyyyy")
 }
