@@ -1,15 +1,14 @@
 import com.soywiz.korge.*
-import com.soywiz.korge.admob.Admob
-import com.soywiz.korge.admob.AdmobCreate
+import com.soywiz.korge.admob.*
 import com.soywiz.korge.box2d.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
-import com.soywiz.korim.format.readBitmap
-import com.soywiz.korio.async.launchImmediately
-import com.soywiz.korio.file.std.resourcesVfs
-import com.soywiz.korio.lang.printStackTrace
+import com.soywiz.korim.format.*
+import com.soywiz.korio.async.*
+import com.soywiz.korio.file.std.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korma.geom.vector.*
 import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
@@ -90,7 +89,6 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 		}.interactive())
 	}
 	image(resourcesVfs["korge.png"].readBitmap())
-
 }
 
 fun <T : View> T.interactive(): T = this.apply {

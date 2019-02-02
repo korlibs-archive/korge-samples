@@ -16,3 +16,4 @@ pluginManagement {
 
 enableFeaturePreview("GRADLE_METADATA")
 
+include(":sample-box2d")
