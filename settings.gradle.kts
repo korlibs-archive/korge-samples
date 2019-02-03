@@ -18,3 +18,4 @@ enableFeaturePreview("GRADLE_METADATA")
 
 include(":sample-box2d")
 include(":sample-scenes")
+include(":sample-tic-tac-toe-swf")
