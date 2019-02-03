@@ -1,4 +1,5 @@
 import com.soywiz.korge.gradle.*
+import com.soywiz.korge.gradle.util.*
 
 apply(plugin = "korge")
 
@@ -8,5 +9,6 @@ dependencies {
 
 korge {
 	id = "com.soywiz.samples.tictactoe"
-	//icon = buildDir["src/commonMain/resources/icon.png"]
+	name = "tic-tac-toe"
+	icon = projectDir["src/commonMain/resources/icon.png"]
 }
