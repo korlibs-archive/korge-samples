@@ -28,11 +28,14 @@ suspend fun main() = Korge {
 	addEventListener<MouseEvent> { mouseEvText.text = "${nowUnix()}:$it" }
 	addEventListener<ReshapeEvent> { resizeText.text = "${nowUnix()}:$it" }
 	addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowUnix()}:$it" }
-	addEventListener<GamePadButtonEvent> { gamepadButtonText.text = "${nowUnix()}:$it" }
-	addEventListener<GamePadStickEvent> { gamepadStickText.text = "${nowUnix()}:$it" }
 	addEventListener<GamePadUpdateEvent> {
 		gamepadUpdateText.text = "${nowUnix()}:$it"
 		gamepadUpdate2Text.text = "" + it.gamepads.lastOrNull { it.connected }?.rawButtonsPressed
+	}
+
+	gamepad {
+		button.invoke { gamepadButtonText.text = "$it" }
+		stick.invoke { gamepadStickText.text = "$it" }
 	}
 
 	keys {
