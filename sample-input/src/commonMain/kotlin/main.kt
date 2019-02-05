@@ -9,7 +9,7 @@ suspend fun main() = Korge {
 	fun textLine(text: String) = text(text).position(0, line++ * 16).apply { this.filtering = false }
 	fun nowUnix() = DateTime.now().unixMillisLong
 
-	textLine("Events:")
+	textLine("Events :")
 	val keysEvText = textLine("KeysEv")
 	val keysDownText = textLine("Keys:Down")
 	val keysUpText = textLine("Keys:Up")
@@ -18,12 +18,22 @@ suspend fun main() = Korge {
 	val mouseUpText = textLine("MouseUp")
 	val mouseClickText = textLine("MouseClick")
 	val resizeText = textLine("Resize")
-	val gamepadText = textLine("Gamepad")
+	val gamepadConnectedText = textLine("GamepadConnectedEv")
+	val gamepadButtonText = textLine("GamepadButtonEv")
+	val gamepadStickText = textLine("GamepadStickEv")
+	val gamepadUpdateText = textLine("GamepadUpdateEv")
+	val gamepadUpdate2Text = textLine("GamepadUpdate2Ev")
 
 	addEventListener<KeyEvent> { keysEvText.text = "${nowUnix()}:$it" }
 	addEventListener<MouseEvent> { mouseEvText.text = "${nowUnix()}:$it" }
 	addEventListener<ReshapeEvent> { resizeText.text = "${nowUnix()}:$it" }
-	addEventListener<GamePadButtonEvent> { gamepadText.text = "${nowUnix()}:$it" }
+	addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowUnix()}:$it" }
+	addEventListener<GamePadButtonEvent> { gamepadButtonText.text = "${nowUnix()}:$it" }
+	addEventListener<GamePadStickEvent> { gamepadStickText.text = "${nowUnix()}:$it" }
+	addEventListener<GamePadUpdateEvent> {
+		gamepadUpdateText.text = "${nowUnix()}:$it"
+		gamepadUpdate2Text.text = "" + it.gamepads.lastOrNull { it.connected }?.rawButtonsPressed
+	}
 
 	keys {
 		onKeyDown { keysDownText.text = "Key:Down:${nowUnix()}:${it.key}" }
