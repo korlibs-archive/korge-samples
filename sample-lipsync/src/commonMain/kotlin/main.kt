@@ -22,7 +22,10 @@ suspend fun main() = Korge {
 			lips.texture = atlas["lisa-${it.lip}.png"].texture
 		}
 
+		resourcesVfs["001.voice.wav"].readVoice().play("lisa") { handler(it) }
 		resourcesVfs["002.voice.wav"].readVoice().play("lisa") { handler(it) }
+		resourcesVfs["003.voice.wav"].readVoice().play("lisa") { handler(it) }
+		resourcesVfs["004.voice.wav"].readVoice().play("lisa") { handler(it) }
 		resourcesVfs["simple.voice.wav"].readVoice().play("lisa") { handler(it) }
 	}
 }
