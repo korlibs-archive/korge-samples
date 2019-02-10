@@ -2,13 +2,6 @@ import com.soywiz.korge.gradle.*
 
 apply(plugin = "korge")
 
-dependencies {
-	add("commonMainApi", "com.soywiz:korma-shape-ops:$kormaVersion")
-	add("commonMainApi", "com.soywiz:korma-triangulate-pathfind:$kormaVersion")
-	add("commonMainApi", "com.soywiz:korge-dragonbones:$korgeVersion")
-	add("commonMainApi", "com.soywiz:korge-box2d:$korgeVersion")
-}
-
 korge {
 	id = "com.soywiz.sample1"
 	name = "Sample1"
@@ -17,4 +10,9 @@ korge {
 	jvmMainClassName = "Sample1Kt"
 
 	admob("ca-app-pub-xxxxxxxx~yyyyyy")
+
+	dependencyMulti("com.soywiz:korma-shape-ops:$kormaVersion")
+	dependencyMulti("com.soywiz:korma-triangulate-pathfind:$kormaVersion")
+	dependencyMulti("com.soywiz:korge-dragonbones:$korgeVersion")
+	dependencyMulti("com.soywiz:korge-box2d:$korgeVersion")
 }
