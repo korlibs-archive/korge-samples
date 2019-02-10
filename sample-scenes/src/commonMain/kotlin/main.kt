@@ -27,7 +27,7 @@ class MyDependency(val value: String)
 
 class MyScene1(val myDependency: MyDependency) : Scene() {
 	override suspend fun Container.sceneInit() {
-		text("MyScene1: ${myDependency.value}")
+		text("MyScene1: ${myDependency.value}") { filtering = false }
 		solidRect(100, 100, Colors.RED) {
 			position(200, 200)
 			onClick {
@@ -41,7 +41,7 @@ class MyScene1(val myDependency: MyDependency) : Scene() {
 
 class MyScene2(val myDependency: MyDependency) : Scene() {
 	override suspend fun Container.sceneInit() {
-		text("MyScene2: ${myDependency.value}")
+		text("MyScene2: ${myDependency.value}") { filtering = false }
 		solidRect(100, 100, Colors.BLUE) {
 			position(200, 200)
 			onClick {

@@ -38,7 +38,7 @@ class TicTacToeMainScene : Scene() {
 		super.init(injector)
 
 		//mainLibrary = resourcesVfs["main.swf"].readSWF(views)
-		mainLibrary = resourcesVfs["ani/main.ani"].readAni(views)
+		mainLibrary = resourcesVfs["main.ani"].readAni(views)
 	}
 
 	override suspend fun Container.sceneInit() {
