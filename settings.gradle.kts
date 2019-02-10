@@ -1,6 +1,5 @@
-include(":sample-atlas")
-include(":sample-box2d")
-include(":sample-scenes")
-include(":sample-tic-tac-toe-swf")
-include(":sample-bitmap-font")
-include(":sample-input")
+for (file in rootDir.listFiles()) {
+	if (file.isDirectory && file.name.startsWith("sample-") && (File(file, "build.gradle").exists() || File(file, "build.gradle.kts").exists())) {
+		include(":${file.name}")
+	}
+}
