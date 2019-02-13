@@ -120,7 +120,17 @@ open class MyModule : Module() {
 	override val windowSize: SizeInt = SizeInt(1280, 720)
 }
 
-class MyScene : Scene() {
+abstract class MyBaseScene : Scene() {
+	fun launchAsap(callback: suspend () -> Unit) {
+		launchAsap(views.gameWindow.coroutineDispatcher, callback)
+	}
+
+	fun <T> async(callback: suspend () -> T): Deferred<T> {
+		return async(views.gameWindow.coroutineDispatcher, callback)
+	}
+}
+
+class MyScene : MyBaseScene() {
 	lateinit var buttonContainer: Container
 
 	override suspend fun Container.sceneInit() {
@@ -129,18 +139,24 @@ class MyScene : Scene() {
 			this.y = views.virtualHeight.toDouble() * 0.5
 		}
 		buttonContainer = this
-		this += Button(coroutineContext, "Hello") {
-			println("Hello")
-			mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
+		this += Button("Hello") {
+			launchAsap {
+				println("Hello")
+				mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
+			}
 		}.position(8, views.virtualHeight - 48)
 		//this += Button("Classic") { mySceneContainer.changeToDisablingButtons<ClassicDragonScene>() }.position(108, views.virtualHeight - 48)
-		this += Button(coroutineContext, "Eye Tracking") {
-			println("Eye Tracking")
-			mySceneContainer.changeToDisablingButtons<EyeTrackingScene>()
+		this += Button("Eye Tracking") {
+			launchAsap {
+				println("Eye Tracking")
+				mySceneContainer.changeToDisablingButtons<EyeTrackingScene>()
+			}
 		}.position(200, views.virtualHeight - 48)
-		this += Button(coroutineContext, "Skin Changing") {
-			println("Skin Changing")
-			mySceneContainer.changeToDisablingButtons<SkinChangingScene>()
+		this += Button("Skin Changing") {
+			launchAsap {
+				println("Skin Changing")
+				mySceneContainer.changeToDisablingButtons<SkinChangingScene>()
+			}
 		}.position(600, views.virtualHeight - 48)
 		mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
 	}
@@ -161,7 +177,7 @@ class MyScene : Scene() {
 	}
 }
 
-class Button(val coroutineContext: CoroutineContext, text: String, handler: suspend () -> Unit) : Container() {
+class Button(text: String, handler: () -> Unit) : Container() {
 	val textField = Text(text, textSize = 32.0).apply { filtering = false }
 	private val bounds = textField.textBounds
 	val g = Graphics().apply {
@@ -199,7 +215,7 @@ class Button(val coroutineContext: CoroutineContext, text: String, handler: susp
 			over { overButton = true }
 			out { overButton = false }
 		}
-		onClick { async(coroutineContext) { if (enabledButton) handler() } }
+		onClick { if (enabledButton) handler() }
 		updateState()
 	}
 }
@@ -207,10 +223,10 @@ class Button(val coroutineContext: CoroutineContext, text: String, handler: susp
 class HelloWorldScene : BaseDbScene() {
 	val SCALE = 1.6
 	override suspend fun Container.sceneInit() {
-		val skeDeferred = async(coroutineContext) { Json.parse(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
+		val skeDeferred = async { Json.parse(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
 		//val skeDeferred = async { MemBufferWrap(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.dbbin"].readBytes()) }
-		val texDeferred = async(coroutineContext) { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
-		val imgDeferred = async(coroutineContext) { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmapOptimized().mipmaps() }
+		val texDeferred = async { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
+		val imgDeferred = async { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmapOptimized().mipmaps() }
 
 		val data = factory.parseDragonBonesData(skeDeferred.await())
 		val atlas = factory.parseTextureAtlasData(Json.parse(texDeferred.await())!!, imgDeferred.await())
@@ -231,9 +247,9 @@ class ClassicDragonScene : BaseDbScene() {
 	override suspend fun Container.sceneInit() {
 		//val scale = 0.3
 		val scale = 0.8
-		val ske = async(coroutineContext) { resources["Dragon/Dragon_ske.json"].readString() }
-		val tex = async(coroutineContext) { resources["Dragon/Dragon_tex.json"].readString() }
-		val img = async(coroutineContext) { resources["Dragon/Dragon_tex.png"].readBitmapOptimized() }
+		val ske = async { resources["Dragon/Dragon_ske.json"].readString() }
+		val tex = async { resources["Dragon/Dragon_tex.json"].readString() }
+		val img = async { resources["Dragon/Dragon_tex.png"].readBitmapOptimized() }
 
 		val data = factory.parseDragonBonesData(Json.parse(ske.await())!!)
 
@@ -267,11 +283,11 @@ class EyeTrackingScene : BaseDbScene() {
 				"PARAM_BREATH"
 			)
 
-			val skeDeferred = async(coroutineContext) { resources["shizuku/shizuku_ske.json"].readString() }
-			val tex00Deferred = async(coroutineContext) { resources["shizuku/shizuku.1024/texture_00.png"].readBitmap() }
-			val tex01Deferred = async(coroutineContext) { resources["shizuku/shizuku.1024/texture_01.png"].readBitmap() }
-			val tex02Deferred = async(coroutineContext) { resources["shizuku/shizuku.1024/texture_02.png"].readBitmap() }
-			val tex03Deferred = async(coroutineContext) { resources["shizuku/shizuku.1024/texture_03.png"].readBitmap() }
+			val skeDeferred = async { resources["shizuku/shizuku_ske.json"].readString() }
+			val tex00Deferred = async { resources["shizuku/shizuku.1024/texture_00.png"].readBitmap().mipmaps() }
+			val tex01Deferred = async { resources["shizuku/shizuku.1024/texture_01.png"].readBitmap().mipmaps() }
+			val tex02Deferred = async { resources["shizuku/shizuku.1024/texture_02.png"].readBitmap().mipmaps() }
+			val tex03Deferred = async { resources["shizuku/shizuku.1024/texture_03.png"].readBitmap().mipmaps() }
 
 			println("EyeTrackingScene[1]")
 
@@ -390,12 +406,12 @@ class SkinChangingScene : BaseDbScene() {
 
 		val deferreds = arrayListOf<Deferred<*>>()
 
-		deferreds += async(coroutineContext) {
+		deferreds += async {
 			factory.parseDragonBonesData(
 				Json.parse(resources["you_xin/body/body_ske.json"].readString())!!
 			)
 		}
-		deferreds += async(coroutineContext) {
+		deferreds += async {
 			val atlas = factory.parseTextureAtlasData(
 				Json.parse(resources["you_xin/body/body_tex.json"].readString())!!,
 				resources["you_xin/body/body_tex.png"].readBitmapOptimized().mipmaps()
@@ -410,7 +426,7 @@ class SkinChangingScene : BaseDbScene() {
 				val textureAtlasJSONPath = path + "_tex.json"
 				val textureAtlasPath = path + "_tex.png"
 				//
-				deferreds += async(coroutineContext) {
+				deferreds += async {
 					factory.parseDragonBonesData(Json.parse(resources[dragonBonesJSONPath].readString())!!)
 					factory.parseTextureAtlasData(
 						Json.parse(resources[textureAtlasJSONPath].readString())!!,
@@ -473,7 +489,7 @@ class SkinChangingScene : BaseDbScene() {
 	}
 }
 
-abstract class BaseDbScene : Scene() {
+abstract class BaseDbScene : MyBaseScene() {
 	val resources get() = resourcesVfs
 	val factory = KorgeDbFactory()
 }
