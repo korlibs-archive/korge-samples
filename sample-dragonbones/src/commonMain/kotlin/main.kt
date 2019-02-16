@@ -1,9 +1,11 @@
 import com.dragonbones.event.*
 import com.dragonbones.util.*
 import com.soywiz.klock.*
+import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.dragonbones.*
 import com.soywiz.korge.input.*
+import com.soywiz.korge.input.mouse
 import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
@@ -49,7 +51,7 @@ suspend fun main(): Unit {
 
 suspend fun Stage.hello() {
 	println("HelloScene.sceneInit[0]")
-	val bmp = resourcesVfs["atlas2/atlas2.png"].readBitmapOptimized()
+	val bmp = resourcesVfs["atlas2/atlas2.png"].readBitmap()
 	//val bmp = Bitmap32(100, 100).apply {
 	//    context2d {
 	//        fillStyle = Context2d.Color(Colors.RED)
@@ -121,42 +123,33 @@ open class MyModule : Module() {
 }
 
 abstract class MyBaseScene : Scene() {
-	fun launchAsap(callback: suspend () -> Unit) {
-		launchAsap(views.gameWindow.coroutineDispatcher, callback)
-	}
-
-	fun <T> async(callback: suspend () -> T): Deferred<T> {
-		return async(views.gameWindow.coroutineDispatcher, callback)
-	}
 }
 
 class MyScene : MyBaseScene() {
 	lateinit var buttonContainer: Container
 
 	override suspend fun Container.sceneInit() {
+		addEventListener<MouseEvent> {
+			println("MouseEvent: ${views.nativeWidth},${views.nativeHeight} :: ${views.virtualWidth},${views.virtualHeight} :: $it")
+		}
+
 		val mySceneContainer = sceneContainer(views) {
 			this.x = views.virtualWidth.toDouble() * 0.5
 			this.y = views.virtualHeight.toDouble() * 0.5
 		}
 		buttonContainer = this
 		this += Button("Hello") {
-			launchAsap {
-				println("Hello")
-				mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
-			}
+			println("Hello")
+			mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
 		}.position(8, views.virtualHeight - 48)
 		//this += Button("Classic") { mySceneContainer.changeToDisablingButtons<ClassicDragonScene>() }.position(108, views.virtualHeight - 48)
 		this += Button("Eye Tracking") {
-			launchAsap {
-				println("Eye Tracking")
-				mySceneContainer.changeToDisablingButtons<EyeTrackingScene>()
-			}
+			println("Eye Tracking")
+			mySceneContainer.changeToDisablingButtons<EyeTrackingScene>()
 		}.position(200, views.virtualHeight - 48)
 		this += Button("Skin Changing") {
-			launchAsap {
-				println("Skin Changing")
-				mySceneContainer.changeToDisablingButtons<SkinChangingScene>()
-			}
+			println("Skin Changing")
+			mySceneContainer.changeToDisablingButtons<SkinChangingScene>()
 		}.position(600, views.virtualHeight - 48)
 		mySceneContainer.changeToDisablingButtons<HelloWorldScene>()
 	}
@@ -177,7 +170,7 @@ class MyScene : MyBaseScene() {
 	}
 }
 
-class Button(text: String, handler: () -> Unit) : Container() {
+class Button(text: String, handler: suspend () -> Unit) : Container() {
 	val textField = Text(text, textSize = 32.0).apply { filtering = false }
 	private val bounds = textField.textBounds
 	val g = Graphics().apply {
@@ -215,7 +208,11 @@ class Button(text: String, handler: () -> Unit) : Container() {
 			over { overButton = true }
 			out { overButton = false }
 		}
-		onClick { if (enabledButton) handler() }
+		onClick {
+			stage?.views?.launchImmediately {
+				if (enabledButton) handler()
+			}
+		}
 		updateState()
 	}
 }
@@ -223,10 +220,10 @@ class Button(text: String, handler: () -> Unit) : Container() {
 class HelloWorldScene : BaseDbScene() {
 	val SCALE = 1.6
 	override suspend fun Container.sceneInit() {
-		val skeDeferred = async { Json.parse(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
-		//val skeDeferred = async { MemBufferWrap(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.dbbin"].readBytes()) }
-		val texDeferred = async { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
-		val imgDeferred = async { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmapOptimized().mipmaps() }
+		val skeDeferred = asyncImmediately { Json.parse(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
+		//val skeDeferred = asyncImmediately { MemBufferWrap(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.dbbin"].readBytes()) }
+		val texDeferred = asyncImmediately { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
+		val imgDeferred = asyncImmediately { resources["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmap().mipmaps() }
 
 		val data = factory.parseDragonBonesData(skeDeferred.await())
 		val atlas = factory.parseTextureAtlasData(Json.parse(texDeferred.await())!!, imgDeferred.await())
@@ -247,9 +244,9 @@ class ClassicDragonScene : BaseDbScene() {
 	override suspend fun Container.sceneInit() {
 		//val scale = 0.3
 		val scale = 0.8
-		val ske = async { resources["Dragon/Dragon_ske.json"].readString() }
-		val tex = async { resources["Dragon/Dragon_tex.json"].readString() }
-		val img = async { resources["Dragon/Dragon_tex.png"].readBitmapOptimized() }
+		val ske = asyncImmediately { resources["Dragon/Dragon_ske.json"].readString() }
+		val tex = asyncImmediately { resources["Dragon/Dragon_tex.json"].readString() }
+		val img = asyncImmediately { resources["Dragon/Dragon_tex.png"].readBitmap() }
 
 		val data = factory.parseDragonBonesData(Json.parse(ske.await())!!)
 
@@ -283,11 +280,11 @@ class EyeTrackingScene : BaseDbScene() {
 				"PARAM_BREATH"
 			)
 
-			val skeDeferred = async { resources["shizuku/shizuku_ske.json"].readString() }
-			val tex00Deferred = async { resources["shizuku/shizuku.1024/texture_00.png"].readBitmap().mipmaps() }
-			val tex01Deferred = async { resources["shizuku/shizuku.1024/texture_01.png"].readBitmap().mipmaps() }
-			val tex02Deferred = async { resources["shizuku/shizuku.1024/texture_02.png"].readBitmap().mipmaps() }
-			val tex03Deferred = async { resources["shizuku/shizuku.1024/texture_03.png"].readBitmap().mipmaps() }
+			val skeDeferred = asyncImmediately { resources["shizuku/shizuku_ske.json"].readString() }
+			val tex00Deferred = asyncImmediately { resources["shizuku/shizuku.1024/texture_00.png"].readBitmap().mipmaps() }
+			val tex01Deferred = asyncImmediately { resources["shizuku/shizuku.1024/texture_01.png"].readBitmap().mipmaps() }
+			val tex02Deferred = asyncImmediately { resources["shizuku/shizuku.1024/texture_02.png"].readBitmap().mipmaps() }
+			val tex03Deferred = asyncImmediately { resources["shizuku/shizuku.1024/texture_03.png"].readBitmap().mipmaps() }
 
 			println("EyeTrackingScene[1]")
 
@@ -406,15 +403,15 @@ class SkinChangingScene : BaseDbScene() {
 
 		val deferreds = arrayListOf<Deferred<*>>()
 
-		deferreds += async {
+		deferreds += asyncImmediately {
 			factory.parseDragonBonesData(
 				Json.parse(resources["you_xin/body/body_ske.json"].readString())!!
 			)
 		}
-		deferreds += async {
+		deferreds += asyncImmediately {
 			val atlas = factory.parseTextureAtlasData(
 				Json.parse(resources["you_xin/body/body_tex.json"].readString())!!,
-				resources["you_xin/body/body_tex.png"].readBitmapOptimized().mipmaps()
+				resources["you_xin/body/body_tex.png"].readBitmap().mipmaps()
 			)
 		}
 
@@ -426,11 +423,11 @@ class SkinChangingScene : BaseDbScene() {
 				val textureAtlasJSONPath = path + "_tex.json"
 				val textureAtlasPath = path + "_tex.png"
 				//
-				deferreds += async {
+				deferreds += asyncImmediately {
 					factory.parseDragonBonesData(Json.parse(resources[dragonBonesJSONPath].readString())!!)
 					factory.parseTextureAtlasData(
 						Json.parse(resources[textureAtlasJSONPath].readString())!!,
-						resources[textureAtlasPath].readBitmapOptimized().mipmaps()
+						resources[textureAtlasPath].readBitmap().mipmaps()
 					)
 				}
 			}

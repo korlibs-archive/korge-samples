@@ -26,6 +26,6 @@ suspend fun main() = Korge {
 		resourcesVfs["002.voice.wav"].readVoice().play("lisa") { handler(it) }
 		resourcesVfs["003.voice.wav"].readVoice().play("lisa") { handler(it) }
 		resourcesVfs["004.voice.wav"].readVoice().play("lisa") { handler(it) }
-		resourcesVfs["simple.voice.wav"].readVoice().play("lisa") { handler(it) }
+		resourcesVfs["simple.voice.mp3"].readVoice().play("lisa") { handler(it) }
 	}
 }

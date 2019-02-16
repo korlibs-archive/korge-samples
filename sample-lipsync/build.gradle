@@ -2,4 +2,5 @@ apply plugin: "korge"
 
 korge {
 	id = "com.soywiz.samples.lipsync"
+	dependencyMulti("com.soywiz:korau-mp3:$korauVersion")
 }
