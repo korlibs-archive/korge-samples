@@ -6,6 +6,10 @@ import com.soywiz.korio.dynamic.*
 import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(width = 640, height = 480, virtualWidth = 320, virtualHeight = 240) {
+	atlasMain()
+}
+
+suspend fun Stage.atlasMain() {
 	val logos = resourcesVfs["logos.atlas.json"].readAtlas(views)
 	image(logos["korau.png"].texture).position(0, 0)
 	image(logos["korim.png"].texture).position(64, 32)
