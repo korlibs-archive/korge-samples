@@ -5,7 +5,6 @@ import com.soywiz.korag.shader.*
 import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
-import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
 
 inline fun Container.scene3D(views: Views3D = Views3D(), callback: Stage3D.() -> Unit = {}): Stage3DView =
@@ -96,12 +95,12 @@ class Mesh3D(val data: FloatArray) {
 	val modelMat = Matrix3D()
 }
 
-inline fun Container3D.cube(width: Number, height: Number = width, depth: Number = height, callback: Cube.() -> Unit = {}): Cube {
-	return Cube(width.toDouble(), height.toDouble(), depth.toDouble()).apply(callback).addTo(this)
+inline fun Container3D.box(width: Number, height: Number = width, depth: Number = height, callback: Box.() -> Unit = {}): Box {
+	return Box(width.toDouble(), height.toDouble(), depth.toDouble()).apply(callback).addTo(this)
 }
 
-class Cube(var width: Double, var height: Double = width, var depth: Double = height) : View3D() {
-	private val cubeSize = 1f
+class Box(var width: Double, var height: Double = width, var depth: Double = height) : View3D() {
+	private val cubeSize = .5f
 
 	private val vertices = floatArrayOf(
 		-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
@@ -151,11 +150,17 @@ class Cube(var width: Double, var height: Double = width, var depth: Double = he
 	private val rs = AG.RenderState(depthFunc = AG.CompareMode.LESS_EQUAL)
 	//private val rs = AG.RenderState(depthFunc = AG.CompareMode.ALWAYS)
 
+	private val tempMat1 = Matrix3D()
+	private val tempMat2 = Matrix3D()
+
 	override fun render(ctx: RenderContext3D) {
 		val ag = ctx.ag
 
 		ctx.dynamicVertexBufferPool.alloc { vertexBuffer ->
 			vertexBuffer.upload(vertices)
+			tempMat1.setToScale(width, height, depth)
+			tempMat2.multiply(modelMat, tempMat1)
+
 			ag.draw(
 				vertexBuffer,
 				program = programColor3D,
@@ -165,7 +170,7 @@ class Cube(var width: Double, var height: Double = width, var depth: Double = he
 				uniforms = uniformValues.apply {
 					this[u_ProjMat] = ctx.projMat
 					this[u_ViewMat] = viewMat
-					this[u_ModMat] = modelMat
+					this[u_ModMat] = tempMat2
 				},
 				renderState = rs
 			)
