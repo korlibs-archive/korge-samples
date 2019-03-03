@@ -5,6 +5,7 @@ import com.soywiz.korge.ext.swf.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
+import com.soywiz.korim.font.*
 import com.soywiz.korinject.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
@@ -22,8 +23,9 @@ object TicTacToeModule : Module() {
 
 	override suspend fun init(injector: AsyncInjector) {
 		injector.mapPrototype { TicTacToeMainScene() }
-		//injector.get<ResourcesRoot>().mapExtensions("swf" to "ani")
-		//injector.get<ResourcesRoot>().mapExtensionsJustInJTransc("swf" to "ani")
+		val views = injector.get<Views>()
+		//Fonts.fonts.registerFont("Times New Roman", Fonts.defaultFont)
+		Fonts.fonts.registerFont("Times New Roman", resourcesVfs["fonts/font1.fnt"].readBitmapFont())
 	}
 }
 
@@ -135,10 +137,7 @@ class InteractivePlayer(val board: Board, override val chip: Chip) : Player {
 		}
 	}
 
-	override suspend fun move():
-		PointInt {
-		return clicked.waitOne()
-	}
+	override suspend fun move(): PointInt = clicked.waitOne()
 
 }
 

@@ -129,9 +129,9 @@ class MyScene : MyBaseScene() {
 	lateinit var buttonContainer: Container
 
 	override suspend fun Container.sceneInit() {
-		addEventListener<MouseEvent> {
-			println("MouseEvent: ${views.nativeWidth},${views.nativeHeight} :: ${views.virtualWidth},${views.virtualHeight} :: $it")
-		}
+		//addEventListener<MouseEvent> {
+		//	println("MouseEvent: ${views.nativeWidth},${views.nativeHeight} :: ${views.virtualWidth},${views.virtualHeight} :: $it")
+		//}
 
 		val mySceneContainer = sceneContainer(views) {
 			this.x = views.virtualWidth.toDouble() * 0.5

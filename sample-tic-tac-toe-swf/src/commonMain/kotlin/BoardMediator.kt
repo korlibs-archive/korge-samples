@@ -83,7 +83,7 @@ suspend fun Board.reset() {
 fun Board.Cell.init(view: View) {
 	this.view = view
 	set(this.value)
-	view["hit"].onUp {
+	view["hit"].onClick {
 		onPress(Unit)
 	}
 }
