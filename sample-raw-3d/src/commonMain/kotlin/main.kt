@@ -10,13 +10,18 @@ suspend fun main() = Korge {
 
 		val rotAxis = Vector3D(1f, 1f, 1f)
 		val cube = cube(100, 100, 100) {
-			position(0, 0, -5)
+			position(-.5, 0, -5)
+			modelMat.setToRotation(0.degrees, rotAxis)
+		}
+		val cube2 = cube(100, 100, 100) {
+			position(+.5, 0, -5)
 			modelMat.setToRotation(0.degrees, rotAxis)
 		}
 		launchImmediately {
 			while (true) {
 				tween(time = 4.seconds) {
 					cube.modelMat.setToRotation((it * 360).degrees, rotAxis)
+					cube2.modelMat.setToRotation(-(it * 360).degrees, rotAxis)
 				}
 			}
 		}
