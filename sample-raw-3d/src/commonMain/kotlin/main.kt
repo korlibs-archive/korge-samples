@@ -1,10 +1,15 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.tween.*
+import com.soywiz.korge.view.*
+import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
+import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
 
 suspend fun main() = Korge {
+	image(resourcesVfs["korge.png"].readNativeImage())
+
 	scene3D {
 		camera.set(fov = 45.degrees, near = 1.0, far = 20.0)
 
@@ -26,4 +31,6 @@ suspend fun main() = Korge {
 			}
 		}
 	}
+
+	image(resourcesVfs["korge.png"].readNativeImage()).position(700, 0).alpha(1)
 }

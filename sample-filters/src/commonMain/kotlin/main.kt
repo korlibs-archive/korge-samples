@@ -1,14 +1,14 @@
-import com.soywiz.klock.seconds
+import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.filter.*
-import com.soywiz.korim.color.Colors
+import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
-import com.soywiz.korio.async.launchImmediately
+import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
-import com.soywiz.korma.geom.degrees
-import com.soywiz.korma.interpolation.Easing
+import com.soywiz.korma.geom.*
+import com.soywiz.korma.interpolation.*
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
 	val minDegrees = (-16).degrees
