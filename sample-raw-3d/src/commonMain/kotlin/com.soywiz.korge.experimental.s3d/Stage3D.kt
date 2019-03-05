@@ -166,6 +166,7 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 			tempMat1.setToScale(width, height, depth)
 			tempMat2.multiply(modelMat, tempMat1)
 			tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
+			//tempMat3.multiply(ctx.cameraMat, this.localTransform.matrix)
 
 			ag.draw(
 				vertexBuffer,

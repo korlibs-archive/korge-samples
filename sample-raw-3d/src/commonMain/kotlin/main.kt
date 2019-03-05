@@ -28,7 +28,7 @@ suspend fun main() = Korge {
 		var angle = 0.degrees
 		addUpdatable {
 			camera.transform
-				.setTranslation(0, 0, -4)
+				.setTranslation(0, angle.degrees * 0.1, -4)
 				.setRotation(angle, 0.degrees, 0.degrees)
 			/*
 			camera.transform
