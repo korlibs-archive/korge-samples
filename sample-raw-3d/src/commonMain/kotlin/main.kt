@@ -1,5 +1,6 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
+import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.format.*
@@ -8,7 +9,7 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
 
 suspend fun main() = Korge {
-	image(resourcesVfs["korge.png"].readNativeImage())
+	//image(resourcesVfs["korge.png"].readNativeImage())
 
 	scene3D {
 		camera.set(fov = 45.degrees, near = 1.0, far = 20.0)
@@ -22,6 +23,23 @@ suspend fun main() = Korge {
 			position(+.5, 0, -5)
 			modelMat.setToRotation(0.degrees, rotAxis)
 		}
+
+		var pos = 0f
+		var angle = 0.degrees
+		addUpdatable {
+			camera.transform
+				.setTranslation(0, 0, -4)
+				.setRotation(angle, 0.degrees, 0.degrees)
+			/*
+			camera.transform
+				.setTranslation(0, -3, -3)
+				.setRotation(0.degrees, angle, 0.degrees)
+			*/
+			//pos -= 0.01f
+			angle += 0.2.degrees
+		}
+
+		/*
 		launchImmediately {
 			while (true) {
 				tween(time = 4.seconds) {
@@ -30,7 +48,8 @@ suspend fun main() = Korge {
 				}
 			}
 		}
+		*/
 	}
 
-	image(resourcesVfs["korge.png"].readNativeImage()).position(700, 0).alpha(1)
+	//image(resourcesVfs["korge.png"].readNativeImage()).position(700, 0).alpha(1)
 }

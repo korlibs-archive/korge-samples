@@ -29,14 +29,17 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx.ag.clear(depth = 1f, clearColor = false)
 		//ctx.ag.clear(color = Colors.RED)
 		ctx3D.ag = ctx.ag
-		ctx3D.projMat.copyFrom(stage3D.camera.getMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
+		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
+		ctx3D.cameraMat.copyFrom(stage3D.camera.transform.matrix)
 		stage3D.render(ctx3D)
 	}
 }
 
 class RenderContext3D() {
 	lateinit var ag: AG
+	val tmepMat = Matrix3D()
 	val projMat: Matrix3D = Matrix3D()
+	val cameraMat: Matrix3D = Matrix3D()
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
 }
 
@@ -64,7 +67,7 @@ abstract class View3D {
 	}
 
 	var parent: Container3D? = null
-	val viewMat = Matrix3D()
+	val localTransform = Transform3D()
 	val modelMat = Matrix3D()
 	//val position = Vector3D()
 
@@ -81,8 +84,8 @@ open class Container3D : View3D() {
 	}
 }
 
-inline fun <T : View3D> T.position(x: Number, y: Number, z: Number): T = this.apply {
-	viewMat.setToTranslation(x, y, z)
+inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
+	localTransform.setTranslation(x, y, z, w)
 }
 
 fun <T : View3D> T.addTo(container: Container3D) = this.apply {
@@ -153,6 +156,8 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 	private val tempMat1 = Matrix3D()
 	private val tempMat2 = Matrix3D()
 
+	private val tempMat3 = Matrix3D()
+
 	override fun render(ctx: RenderContext3D) {
 		val ag = ctx.ag
 
@@ -160,6 +165,7 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 			vertexBuffer.upload(vertices)
 			tempMat1.setToScale(width, height, depth)
 			tempMat2.multiply(modelMat, tempMat1)
+			tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
 			ag.draw(
 				vertexBuffer,
@@ -169,7 +175,7 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 				vertexCount = 6 * 6,
 				uniforms = uniformValues.apply {
 					this[u_ProjMat] = ctx.projMat
-					this[u_ViewMat] = viewMat
+					this[u_ViewMat] = tempMat3
 					this[u_ModMat] = tempMat2
 				},
 				renderState = rs
