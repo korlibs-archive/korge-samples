@@ -1,8 +1,9 @@
+package com.soywiz.korge.experimental.s3d
+
 import com.soywiz.kds.*
 import com.soywiz.kds.iterators.*
 import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
-import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*
@@ -15,7 +16,9 @@ class Views3D {
 
 class Stage3D(val views: Views3D) : Container3D() {
 	lateinit var view: Stage3DView
-	var camera = Camera3D.Perspective()
+	var camera = Camera3D.Perspective().apply {
+		positionLookingAt(0, 1, -10, 0, 0, 0)
+	}
 }
 
 class Stage3DView(val stage3D: Stage3D) : View() {
@@ -30,8 +33,8 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		//ctx.ag.clear(color = Colors.RED)
 		ctx3D.ag = ctx.ag
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
-		ctx3D.cameraMat.copyFrom(stage3D.camera.transform.matrix)
-		ctx3D.cameraMatInv.invert(stage3D.camera.transform.matrix)
+		ctx3D.cameraMat.copyFrom(stage3D.camera.localTransform.matrix)
+		ctx3D.cameraMatInv.invert(stage3D.camera.localTransform.matrix)
 		ctx3D.projCameraMat.multiply(ctx3D.projMat, ctx3D.cameraMatInv)
 		stage3D.render(ctx3D)
 	}
@@ -47,7 +50,11 @@ class RenderContext3D() {
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
 }
 
-abstract class View3D {
+abstract class Object3D {
+	val localTransform = Transform3D()
+}
+
+abstract class View3D : Object3D() {
 	companion object {
 		val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 		val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
@@ -71,7 +78,6 @@ abstract class View3D {
 	}
 
 	var parent: Container3D? = null
-	val localTransform = Transform3D()
 	val modelMat = Matrix3D()
 	//val position = Vector3D()
 
@@ -88,16 +94,24 @@ open class Container3D : View3D() {
 	}
 }
 
-inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
+inline fun <T : Object3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
 	localTransform.setTranslation(x, y, z, w)
 }
 
-inline fun <T : View3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
+inline fun <T : Object3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
 	localTransform.setRotation(x, y, z)
 }
 
-inline fun <T : View3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
+inline fun <T : Object3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
 	localTransform.setScale(x, y, z, w)
+}
+
+inline fun <T : Object3D> T.lookAt(x: Number, y: Number, z: Number): T = this.apply {
+	localTransform.lookAt(x, y, z)
+}
+
+inline fun <T : Object3D> T.positionLookingAt(px: Number, py: Number, pz: Number, tx: Number, ty: Number, tz: Number): T = this.apply {
+	localTransform.setTranslationAndLookAt(px, py, pz, tx, ty, tz)
 }
 
 fun <T : View3D> T.addTo(container: Container3D) = this.apply {
@@ -110,7 +124,7 @@ class Mesh3D(val data: FloatArray) {
 	val modelMat = Matrix3D()
 }
 
-inline fun Container3D.box(width: Number, height: Number = width, depth: Number = height, callback: Box.() -> Unit = {}): Box {
+inline fun Container3D.box(width: Number = 1, height: Number = width, depth: Number = height, callback: Box.() -> Unit = {}): Box {
 	return Box(width.toDouble(), height.toDouble(), depth.toDouble()).apply(callback).addTo(this)
 }
 
@@ -176,7 +190,8 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 		ctx.dynamicVertexBufferPool.alloc { vertexBuffer ->
 			vertexBuffer.upload(vertices)
 			tempMat1.setToScale(width, height, depth)
-			tempMat2.multiply(modelMat, tempMat1)
+			tempMat2.multiply(tempMat1, modelMat)
+			//tempMat2.invert()
 			//tempMat3.multiply(ctx.cameraMatInv, this.localTransform.matrix)
 			//tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
 			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)

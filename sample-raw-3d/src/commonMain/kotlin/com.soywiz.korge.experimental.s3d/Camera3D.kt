@@ -2,7 +2,7 @@ package com.soywiz.korge.experimental.s3d
 
 import com.soywiz.korma.geom.*
 
-abstract class Camera3D {
+abstract class Camera3D : Object3D() {
 	private var projMat = Matrix3D()
 	private var width: Double = 0.0
 	private var height: Double = 0.0
@@ -38,8 +38,6 @@ abstract class Camera3D {
 		var fov: Angle = fov; set(value) = dirty({ field != value }) { field = value }
 		var near: Double = near; set(value) = dirty({ field != value }) { field = value }
 		var far: Double = far; set(value) = dirty({ field != value }) { field = value }
-
-		val transform = Transform3D()
 
 		fun set(fov: Angle = this.fov, near: Double = this.near, far: Double = this.far) = this.apply {
 			this.fov = fov
@@ -102,7 +100,7 @@ class Transform3D {
 	@PublishedApi internal val tempVec1 = Vector3D()
 	@PublishedApi internal val tempVec2 = Vector3D()
 
-	inline fun lookUp(
+	inline fun lookAt(
 		tx: Number, ty: Number, tz: Number,
 		up: Vector3D = UP
 	) = this.apply {
