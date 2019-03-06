@@ -12,15 +12,19 @@ suspend fun main() = Korge {
 	//image(resourcesVfs["korge.png"].readNativeImage())
 
 	scene3D {
-		camera.set(fov = 45.degrees, near = 1.0, far = 20.0)
+		camera.set(fov = 60.degrees, near = 0.3, far = 1000.0)
 
 		val rotAxis = Vector3D(1f, 1f, 1f)
 		val cube = box(1, 1, 1) {
-			position(-.5, 0, -5)
-			modelMat.setToRotation(0.degrees, rotAxis)
+			//this.localTransform.setScale(2.0, 2.0, 2.0)
+			//this.localTransform.setRotation(0.degrees, 0.degrees, 45.degrees)
+			//this.localTransform.setRotation(45.degrees, 0.degrees, 0.degrees)
+			//position(-.5, 0, -5)
+			//position(0, 0, 0)
+			//modelMat.setToRotation(0.degrees, rotAxis)
 		}
 		val cube2 = box(2, 1, 1) {
-			position(+.5, 0, -5)
+			position(0, 2, 0)
 			modelMat.setToRotation(0.degrees, rotAxis)
 		}
 
@@ -28,14 +32,27 @@ suspend fun main() = Korge {
 		var angle = 0.degrees
 		addUpdatable {
 			camera.transform
-				.setTranslation(0, angle.degrees * 0.1, -4)
-				.setRotation(angle, 0.degrees, 0.degrees)
+				//.setTranslation(0, 0, -4)
+				//.setRotation(angle, 0.degrees, 0.degrees)
+				//.setRotation(30.degrees, 0.degrees, 0.degrees)
+				.setTranslationAndLookAt(
+					cos(angle * 2) * 4, cos(angle * 3) * 4, -sin(angle) * 4, // Orbiting camera
+					0, 0, 0
+				)
+				//.setTranslation(0, angle.degrees * 0.1, -4)
+				//.setRotation(angle, 0.degrees, 0.degrees)
+				/*
+				.setTranslationAndLookAt(
+					0, -pos, +4,
+					0, 0, 0
+				)
+				*/
 			/*
 			camera.transform
 				.setTranslation(0, -3, -3)
 				.setRotation(0.degrees, angle, 0.degrees)
 			*/
-			//pos -= 0.01f
+			pos -= 0.005f
 			angle += 0.2.degrees
 		}
 

@@ -1,7 +1,6 @@
 package com.soywiz.korge.experimental.s3d
 
 import com.soywiz.korma.geom.*
-import kotlin.math.*
 
 abstract class Camera3D {
 	private var projMat = Matrix3D()
@@ -32,9 +31,9 @@ abstract class Camera3D {
 	protected abstract fun updateMatrix(mat: Matrix3D, width: Double, height: Double)
 
 	class Perspective(
-		fov: Angle = 45.degrees,
-		near: Double = 1.0,
-		far: Double = 20.0
+		fov: Angle = 60.degrees,
+		near: Double = 0.3,
+		far: Double = 1000.0
 	) : Camera3D() {
 		var fov: Angle = fov; set(value) = dirty({ field != value }) { field = value }
 		var near: Double = near; set(value) = dirty({ field != value }) { field = value }
@@ -64,22 +63,67 @@ class Transform3D {
 		get() = run {
 			if (matrixDirty) {
 				matrixDirty = false
-				field
-					.identity()
-					.setToRotation(rotation)
-					.translate(translation)
+				field.setTRS(translation, rotation, scale)
 			}
 			field
 		}
-	val translation = Vector3D()
-	var rotation = Quaternion()
+
+	private val _translation = Position3D(0, 0, 0)
+	private val _rotation = Quaternion()
+	private val _scale = Scale3D(1, 1, 1)
+	private fun updateTRS() {
+		matrix.getTRS(_translation, rotation, _scale)
+		transformDirty = false
+	}
+
+	val translation: Position3D get() {
+		if (transformDirty) updateTRS()
+		return _translation
+	}
+	val rotation: Quaternion get() {
+		if (transformDirty) updateTRS()
+		return _rotation
+	}
+	val scale: Scale3D get() {
+		if (transformDirty) updateTRS()
+		return _scale
+	}
 
 	fun setMatrix(mat: Matrix3D) {
 		this.matrix.copyFrom(mat)
 		transformDirty = true
 	}
 
-	fun setTranslation(x: Number, y: Number, z: Number, w: Number = 1f) = this.apply {
+	@PublishedApi
+	internal val UP = Vector3D(0f, 1f, 0f)
+
+	@PublishedApi internal val tempMat1 = Matrix3D()
+	@PublishedApi internal val tempMat2 = Matrix3D()
+	@PublishedApi internal val tempVec1 = Vector3D()
+	@PublishedApi internal val tempVec2 = Vector3D()
+
+	inline fun lookUp(
+		tx: Number, ty: Number, tz: Number,
+		up: Vector3D = UP
+	) = this.apply {
+		tempMat1.setToLookAt(translation, tempVec1.setTo(tx, ty, tz, 1f), up)
+		rotation.setFromRotationMatrix(tempMat1)
+	}
+
+	inline fun setTranslationAndLookAt(
+		px: Number, py: Number, pz: Number,
+		tx: Number, ty: Number, tz: Number,
+		up: Vector3D = UP
+	) = this.apply {
+		//setTranslation(px, py, pz)
+		//lookUp(tx, ty, tz, up)
+		setMatrix(matrix.multiply(
+			tempMat1.setToTranslation(px, py, pz),
+			tempMat2.setToLookAt(tempVec1.setTo(px, py, pz), tempVec2.setTo(tx, ty, tz), up)
+		))
+	}
+
+	inline fun setTranslation(x: Number, y: Number, z: Number, w: Number = 1f) = this.apply {
 		matrixDirty = true
 		translation.setTo(x, y, z, w)
 	}
@@ -99,12 +143,17 @@ class Transform3D {
 		rotation.setEuler(euler)
 	}
 
-	fun setRotation(roll: Angle, pitch: Angle, yaw: Angle) = this.apply {
+	fun setRotation(x: Angle, y: Angle, z: Angle) = this.apply {
 		matrixDirty = true
-		//rotation.setTo(roll, pitch, yaw)
-		rotation.setEuler(roll, pitch, yaw)
-		//rotation.setEuler(pitch, roll, yaw)
+		rotation.setEuler(x, y, z)
+	}
+
+	inline fun setScale(x: Number = 1f, y: Number = 1f, z: Number = 1f, w: Number = 1f) = this.apply {
+		matrixDirty = true
+		scale.setTo(x, y, z, w)
 	}
 }
 
 typealias PerspectiveCamera3D = Camera3D.Perspective
+typealias Position3D = Vector3D
+typealias Scale3D = Vector3D

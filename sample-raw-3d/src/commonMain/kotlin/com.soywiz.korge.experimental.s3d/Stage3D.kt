@@ -31,6 +31,7 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx3D.ag = ctx.ag
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
 		ctx3D.cameraMat.copyFrom(stage3D.camera.transform.matrix)
+		ctx3D.cameraMatInv.invert(stage3D.camera.transform.matrix)
 		stage3D.render(ctx3D)
 	}
 }
@@ -40,6 +41,7 @@ class RenderContext3D() {
 	val tmepMat = Matrix3D()
 	val projMat: Matrix3D = Matrix3D()
 	val cameraMat: Matrix3D = Matrix3D()
+	val cameraMatInv: Matrix3D = Matrix3D()
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
 }
 
@@ -165,8 +167,9 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 			vertexBuffer.upload(vertices)
 			tempMat1.setToScale(width, height, depth)
 			tempMat2.multiply(modelMat, tempMat1)
-			tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
-			//tempMat3.multiply(ctx.cameraMat, this.localTransform.matrix)
+			//tempMat3.multiply(ctx.cameraMatInv, this.localTransform.matrix)
+			tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
+			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
 			ag.draw(
 				vertexBuffer,

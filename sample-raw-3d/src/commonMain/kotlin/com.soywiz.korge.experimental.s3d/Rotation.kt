@@ -1,38 +1,43 @@
 package com.soywiz.korge.experimental.s3d
 
-import com.soywiz.korio.lang.*
 import com.soywiz.korma.geom.*
 import kotlin.math.*
 
-class EulerRotation(
+data class EulerRotation(
 	var x: Angle = 0.degrees,
 	var y: Angle = 0.degrees,
 	var z: Angle = 0.degrees
 )
 
-class Quaternion(
-	var x: Float = 0f,
-	var y: Float = 0f,
-	var z: Float = 0f,
-	var w: Float = 1f
+data class Quaternion(
+	var x: Double = 0.0,
+	var y: Double = 0.0,
+	var z: Double = 0.0,
+	var w: Double = 1.0
 )
+
+fun Quaternion(x: Number, y: Number, z: Number, w: Number) = Quaternion(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
 
 fun EulerRotation.setQuaternion(x: Number, y: Number, z: Number, w: Number): EulerRotation = quaternionToEuler(x, y, z, w, this)
 fun EulerRotation.setQuaternion(quaternion: Quaternion): EulerRotation = quaternionToEuler(quaternion.x, quaternion.y, quaternion.z, quaternion.w, this)
-fun EulerRotation.setTo(roll: Angle, pitch: Angle, yaw: Angle): EulerRotation = this
-	.apply { this.x = roll }
-	.apply { this.y = pitch }
-	.apply { this.z = yaw }
+fun EulerRotation.setTo(x: Angle, y: Angle, z: Angle): EulerRotation = this
+	.apply { this.x = x }
+	.apply { this.y = y }
+	.apply { this.z = z }
+
 fun EulerRotation.setTo(other: EulerRotation): EulerRotation = setTo(other.x, other.y, other.z)
 
-fun Quaternion.setEuler(roll: Angle, pitch: Angle, yaw: Angle): Quaternion = eulerToQuaternion(roll, pitch, yaw, this)
+fun Quaternion.setEuler(x: Angle, y: Angle, z: Angle): Quaternion = eulerToQuaternion(x, y, z, this)
 fun Quaternion.setEuler(euler: EulerRotation): Quaternion = eulerToQuaternion(euler, this)
 fun Quaternion.setTo(euler: EulerRotation): Quaternion = eulerToQuaternion(euler, this)
 inline fun Quaternion.setTo(x: Number, y: Number, z: Number, w: Number): Quaternion = this
-	.apply { this.x = x.toFloat() }
-	.apply { this.y = y.toFloat() }
-	.apply { this.y = y.toFloat() }
-	.apply { this.w = w.toFloat() }
+	.apply { this.x = x.toDouble() }
+	.apply { this.y = y.toDouble() }
+	.apply { this.z = z.toDouble() }
+	.apply { this.w = w.toDouble() }
+
+inline fun Quaternion.copyFrom(other: Quaternion): Quaternion = this.setTo(other)
+
 inline fun Quaternion.setTo(other: Quaternion): Quaternion = setTo(other.x, other.y, other.z, other.w)
 
 private val tempQuat = Quaternion()
@@ -48,11 +53,12 @@ fun eulerToQuaternion(roll: Angle, pitch: Angle, yaw: Angle, quaternion: Quatern
 	val sp = sin(pitch * 0.5)
 	val cy = cos(yaw * 0.5)
 	val sy = sin(yaw * 0.5)
-	quaternion.x = (cy * cp * sr - sy * sp * cr).toFloat()
-	quaternion.y = (sy * cp * sr + cy * sp * cr).toFloat()
-	quaternion.z = (sy * cp * cr - cy * sp * sr).toFloat()
-	quaternion.w = (cy * cp * cr + sy * sp * sr).toFloat()
-	return quaternion
+	return quaternion.setTo(
+		(cy * cp * sr - sy * sp * cr),
+		(sy * cp * sr + cy * sp * cr),
+		(sy * cp * cr - cy * sp * sr),
+		(cy * cp * cr + sy * sp * sr)
+	)
 }
 
 fun quaternionToEuler(q: Quaternion, euler: EulerRotation = EulerRotation()): EulerRotation = quaternionToEuler(q.x, q.y, q.z, q.w, euler)
@@ -73,10 +79,7 @@ fun quaternionToEuler(x: Float, y: Float, z: Float, w: Float, euler: EulerRotati
 	val sinyCosp = +2.0 * (w * z + x * y)
 	val cosyCosp = +1.0 - 2.0 * (y * y + z * z)
 	val yaw = atan2(sinyCosp, cosyCosp)
-	euler.x = roll.radians
-	euler.y = pitch.radians
-	euler.z = yaw.radians
-	return euler
+	return euler.setTo(roll.radians, pitch.radians, yaw.radians)
 }
 
 private val tempMat1 = Matrix3D()
@@ -95,4 +98,29 @@ fun quaternionToMatrix(quat: Quaternion, out: Matrix3D = Matrix3D(), temp1: Matr
 		quat.x, quat.y, quat.z, quat.w
 	)
 	return out.multiply(temp1, temp2)
+}
+
+fun Quaternion.setFromRotationMatrix(m: Matrix3D) = this.apply {
+	val q = this
+	m.apply {
+		val t = v00 + v11 + v22
+		when {
+			t > 0 -> {
+				val s = 0.5 / sqrt(t + 1.0)
+				q.setTo(((v21 - v12) * s), ((v02 - v20) * s), ((v10 - v01) * s), (0.25 / s))
+			}
+			v00 > v11 && v00 > v22 -> {
+				val s = 2.0 * sqrt(1.0 + v00 - v11 - v22)
+				q.setTo((0.25 * s), ((v01 + v10) / s), ((v02 + v20) / s), ((v21 - v12) / s))
+			}
+			v11 > v22 -> {
+				val s = 2.0 * sqrt(1.0 + v11 - v00 - v22)
+				q.setTo(((v01 + v10) / s), (0.25 * s), ((v12 + v21) / s), ((v02 - v20) / s))
+			}
+			else -> {
+				val s = 2.0 * sqrt(1.0 + v22 - v00 - v11)
+				q.setTo(((v02 + v20) / s), ((v12 + v21) / s), (0.25f * s), ((v10 - v01) / s))
+			}
+		}
+	}
 }
