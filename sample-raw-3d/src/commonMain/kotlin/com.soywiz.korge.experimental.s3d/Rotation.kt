@@ -46,6 +46,14 @@ fun Quaternion.toMatrix(out: Matrix3D = Matrix3D()): Matrix3D = quaternionToMatr
 
 fun eulerToQuaternion(euler: EulerRotation, quaternion: Quaternion = Quaternion()): Quaternion = eulerToQuaternion(euler.x, euler.y, euler.z, quaternion)
 
+fun quaternionToEuler(q: Quaternion, euler: EulerRotation = EulerRotation()): EulerRotation = quaternionToEuler(q.x, q.y, q.z, q.w, euler)
+
+inline fun quaternionToEuler(x: Number, y: Number, z: Number, w: Number, euler: EulerRotation = EulerRotation()): EulerRotation {
+	return quaternionToEuler(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat(), euler)
+}
+
+// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
 fun eulerToQuaternion(roll: Angle, pitch: Angle, yaw: Angle, quaternion: Quaternion = Quaternion()): Quaternion {
 	val cr = cos(roll * 0.5)
 	val sr = sin(roll * 0.5)
@@ -59,12 +67,6 @@ fun eulerToQuaternion(roll: Angle, pitch: Angle, yaw: Angle, quaternion: Quatern
 		(sy * cp * cr - cy * sp * sr),
 		(cy * cp * cr + sy * sp * sr)
 	)
-}
-
-fun quaternionToEuler(q: Quaternion, euler: EulerRotation = EulerRotation()): EulerRotation = quaternionToEuler(q.x, q.y, q.z, q.w, euler)
-
-inline fun quaternionToEuler(x: Number, y: Number, z: Number, w: Number, euler: EulerRotation = EulerRotation()): EulerRotation {
-	return quaternionToEuler(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat(), euler)
 }
 
 fun quaternionToEuler(x: Float, y: Float, z: Float, w: Float, euler: EulerRotation = EulerRotation()): EulerRotation {

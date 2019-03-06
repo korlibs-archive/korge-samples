@@ -32,6 +32,7 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
 		ctx3D.cameraMat.copyFrom(stage3D.camera.transform.matrix)
 		ctx3D.cameraMatInv.invert(stage3D.camera.transform.matrix)
+		ctx3D.projCameraMat.multiply(ctx3D.projMat, ctx3D.cameraMatInv)
 		stage3D.render(ctx3D)
 	}
 }
@@ -40,6 +41,7 @@ class RenderContext3D() {
 	lateinit var ag: AG
 	val tmepMat = Matrix3D()
 	val projMat: Matrix3D = Matrix3D()
+	val projCameraMat: Matrix3D = Matrix3D()
 	val cameraMat: Matrix3D = Matrix3D()
 	val cameraMatInv: Matrix3D = Matrix3D()
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
@@ -88,6 +90,14 @@ open class Container3D : View3D() {
 
 inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
 	localTransform.setTranslation(x, y, z, w)
+}
+
+inline fun <T : View3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
+	localTransform.setRotation(x, y, z)
+}
+
+inline fun <T : View3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
+	localTransform.setScale(x, y, z, w)
 }
 
 fun <T : View3D> T.addTo(container: Container3D) = this.apply {
@@ -168,7 +178,7 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 			tempMat1.setToScale(width, height, depth)
 			tempMat2.multiply(modelMat, tempMat1)
 			//tempMat3.multiply(ctx.cameraMatInv, this.localTransform.matrix)
-			tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
+			//tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
 			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
 			ag.draw(
@@ -178,8 +188,8 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 				vertexLayout = vertexLayout,
 				vertexCount = 6 * 6,
 				uniforms = uniformValues.apply {
-					this[u_ProjMat] = ctx.projMat
-					this[u_ViewMat] = tempMat3
+					this[u_ProjMat] = ctx.projCameraMat
+					this[u_ViewMat] = localTransform.matrix
 					this[u_ModMat] = tempMat2
 				},
 				renderState = rs

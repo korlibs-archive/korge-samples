@@ -23,9 +23,10 @@ suspend fun main() = Korge {
 			//position(0, 0, 0)
 			//modelMat.setToRotation(0.degrees, rotAxis)
 		}
-		val cube2 = box(2, 1, 1) {
+		val cube2 = box(1, 1, 1) {
 			position(0, 2, 0)
-			modelMat.setToRotation(0.degrees, rotAxis)
+			scale(1, 2, 1)
+			rotation(0.degrees, 0.degrees, 90.degrees)
 		}
 
 		var pos = 0f
