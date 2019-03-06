@@ -59,22 +59,33 @@ abstract class View3D : Object3D() {
 		val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 		val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
 		val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
-		val point = Attribute("point", VarType.Float3, normalized = false)
+		val a_pos = Attribute("a_Pos", VarType.Float3, normalized = false)
+		val a_norm = Attribute("a_Norm", VarType.Float3, normalized = true)
 		val a_col = Attribute("a_Col", VarType.Float3, normalized = true)
 		val v_col = Varying("v_Col", VarType.Float3)
 		val programColor3D = Program(
 			vertex = VertexShader {
 				SET(v_col, a_col)
-				SET(out, u_ProjMat * u_ViewMat * u_ModMat * vec4(point, 1f.lit))
+				SET(out, u_ProjMat * u_ViewMat * u_ModMat * vec4(a_pos, 1f.lit))
 			},
 			fragment = FragmentShader {
 				SET(out, vec4(v_col, 1f.lit))
+				//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
 			},
 			name = "programColor3D"
 		)
-		val vertexLayout = VertexLayout(point, a_col)
+		val programNorm3D = Program(
+			vertex = VertexShader {
+				SET(out, u_ProjMat * u_ViewMat * u_ModMat * vec4(a_pos, 1f.lit))
+			},
+			fragment = FragmentShader {
+				SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
+			},
+			name = "programColor3D"
+		)
+		val layoutPosCol = VertexLayout(a_pos, a_col)
 
-		private val FLOATS_PER_VERTEX = vertexLayout.totalSize / Int.SIZE_BYTES /*Float.SIZE_BYTES is not defined*/
+		private val FLOATS_PER_VERTEX = layoutPosCol.totalSize / Int.SIZE_BYTES /*Float.SIZE_BYTES is not defined*/
 	}
 
 	var parent: Container3D? = null
@@ -120,61 +131,82 @@ fun <T : View3D> T.addTo(container: Container3D) = this.apply {
 	this.parent = container
 }
 
-class Mesh3D(val data: FloatArray) {
-	val modelMat = Matrix3D()
+class Mesh3D(val data: FloatArray, val layout: VertexLayout, val program: Program, val drawType: AG.DrawType) {
+	//val modelMat = Matrix3D()
+	val vertexSizeInBytes = layout.totalSize
+	val vertexSizeInFloats = vertexSizeInBytes / 4
+	val vertexCount = data.size / vertexSizeInFloats
+
+	init {
+		println("vertexCount: $vertexCount, vertexSizeInFloats: $vertexSizeInFloats, data.size: ${data.size}")
+	}
 }
 
-inline fun Container3D.box(width: Number = 1, height: Number = width, depth: Number = height, callback: Box.() -> Unit = {}): Box {
-	return Box(width.toDouble(), height.toDouble(), depth.toDouble()).apply(callback).addTo(this)
+inline fun Container3D.box(width: Number = 1, height: Number = width, depth: Number = height, callback: Cube.() -> Unit = {}): Cube {
+	return Cube(width.toDouble(), height.toDouble(), depth.toDouble()).apply(callback).addTo(this)
 }
 
-class Box(var width: Double, var height: Double = width, var depth: Double = height) : View3D() {
-	private val cubeSize = .5f
+class Cube(var width: Double, var height: Double, var depth: Double) : ViewWithMesh3D(Cube.mesh) {
+	override fun prepareExtraModelMatrix(mat: Matrix3D) {
+		mat.identity().scale(width, height, depth)
+	}
 
-	private val vertices = floatArrayOf(
-		-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
-		-cubeSize, -cubeSize, +cubeSize,  1f, 0f, 0f,  //p2
-		-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
-		-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
-		-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
-		-cubeSize, +cubeSize, -cubeSize,  1f, 0f, 0f,  //p4
+	companion object {
+		private val cubeSize = .5f
 
-		+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
-		-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
-		-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p4
-		+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
-		+cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p7
-		-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
+		private val vertices = floatArrayOf(
+			-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
+			-cubeSize, -cubeSize, +cubeSize,  1f, 0f, 0f,  //p2
+			-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
+			-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
+			-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
+			-cubeSize, +cubeSize, -cubeSize,  1f, 0f, 0f,  //p4
 
-		+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
-		-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
-		+cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p7
-		+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
-		-cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p2
-		-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
+			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
+			-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
+			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p4
+			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
+			+cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p7
+			-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
 
-		+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
-		+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p5
-		-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
-		+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
-		-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
-		-cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p3
+			+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
+			-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
+			+cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p7
+			+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
+			-cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p2
+			-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
 
-		+cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p8
-		-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
-		+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
-		-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
-		-cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p2
-		+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
+			+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
+			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p5
+			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
+			+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
+			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
+			-cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p3
 
-		+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
-		+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
-		+cubeSize, +cubeSize, -cubeSize,  1f, 0f, 1f,  //p5
-		+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
-		+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
-		+cubeSize, -cubeSize, +cubeSize,  1f, 0f, 1f   //p6
-	)
+			+cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p8
+			-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
+			+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
+			-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
+			-cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p2
+			+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
 
+			+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
+			+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
+			+cubeSize, +cubeSize, -cubeSize,  1f, 0f, 1f,  //p5
+			+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
+			+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
+			+cubeSize, -cubeSize, +cubeSize,  1f, 0f, 1f   //p6
+		)
+
+		val mesh = Mesh3D(vertices, View3D.layoutPosCol, View3D.programColor3D, AG.DrawType.TRIANGLES)
+	}
+}
+
+inline fun Container3D.mesh(mesh: Mesh3D, callback: ViewWithMesh3D.() -> Unit = {}): ViewWithMesh3D {
+	return ViewWithMesh3D(mesh).apply(callback).addTo(this)
+}
+
+open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 	private val uniformValues = AG.UniformValues()
 	private val rs = AG.RenderState(depthFunc = AG.CompareMode.LESS_EQUAL)
 	//private val rs = AG.RenderState(depthFunc = AG.CompareMode.ALWAYS)
@@ -184,12 +216,16 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 
 	private val tempMat3 = Matrix3D()
 
+	protected open fun prepareExtraModelMatrix(mat: Matrix3D) {
+		mat.identity()
+	}
+
 	override fun render(ctx: RenderContext3D) {
 		val ag = ctx.ag
 
 		ctx.dynamicVertexBufferPool.alloc { vertexBuffer ->
-			vertexBuffer.upload(vertices)
-			tempMat1.setToScale(width, height, depth)
+			vertexBuffer.upload(mesh.data)
+			prepareExtraModelMatrix(tempMat1)
 			tempMat2.multiply(tempMat1, modelMat)
 			//tempMat2.invert()
 			//tempMat3.multiply(ctx.cameraMatInv, this.localTransform.matrix)
@@ -198,10 +234,11 @@ class Box(var width: Double, var height: Double = width, var depth: Double = hei
 
 			ag.draw(
 				vertexBuffer,
-				program = programColor3D,
-				type = AG.DrawType.TRIANGLES,
-				vertexLayout = vertexLayout,
-				vertexCount = 6 * 6,
+				type = mesh.drawType,
+				program = mesh.program,
+				vertexLayout = mesh.layout,
+				vertexCount = mesh.vertexCount,
+				//vertexCount = 6 * 6,
 				uniforms = uniformValues.apply {
 					this[u_ProjMat] = ctx.projCameraMat
 					this[u_ViewMat] = localTransform.matrix

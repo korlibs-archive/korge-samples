@@ -3,7 +3,7 @@ package com.soywiz.korge.experimental.s3d.model.internal
 import com.soywiz.korio.util.*
 import kotlin.math.*
 
-internal fun StrReader.skipSpaces2() = this.apply { this.skipWhile { it == ' ' || it == '\t' } }
+internal fun StrReader.skipSpaces2() = this.apply { this.skipWhile { it == ' ' || it == '\t' || it == '\n' || it == '\r' } }
 
 internal fun StrReader.tryReadInt(default: Int): Int {
 	var digitCount = 0

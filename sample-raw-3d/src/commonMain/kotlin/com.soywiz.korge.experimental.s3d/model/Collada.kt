@@ -2,10 +2,14 @@ package com.soywiz.korge.experimental.s3d.model
 
 import com.soywiz.kds.*
 import com.soywiz.kds.iterators.*
+import com.soywiz.korag.*
+import com.soywiz.korag.shader.*
+import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.experimental.s3d.model.internal.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.serialization.xml.*
 import com.soywiz.korma.geom.*
+import kotlin.math.*
 
 suspend fun VfsFile.readColladaLibrary(): Library3D = ColladaParser.parse(readXml())
 
@@ -18,12 +22,28 @@ object ColladaParser {
 		while (!reader.eof) {
 			val pos0 = reader.pos
 			val float = reader.skipSpaces2().tryReadNumber().toFloat()
+			reader.skipSpaces2()
 			val pos1 = reader.pos
 			if (pos1 == pos0) error("Invalid number at $pos0 in '$str'")
 			floats.add(float)
 			//println("float: $float, ${reader.pos}/${reader.length}")
 		}
 		return floats.toFloatArray()
+	}
+
+	fun parseInts(str: String, capacity: Int = 7): IntArray {
+		val list = IntArrayList(capacity)
+		val reader = com.soywiz.korio.util.StrReader(str)
+		while (!reader.eof) {
+			val pos0 = reader.pos
+			val v = reader.skipSpaces2().tryReadInt(0)
+			reader.skipSpaces2()
+			val pos1 = reader.pos
+			if (pos1 == pos0) error("Invalid int at $pos0 in '$str'")
+			list.add(v)
+			//println("float: $float, ${reader.pos}/${reader.length}")
+		}
+		return list.toIntArray()
 	}
 
 	fun parseMatrix(str: String): Matrix3D {
@@ -38,6 +58,15 @@ object ColladaParser {
 		} else {
 			error("Invalid matrix size ${f.size} : str='$str'")
 		}
+	}
+
+	data class SourceParam(val name: String, val data: FloatArrayList)
+	data class Source(val id: String, val params: FastStringMap<SourceParam>)
+	data class Input(val semantic: String, val offset: Int, val source: Source, val indices: IntArrayList)
+	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap())
+
+	fun log(str: String) {
+		// DO NOTHING
 	}
 
 	fun parse(xml: Xml): Library3D {
@@ -57,41 +86,118 @@ object ColladaParser {
 						persp = Library3D.PerspectiveCameraDef(xfov.degrees, znear, zfar)
 					}
 					else -> {
-						println("Unsupported camera technique ${v.nameLC}")
+						log("Unsupported camera technique ${v.nameLC}")
 					}
 				}
 			}
 
 			library.cameraDefs[id] = persp ?: Library3D.CameraDef()
-			println("Camera id=$id, name=$name, persp=$persp")
+			log("Camera id=$id, name=$name, persp=$persp")
 		}
 		for (light in xml["library_lights"]["light"]) {
 			val id = light.getString("id")
 			val name = light.getString("name")
-			println("Light id=$id, name=$name")
+			log("Light id=$id, name=$name")
 		}
+
+		val floatArrays = FastStringMap<FloatArray>()
+		val sources = FastStringMap<Source>()
+		val vertices = FastStringMap<Any>()
+		val geometries = arrayListOf<Geometry>()
+
 		for (geometry in xml["library_geometries"]["geometry"]) {
-			val id = geometry.getString("id")
-			val name = geometry.getString("name")
-			println("Geometry id=$id, name=$name")
+			val id = geometry.getString("id") ?: "unknown"
+			val name = geometry.getString("name") ?: "unknown"
+			val geom = Geometry(id, name)
+			geometries += geom
+			log("Geometry id=$id, name=$name")
 			for (mesh in geometry["mesh"]) {
 				for (source in mesh["source"]) {
+					val sourceId = source.getString("id") ?: source.getString("name") ?: "unknown"
 					val float_array = source["float_array"].firstOrNull()
 					if (float_array != null) {
 						val floats = parseFloats(float_array.text, float_array.getInt("count") ?: 7)
-						val id = float_array.getString("id")
-						println("$id: " + FloatArrayList().also { it.add(floats) })
+						val id = float_array.getString("id") ?: float_array.getString("name") ?: "unknown"
+						floatArrays[id] = floats
+						//println("$id: " + FloatArrayList().also { it.add(floats) })
+					}
+					val rparams = FastStringMap<SourceParam>()
+					val accessor = source["technique_common"]["accessor"].firstOrNull()
+					if (accessor != null) {
+						val source = accessor.getString("source")?.trim('#') ?: "unknown"
+						val offset = accessor.getInt("offset") ?: 0
+						val count = accessor.getInt("count") ?: 0
+						val stride = accessor.getInt("stride") ?: 0
+						log("ACCESSOR: $source, $offset, $count, $stride")
+						for ((index, param) in accessor["param"].withIndex()) {
+							val paramName = param.getString("name") ?: "unknown"
+							val paramType = param.getString("type") ?: "unknown"
+							val paramData = FloatArrayList()
+							val paramOffset = offset + index
+							log("  - PARAM: $param : paramName=$paramName, paramType=$paramType")
+							val sourceData = floatArrays[source] ?: continue
+							log("    - PARAM_DATA")
+							for (n in 0 until count) {
+								paramData.add(sourceData[paramOffset + n * stride])
+							}
+							rparams[paramName] = SourceParam(paramName, paramData)
+							//println("paramData[$paramName]: ${paramData}")
+						}
+					}
+					sources[sourceId] = Source(sourceId, rparams)
+				}
+
+				for (vertices in mesh["vertices"]) {
+					val verticesId = vertices.getString("id") ?: vertices.getString("name") ?: "unknown"
+					log("vertices: $vertices")
+					for (input in vertices["input"]) {
+						val semantic = input.getString("semantic") ?: "UNKNOWN"
+						val source = input.getString("source")?.trim('#') ?: "unknown"
+						val rsource = sources[source]
+						if (rsource != null) {
+							sources[verticesId] = rsource
+						}
 					}
 				}
-				for (triangles in mesh["triangles"]) {
 
+				log("SOURCES.KEYS: " + sources.keys)
+				log("SOURCES: ${sources.keys.map { it to sources[it] }.toMap()}")
+
+				for (triangles in mesh["triangles"]) {
+					val trianglesCount = triangles.getInt("count") ?: 0
+					log("triangles: $triangles")
+					var stride = 1
+					val inputs = arrayListOf<Input>()
+					for (input in triangles["input"]) {
+						val offset = input.getInt("offset") ?: 0
+						stride = max(stride, offset + 1)
+
+						val semantic = input.getString("semantic") ?: "unknown"
+						val source = input.getString("source")?.trim('#') ?: "unknown"
+						val rsource = sources[source] ?: continue
+						inputs += Input(semantic, offset, rsource, intArrayListOf())
+						log("INPUT: semantic=$semantic, source=$source, offset=$offset, source=$rsource")
+					}
+					val pdata = parseInts(triangles["p"].firstOrNull()?.text ?: "")
+					//println("P: " + pdata.toList())
+					for (input in inputs) {
+						log("INPUT: ${input.semantic}")
+						for (n in 0 until trianglesCount) {
+							input.indices.add(pdata[input.offset + n * stride])
+						}
+						log("  - ${input.indices}")
+					}
+					for (input in inputs) {
+						geom.inputs[input.semantic] = input
+					}
 				}
 			}
 		}
+
 		for (vscene in xml["library_visual_scenes"]["visual_scene"]) {
 			val id = vscene.getString("id")
 			val name = vscene.getString("name")
-			println("VisualScene id=$id, name=$name")
+			log("VisualScene id=$id, name=$name")
 			for (node in vscene["node"]) {
 				val id = node.getString("id")
 				val name = node.getString("name")
@@ -106,17 +212,87 @@ object ColladaParser {
 									transform = matrix
 								}
 								else -> {
-									println("  Unhandled matrix sid=$sid")
+									log("  Unhandled matrix sid=$sid")
 								}
 							}
 						}
 						else -> {
-							println("  Unhandled ${v.nameLC}")
+							log("  Unhandled ${v.nameLC}")
 						}
 					}
 				}
-				println("  Node id=$id, name=$name, transform=$transform")
+				log("  Node id=$id, name=$name, transform=$transform")
 			}
+		}
+
+		for (geom in geometries) {
+			val px = FloatArrayList()
+			val py = FloatArrayList()
+			val pz = FloatArrayList()
+
+			val nx = FloatArrayList()
+			val ny = FloatArrayList()
+			val nz = FloatArrayList()
+
+			val u0 = FloatArrayList()
+			val v0 = FloatArrayList()
+
+			val VERTEX = geom.inputs["VERTEX"]
+			if (VERTEX != null) {
+				for (pname in listOf("X", "Y", "Z")) {
+					val p = VERTEX.source.params[pname]
+					val array = when (pname) {
+						"X" -> px
+						"Y" -> py
+						"Z" -> pz
+						else -> TODO()
+					}
+					if (p != null) {
+						VERTEX.indices.fastForEach { index ->
+							array.add(p.data[index])
+						}
+					}
+				}
+			}
+			val NORMAL = geom.inputs["NORMAL"]
+			if (NORMAL != null) {
+				for (pname in listOf("X", "Y", "Z")) {
+					val p = NORMAL.source.params[pname]
+					val array = when (pname) {
+						"X" -> nx
+						"Y" -> ny
+						"Z" -> nz
+						else -> TODO()
+					}
+					if (p != null) {
+						NORMAL.indices.fastForEach { index -> array.add(p.data[index]) }
+					}
+				}
+			}
+
+			// @TODO: We should use separate components
+			val combinedData = floatArrayListOf()
+			for (n in 0 until px.size) {
+				combinedData.add(px[n])
+				combinedData.add(py[n])
+				combinedData.add(pz[n])
+				if (nx.size >= px.size) {
+					combinedData.add(nx[n])
+					combinedData.add(ny[n])
+					combinedData.add(nz[n])
+				} else {
+					combinedData.add(0f)
+					combinedData.add(0f)
+					combinedData.add(0f)
+				}
+			}
+			library.geometryDefs[geom.id] = Library3D.RawGeometryDef(Mesh3D(combinedData.toFloatArray(), VertexLayout(View3D.a_pos, View3D.a_norm), View3D.programNorm3D, AG.DrawType.TRIANGLE_STRIP))
+			log("px: $px")
+			log("py: $py")
+			log("pz: $pz")
+			log("nx: $nx")
+			log("ny: $ny")
+			log("nz: $nz")
 		}
 
 		return library
