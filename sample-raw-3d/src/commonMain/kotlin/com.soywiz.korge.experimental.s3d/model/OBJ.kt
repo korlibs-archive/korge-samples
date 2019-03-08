@@ -44,63 +44,63 @@ class OBJ {
 		}
 
 		while (!eof) {
-			skipSpaces2()
+			skipSpaces()
 			when {
-				tryExpect2("v ") -> {
-					val x = skipSpaces2().tryReadNumber()
-					val y = skipSpaces2().tryReadNumber()
-					val z = skipSpaces2().tryReadNumber()
-					val w = skipSpaces2().tryReadNumber(1.0)
+				tryExpect("v ") -> {
+					val x = skipSpaces().tryReadNumber()
+					val y = skipSpaces().tryReadNumber()
+					val z = skipSpaces().tryReadNumber()
+					val w = skipSpaces().tryReadNumber(1.0)
 					vData.apply { add(x); add(y); add(z); add(w) }
 					skipUntilIncluded('\n')
 					//println("v: $x, $y, $z, $w")
 				}
-				tryExpect2("vt ") -> {
-					val u = skipSpaces2().tryReadNumber()
-					val v = skipSpaces2().tryReadNumber()
-					val w = skipSpaces2().tryReadNumber()
+				tryExpect("vt ") -> {
+					val u = skipSpaces().tryReadNumber()
+					val v = skipSpaces().tryReadNumber()
+					val w = skipSpaces().tryReadNumber()
 					vtData.apply { add(u); add(v); add(w) }
 					skipUntilIncluded('\n')
 					//println("vt: $u, $v, $w")
 				}
-				tryExpect2("vn ") -> {
-					val x = skipSpaces2().tryReadNumber()
-					val y = skipSpaces2().tryReadNumber()
-					val z = skipSpaces2().tryReadNumber()
+				tryExpect("vn ") -> {
+					val x = skipSpaces().tryReadNumber()
+					val y = skipSpaces().tryReadNumber()
+					val z = skipSpaces().tryReadNumber()
 					vnData.apply { add(x); add(y); add(z) }
 					skipUntilIncluded('\n')
 					//println("vn: $x, $y, $z")
 				}
-				tryExpect2("f ") -> {
+				tryExpect("f ") -> {
 					//println("faces:")
 					while (peekChar() != '\n') {
 						skipSpaces()
 						val vi = tryReadInt(-1)
-						val vti = if (tryExpect2("/")) tryReadInt(-1) else -1
-						val vni = if (tryExpect2("/")) tryReadInt(-1) else -1
+						val vti = if (tryExpect("/")) tryReadInt(-1) else -1
+						val vni = if (tryExpect("/")) tryReadInt(-1) else -1
 						//for (n in 0 until 4)
 						//println("  - $vi, $vti, $vni")
 					}
 					expect('\n')
 				}
-				tryExpect2("s ") -> {
+				tryExpect("s ") -> {
 					val shading = readUntilIncluded('\n')?.trim() ?: ""
 					//println("s: $shading")
 				}
-				tryExpect2("o ") -> {
+				tryExpect("o ") -> {
 					val name = readUntilIncluded('\n')?.trim() ?: ""
 					flushObj()
 					currentObjectName = name
 					//println("o: $name")
 				}
-				tryExpect2("#") -> {
+				tryExpect("#") -> {
 					skipUntilIncluded('\n')
 				}
-				tryExpect2("mtllib ") -> {
+				tryExpect("mtllib ") -> {
 					val file = readUntilIncluded('\n')?.trim() ?: ""
 					//println("mtllib: $file")
 				}
-				tryExpect2("usemtl ") -> {
+				tryExpect("usemtl ") -> {
 					val material = readUntilIncluded('\n')?.trim() ?: ""
 					//println("usemtl: $material")
 					materialName = material
@@ -115,4 +115,16 @@ class OBJ {
 
 		return WavefrontScene(objects)
 	}
+}
+
+class WavefrontScene(
+	val objects: Map<String, WavefrontMesh>
+)
+
+class WavefrontMesh(
+	// (x, y, z, w), (u, v, w), (nx, ny, nz)
+	val vertexData: FloatArray,
+	val indices: IntArray
+) {
+
 }

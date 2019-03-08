@@ -21,8 +21,8 @@ object ColladaParser {
 		val reader = com.soywiz.korio.util.StrReader(str)
 		while (!reader.eof) {
 			val pos0 = reader.pos
-			val float = reader.skipSpaces2().tryReadNumber().toFloat()
-			reader.skipSpaces2()
+			val float = reader.skipSpaces().tryReadNumber().toFloat()
+			reader.skipSpaces()
 			val pos1 = reader.pos
 			if (pos1 == pos0) error("Invalid number at $pos0 in '$str'")
 			floats.add(float)
@@ -36,8 +36,8 @@ object ColladaParser {
 		val reader = com.soywiz.korio.util.StrReader(str)
 		while (!reader.eof) {
 			val pos0 = reader.pos
-			val v = reader.skipSpaces2().tryReadInt(0)
-			reader.skipSpaces2()
+			val v = reader.skipSpaces().tryReadInt(0)
+			reader.skipSpaces()
 			val pos1 = reader.pos
 			if (pos1 == pos0) error("Invalid int at $pos0 in '$str'")
 			list.add(v)
@@ -65,9 +65,12 @@ object ColladaParser {
 	data class Input(val semantic: String, val offset: Int, val source: Source, val indices: IntArrayList)
 	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap())
 
-	fun log(str: String) {
+	inline fun log(str: () -> String) {
 		// DO NOTHING
 	}
+
+	@Deprecated("", ReplaceWith("log { str }", "com.soywiz.korge.experimental.s3d.model.ColladaParser.log"))
+	inline fun log(str: String) = log { str }
 
 	fun parse(xml: Xml): Library3D {
 		val library = Library3D()
@@ -86,18 +89,18 @@ object ColladaParser {
 						persp = Library3D.PerspectiveCameraDef(xfov.degrees, znear, zfar)
 					}
 					else -> {
-						log("Unsupported camera technique ${v.nameLC}")
+						log { "Unsupported camera technique ${v.nameLC}" }
 					}
 				}
 			}
 
 			library.cameraDefs[id] = persp ?: Library3D.CameraDef()
-			log("Camera id=$id, name=$name, persp=$persp")
+			log { "Camera id=$id, name=$name, persp=$persp" }
 		}
 		for (light in xml["library_lights"]["light"]) {
 			val id = light.getString("id")
 			val name = light.getString("name")
-			log("Light id=$id, name=$name")
+			log { "Light id=$id, name=$name" }
 		}
 
 		val floatArrays = FastStringMap<FloatArray>()
@@ -110,7 +113,7 @@ object ColladaParser {
 			val name = geometry.getString("name") ?: "unknown"
 			val geom = Geometry(id, name)
 			geometries += geom
-			log("Geometry id=$id, name=$name")
+			log { "Geometry id=$id, name=$name" }
 			for (mesh in geometry["mesh"]) {
 				for (source in mesh["source"]) {
 					val sourceId = source.getString("id") ?: source.getString("name") ?: "unknown"
@@ -128,15 +131,15 @@ object ColladaParser {
 						val offset = accessor.getInt("offset") ?: 0
 						val count = accessor.getInt("count") ?: 0
 						val stride = accessor.getInt("stride") ?: 0
-						log("ACCESSOR: $source, $offset, $count, $stride")
+						log { "ACCESSOR: $source, $offset, $count, $stride" }
 						for ((index, param) in accessor["param"].withIndex()) {
 							val paramName = param.getString("name") ?: "unknown"
 							val paramType = param.getString("type") ?: "unknown"
 							val paramData = FloatArrayList()
 							val paramOffset = offset + index
-							log("  - PARAM: $param : paramName=$paramName, paramType=$paramType")
+							log { "  - PARAM: $param : paramName=$paramName, paramType=$paramType" }
 							val sourceData = floatArrays[source] ?: continue
-							log("    - PARAM_DATA")
+							log { "    - PARAM_DATA" }
 							for (n in 0 until count) {
 								paramData.add(sourceData[paramOffset + n * stride])
 							}
@@ -149,7 +152,7 @@ object ColladaParser {
 
 				for (vertices in mesh["vertices"]) {
 					val verticesId = vertices.getString("id") ?: vertices.getString("name") ?: "unknown"
-					log("vertices: $vertices")
+					log { "vertices: $vertices" }
 					for (input in vertices["input"]) {
 						val semantic = input.getString("semantic") ?: "UNKNOWN"
 						val source = input.getString("source")?.trim('#') ?: "unknown"
@@ -160,12 +163,12 @@ object ColladaParser {
 					}
 				}
 
-				log("SOURCES.KEYS: " + sources.keys)
-				log("SOURCES: ${sources.keys.map { it to sources[it] }.toMap()}")
+				log { "SOURCES.KEYS: " + sources.keys }
+				log { "SOURCES: ${sources.keys.map { it to sources[it] }.toMap()}" }
 
 				for (triangles in mesh["triangles"]) {
 					val trianglesCount = triangles.getInt("count") ?: 0
-					log("triangles: $triangles")
+					log { "triangles: $triangles" }
 					var stride = 1
 					val inputs = arrayListOf<Input>()
 					for (input in triangles["input"]) {
@@ -176,16 +179,16 @@ object ColladaParser {
 						val source = input.getString("source")?.trim('#') ?: "unknown"
 						val rsource = sources[source] ?: continue
 						inputs += Input(semantic, offset, rsource, intArrayListOf())
-						log("INPUT: semantic=$semantic, source=$source, offset=$offset, source=$rsource")
+						log { "INPUT: semantic=$semantic, source=$source, offset=$offset, source=$rsource" }
 					}
 					val pdata = parseInts(triangles["p"].firstOrNull()?.text ?: "")
 					//println("P: " + pdata.toList())
 					for (input in inputs) {
-						log("INPUT: ${input.semantic}")
-						for (n in 0 until trianglesCount) {
+						log { "INPUT: semantic=${input.semantic}, trianglesCount=$trianglesCount, stride=$stride, offset=${input.offset}" }
+						for (n in 0 until trianglesCount * 3) {
 							input.indices.add(pdata[input.offset + n * stride])
 						}
-						log("  - ${input.indices}")
+						log { "  - ${input.indices}" }
 					}
 					for (input in inputs) {
 						geom.inputs[input.semantic] = input
@@ -197,7 +200,7 @@ object ColladaParser {
 		for (vscene in xml["library_visual_scenes"]["visual_scene"]) {
 			val id = vscene.getString("id")
 			val name = vscene.getString("name")
-			log("VisualScene id=$id, name=$name")
+			log { "VisualScene id=$id, name=$name" }
 			for (node in vscene["node"]) {
 				val id = node.getString("id")
 				val name = node.getString("name")
@@ -212,16 +215,16 @@ object ColladaParser {
 									transform = matrix
 								}
 								else -> {
-									log("  Unhandled matrix sid=$sid")
+									log { "  Unhandled matrix sid=$sid" }
 								}
 							}
 						}
 						else -> {
-							log("  Unhandled ${v.nameLC}")
+							log { "  Unhandled ${v.nameLC}" }
 						}
 					}
 				}
-				log("  Node id=$id, name=$name, transform=$transform")
+				log { "  Node id=$id, name=$name, transform=$transform" }
 			}
 		}
 
@@ -248,6 +251,7 @@ object ColladaParser {
 						else -> TODO()
 					}
 					if (p != null) {
+						//println(VERTEX.indices)
 						VERTEX.indices.fastForEach { index ->
 							array.add(p.data[index])
 						}
@@ -286,13 +290,16 @@ object ColladaParser {
 					combinedData.add(0f)
 				}
 			}
-			library.geometryDefs[geom.id] = Library3D.RawGeometryDef(Mesh3D(combinedData.toFloatArray(), VertexLayout(View3D.a_pos, View3D.a_norm), View3D.programNorm3D, AG.DrawType.TRIANGLE_STRIP))
-			log("px: $px")
-			log("py: $py")
-			log("pz: $pz")
-			log("nx: $nx")
-			log("ny: $ny")
-			log("nz: $nz")
+
+			//println(combinedData.toString())
+
+			library.geometryDefs[geom.id] = Library3D.RawGeometryDef(Mesh3D(combinedData.toFloatArray(), VertexLayout(View3D.a_pos, View3D.a_norm), View3D.programNorm3D, AG.DrawType.TRIANGLES))
+			log { "px: $px" }
+			log { "py: $py" }
+			log { "pz: $pz" }
+			log { "nx: $nx" }
+			log { "ny: $ny" }
+			log { "nz: $nz" }
 		}
 
 		return library

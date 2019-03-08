@@ -1,9 +1,6 @@
 package com.soywiz.korge.experimental.s3d.model.internal
 
 import com.soywiz.korio.util.*
-import kotlin.math.*
-
-internal fun StrReader.skipSpaces2() = this.apply { this.skipWhile { it == ' ' || it == '\t' || it == '\n' || it == '\r' } }
 
 internal fun StrReader.tryReadInt(default: Int): Int {
 	var digitCount = 0
@@ -42,7 +39,7 @@ internal fun StrReader.tryReadNumber(default: Double = Double.NaN): Double {
 }
 
 // Allocation-free matching
-internal fun StrReader.tryExpect2(str: String): Boolean {
+internal fun StrReader.tryExpect(str: String): Boolean {
 	for (n in 0 until str.length) {
 		if (this.peekOffset(n) != str[n]) return false
 	}
