@@ -2,6 +2,46 @@ package com.soywiz.korge.experimental.s3d.model.internal
 
 import com.soywiz.korio.util.*
 
+internal fun StrReader.readFloats(list: com.soywiz.kds.FloatArrayList = com.soywiz.kds.FloatArrayList(7)): com.soywiz.kds.FloatArrayList {
+	while (!eof) {
+		val pos0 = pos
+		val float = skipSpaces().tryReadNumber().toFloat()
+		skipSpaces()
+		val pos1 = pos
+		if (pos1 == pos0) error("Invalid number at $pos0 in '$str'")
+		list.add(float)
+		//println("float: $float, ${reader.pos}/${reader.length}")
+	}
+	return list
+}
+
+internal fun StrReader.readInts(list: com.soywiz.kds.IntArrayList = com.soywiz.kds.IntArrayList(7)): com.soywiz.kds.IntArrayList {
+	while (!eof) {
+		val pos0 = pos
+		val v = skipSpaces().tryReadInt(0)
+		skipSpaces()
+		val pos1 = pos
+		if (pos1 == pos0) error("Invalid int at $pos0 in '$str'")
+		list.add(v)
+		//println("float: $float, ${reader.pos}/${reader.length}")
+	}
+	return list
+}
+
+internal fun StrReader.readMatrix(): com.soywiz.korma.geom.Matrix3D {
+	val f = readFloats(com.soywiz.kds.FloatArrayList())
+	if (f.size == 16) {
+		return com.soywiz.korma.geom.Matrix3D().setRows(
+			f[0], f[1], f[2], f[3],
+			f[4], f[5], f[6], f[7],
+			f[8], f[9], f[10], f[11],
+			f[12], f[13], f[14], f[15]
+		)
+	} else {
+		error("Invalid matrix size ${f.size} : str='$str'")
+	}
+}
+
 internal fun StrReader.tryReadInt(default: Int): Int {
 	var digitCount = 0
 	var integral = 0

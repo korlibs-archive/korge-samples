@@ -31,13 +31,15 @@ class Light3D : View3D() {
 	internal val tempArray2 = FloatArray(4)
 	internal val tempArray3 = FloatArray(4)
 
-	val diffuseColorPremult get() = diffuseColor.withAd(power).premultiplied
-	val specularColorPremult get() = specularColor.withAd(power).premultiplied
-	val ambientColorPremult get() = ambientColor.withAd(power).premultiplied
+	//val diffuseColorPremult get() = diffuseColor.withAd(power).premultiplied
+	//val specularColorPremult get() = specularColor.withAd(power).premultiplied
+	//val ambientColorPremult get() = ambientColor.withAd(power).premultiplied
 
 	fun diffuseColor(color: RGBA): Light3D = this.apply { this.diffuseColor = color }
 	fun specularColor(color: RGBA): Light3D = this.apply { this.specularColor = color }
 	fun ambientColor(color: RGBA): Light3D = this.apply { this.ambientColor = color }
+
+	fun colors(ambient: RGBA, diffuse: RGBA = ambient, specular: RGBA = diffuse) = this.diffuseColor(diffuse).specularColor(specular).ambientColor(ambient)
 
 	override fun render(ctx: RenderContext3D) {
 	}

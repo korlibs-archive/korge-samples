@@ -118,8 +118,8 @@ object Demo3 {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
-			val light1 = light().position(0, 10, +10).diffuseColor(Colors.RED)
-			val light2 = light().position(10, 0, +10).diffuseColor(Colors.BLUE)
+			val light1 = light().position(0, 10, +10).colors(Colors.RED, Colors.RED, Colors.RED)
+			val light2 = light().position(10, 0, +10).colors(Colors.BLUE, Colors.BLUE, Colors.BLUE)
 
 			for (light in findByType<Light3D>()) {
 				println("LIGHT: $light")
