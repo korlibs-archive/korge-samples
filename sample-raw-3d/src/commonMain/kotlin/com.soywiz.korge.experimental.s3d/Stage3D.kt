@@ -2,13 +2,14 @@ package com.soywiz.korge.experimental.s3d
 
 import com.soywiz.kds.*
 import com.soywiz.kds.iterators.*
+import com.soywiz.kmem.*
 import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
-import com.soywiz.korge.internal.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
+import kotlin.reflect.*
 
 inline fun Container.scene3D(views: Views3D = Views3D(), callback: Stage3D.() -> Unit = {}): Stage3DView =
 	Stage3DView(Stage3D(views).apply(callback)).addTo(this)
@@ -19,9 +20,24 @@ class Views3D {
 fun Container3D.light(callback: Light3D.() -> Unit = {}) = Light3D().apply(callback).addTo(this)
 
 class Light3D : View3D() {
-	val diffuseColor = Colors.RED
+	var diffuseColor = Colors.WHITE
+	var specularColor = Colors.WHITE
+	var ambientColor = Colors.WHITE
+	var diffusePower = 1.0
+	var specularPower = 0.2
+	var ambientPower = 0.1
+	var power = 1.0
 	internal val tempArray1 = FloatArray(4)
 	internal val tempArray2 = FloatArray(4)
+	internal val tempArray3 = FloatArray(4)
+
+	val diffuseColorPremult get() = diffuseColor.withAd(power).premultiplied
+	val specularColorPremult get() = specularColor.withAd(power).premultiplied
+	val ambientColorPremult get() = ambientColor.withAd(power).premultiplied
+
+	fun diffuseColor(color: RGBA): Light3D = this.apply { this.diffuseColor = color }
+	fun specularColor(color: RGBA): Light3D = this.apply { this.specularColor = color }
+	fun ambientColor(color: RGBA): Light3D = this.apply { this.ambientColor = color }
 
 	override fun render(ctx: RenderContext3D) {
 	}
@@ -81,33 +97,12 @@ class RenderContext3D() {
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
 }
 
-abstract class Object3D {
-	val localTransform = Transform3D()
-
-	var localX: Double
-		set(localX) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.x.toDouble()
-
-	var localY: Double
-		set(localY) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.y.toDouble()
-
-	var localZ: Double
-		set(localZ) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.z.toDouble()
-
-	var localW: Double
-		set(localW) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.w.toDouble()
-
-
-}
-
-abstract class View3D : Object3D() {
+abstract class View3D {
 	companion object {
 		fun transpose(a: Operand) = Program.Func("transpose", a)
 		fun inverse(a: Operand) = Program.Func("inverse", a)
 
+		val u_Shiness = Uniform("u_shiness", VarType.Float1)
 		val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 		val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
 		val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
@@ -135,42 +130,78 @@ abstract class View3D : Object3D() {
 		class LightAttributes(val id: Int) {
 			val sourcePos = Uniform("light${id}_pos", VarType.Float3)
 			val diffuse = Uniform("light${id}_diffuse", VarType.Float4)
+			val specular = Uniform("light${id}_specular", VarType.Float4)
+			val ambient = Uniform("light${id}_ambient", VarType.Float4)
 		}
 
 		val lights = (0 until 4).map { LightAttributes(it) }
 
-		val programNorm3D = Program(
-			vertex = VertexShader {
-				val modelViewMat = createTemp(VarType.Mat4)
-				val normalMat = createTemp(VarType.Mat4)
-				SET(modelViewMat, u_ModMat * u_ViewMat)
-				SET(normalMat, u_NormMat)
-				SET(v_Pos, vec3(modelViewMat * vec4(a_pos, 1f.lit)))
-				SET(v_Norm, vec3(normalMat * vec4(a_norm, 1f.lit)))
-				SET(out, u_ProjMat * modelViewMat * vec4(a_pos, 1f.lit))
-			},
-			fragment = FragmentShader {
-				val N = v_Norm
-				val v = v_Pos
+		fun Program.Builder.addLight(light: LightAttributes, out: Operand) {
+			val v = v_Pos
+			val N = v_Norm
 
-				val light = lights[0]
+			val L = createTemp(VarType.Float3)
+			val E = createTemp(VarType.Float3)
+			val R = createTemp(VarType.Float3)
 
-				val L = createTemp(VarType.Float3)
-				val Idiff = createTemp(VarType.Float4)
+			SET(L, normalize(light.sourcePos["xyz"] - v))
+			SET(E, normalize(-v)) // we are in Eye Coordinates, so EyePos is (0,0,0)
+			SET(R, normalize(-reflect(L, N)))
 
-				SET(L, normalize(light.sourcePos["xyz"] - v))
-				SET(Idiff, light.diffuse * max(dot(N, L), 0f.lit))
-				SET(Idiff, clamp(Idiff, 0f.lit, 1f.lit))
+			SET(out["rgb"], out["rgb"] + light.ambient["rgb"])
+			SET(out["rgb"], out["rgb"] + clamp(light.diffuse * max(dot(N, L), 0f.lit), 0f.lit, 1f.lit)["rgb"])
+			SET(out["rgb"], out["rgb"] + clamp(light.specular * pow(max(dot(R, E), 0f.lit), 0.3f.lit * u_Shiness), 0f.lit, 1f.lit)["rgb"])
+		}
 
-				//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
-				SET(out, vec4(Idiff["rgb"], 1f.lit))
-			},
-			name = "programColor3D"
-		)
+		val programCache = LinkedHashMap<String, Program>()
+
+		fun getProgram3D(nlights: Int): Program {
+			return programCache.getOrPut("program_lights_$nlights") {
+				Program(
+					vertex = VertexShader {
+						val modelViewMat = createTemp(VarType.Mat4)
+						val normalMat = createTemp(VarType.Mat4)
+						SET(modelViewMat, u_ModMat * u_ViewMat)
+						SET(normalMat, u_NormMat)
+						SET(v_Pos, vec3(modelViewMat * vec4(a_pos, 1f.lit)))
+						SET(v_Norm, vec3(normalMat * vec4(a_norm, 1f.lit)))
+						SET(out, u_ProjMat * modelViewMat * vec4(a_pos, 1f.lit))
+					},
+					fragment = FragmentShader {
+						//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
+						SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
+						for (n in 0 until nlights) {
+							addLight(lights[n], out)
+						}
+					},
+					name = "programColor3D"
+				)
+			}
+		}
+
 		val layoutPosCol = VertexLayout(a_pos, a_col)
 
 		private val FLOATS_PER_VERTEX = layoutPosCol.totalSize / Int.SIZE_BYTES /*Float.SIZE_BYTES is not defined*/
 	}
+
+	var name: String? = null
+	val localTransform = Transform3D()
+
+	var localX: Double
+		set(localX) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
+		get() = localTransform.translation.x.toDouble()
+
+	var localY: Double
+		set(localY) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
+		get() = localTransform.translation.y.toDouble()
+
+	var localZ: Double
+		set(localZ) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
+		get() = localTransform.translation.z.toDouble()
+
+	var localW: Double
+		set(localW) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
+		get() = localTransform.translation.w.toDouble()
 
 	var parent: Container3D? = null
 	val modelMat = Matrix3D()
@@ -189,23 +220,53 @@ open class Container3D : View3D() {
 	}
 }
 
-inline fun <T : Object3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
+inline fun <reified T : View3D> View3D?.findByType() = sequence<T> {
+	for (it in descendants()) {
+		if (it is T) yield(it)
+	}
+}
+
+fun View3D?.descendants(): Sequence<View3D> = sequence<View3D> {
+	val view = this@descendants ?: return@sequence
+	yield(view)
+	if (view is Container3D) {
+		view.children.fastForEach {
+			yieldAll(it.descendants())
+		}
+	}
+}
+
+operator fun View3D?.get(name: String): View3D? {
+	if (this?.name == name) return this
+	if (this is Container3D) {
+		this.children.fastForEach {
+			val result = it[name]
+			if (result != null) return result
+		}
+	}
+	return null
+}
+
+
+fun <T : View3D> T.name(name: String) = this.apply { this.name = name }
+
+inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
 	localTransform.setTranslation(x, y, z, w)
 }
 
-inline fun <T : Object3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
+inline fun <T : View3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
 	localTransform.setRotation(x, y, z)
 }
 
-inline fun <T : Object3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
+inline fun <T : View3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
 	localTransform.setScale(x, y, z, w)
 }
 
-inline fun <T : Object3D> T.lookAt(x: Number, y: Number, z: Number): T = this.apply {
+inline fun <T : View3D> T.lookAt(x: Number, y: Number, z: Number): T = this.apply {
 	localTransform.lookAt(x, y, z)
 }
 
-inline fun <T : Object3D> T.positionLookingAt(px: Number, py: Number, pz: Number, tx: Number, ty: Number, tz: Number): T = this.apply {
+inline fun <T : View3D> T.positionLookingAt(px: Number, py: Number, pz: Number, tx: Number, ty: Number, tz: Number): T = this.apply {
 	localTransform.setTranslationAndLookAt(px, py, pz, tx, ty, tz)
 }
 
@@ -215,7 +276,8 @@ fun <T : View3D> T.addTo(container: Container3D) = this.apply {
 	this.parent = container
 }
 
-class Mesh3D(val data: FloatArray, val layout: VertexLayout, val program: Program, val drawType: AG.DrawType) {
+class Mesh3D(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType) {
+	var shiness = 0.5
 	//val modelMat = Matrix3D()
 	val vertexSizeInBytes = layout.totalSize
 	val vertexSizeInFloats = vertexSizeInBytes / 4
@@ -239,47 +301,47 @@ class Cube(var width: Double, var height: Double, var depth: Double) : ViewWithM
 		private val cubeSize = .5f
 
 		private val vertices = floatArrayOf(
-			-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
-			-cubeSize, -cubeSize, +cubeSize,  1f, 0f, 0f,  //p2
-			-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
-			-cubeSize, -cubeSize, -cubeSize,  1f, 0f, 0f,  //p1
-			-cubeSize, +cubeSize, +cubeSize,  1f, 0f, 0f,  //p3
-			-cubeSize, +cubeSize, -cubeSize,  1f, 0f, 0f,  //p4
+			-cubeSize, -cubeSize, -cubeSize, 1f, 0f, 0f,  //p1
+			-cubeSize, -cubeSize, +cubeSize, 1f, 0f, 0f,  //p2
+			-cubeSize, +cubeSize, +cubeSize, 1f, 0f, 0f,  //p3
+			-cubeSize, -cubeSize, -cubeSize, 1f, 0f, 0f,  //p1
+			-cubeSize, +cubeSize, +cubeSize, 1f, 0f, 0f,  //p3
+			-cubeSize, +cubeSize, -cubeSize, 1f, 0f, 0f,  //p4
 
-			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
-			-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
-			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p4
-			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 0f,  //p5
-			+cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p7
-			-cubeSize, -cubeSize, -cubeSize,  0f, 1f, 0f,  //p1
+			+cubeSize, +cubeSize, -cubeSize, 0f, 1f, 0f,  //p5
+			-cubeSize, -cubeSize, -cubeSize, 0f, 1f, 0f,  //p1
+			-cubeSize, +cubeSize, -cubeSize, 0f, 1f, 0f,  //p4
+			+cubeSize, +cubeSize, -cubeSize, 0f, 1f, 0f,  //p5
+			+cubeSize, -cubeSize, -cubeSize, 0f, 1f, 0f,  //p7
+			-cubeSize, -cubeSize, -cubeSize, 0f, 1f, 0f,  //p1
 
-			+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
-			-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
-			+cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p7
-			+cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p6
-			-cubeSize, -cubeSize, +cubeSize,  0f, 0f, 1f,  //p2
-			-cubeSize, -cubeSize, -cubeSize,  0f, 0f, 1f,  //p1
+			+cubeSize, -cubeSize, +cubeSize, 0f, 0f, 1f,  //p6
+			-cubeSize, -cubeSize, -cubeSize, 0f, 0f, 1f,  //p1
+			+cubeSize, -cubeSize, -cubeSize, 0f, 0f, 1f,  //p7
+			+cubeSize, -cubeSize, +cubeSize, 0f, 0f, 1f,  //p6
+			-cubeSize, -cubeSize, +cubeSize, 0f, 0f, 1f,  //p2
+			-cubeSize, -cubeSize, -cubeSize, 0f, 0f, 1f,  //p1
 
-			+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
-			+cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p5
-			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
-			+cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p8
-			-cubeSize, +cubeSize, -cubeSize,  0f, 1f, 1f,  //p4
-			-cubeSize, +cubeSize, +cubeSize,  0f, 1f, 1f,  //p3
+			+cubeSize, +cubeSize, +cubeSize, 0f, 1f, 1f,  //p8
+			+cubeSize, +cubeSize, -cubeSize, 0f, 1f, 1f,  //p5
+			-cubeSize, +cubeSize, -cubeSize, 0f, 1f, 1f,  //p4
+			+cubeSize, +cubeSize, +cubeSize, 0f, 1f, 1f,  //p8
+			-cubeSize, +cubeSize, -cubeSize, 0f, 1f, 1f,  //p4
+			-cubeSize, +cubeSize, +cubeSize, 0f, 1f, 1f,  //p3
 
-			+cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p8
-			-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
-			+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
-			-cubeSize, +cubeSize, +cubeSize,  1f, 1f, 0f,  //p3
-			-cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p2
-			+cubeSize, -cubeSize, +cubeSize,  1f, 1f, 0f,  //p6
+			+cubeSize, +cubeSize, +cubeSize, 1f, 1f, 0f,  //p8
+			-cubeSize, +cubeSize, +cubeSize, 1f, 1f, 0f,  //p3
+			+cubeSize, -cubeSize, +cubeSize, 1f, 1f, 0f,  //p6
+			-cubeSize, +cubeSize, +cubeSize, 1f, 1f, 0f,  //p3
+			-cubeSize, -cubeSize, +cubeSize, 1f, 1f, 0f,  //p2
+			+cubeSize, -cubeSize, +cubeSize, 1f, 1f, 0f,  //p6
 
-			+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
-			+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
-			+cubeSize, +cubeSize, -cubeSize,  1f, 0f, 1f,  //p5
-			+cubeSize, -cubeSize, -cubeSize,  1f, 0f, 1f,  //p7
-			+cubeSize, +cubeSize, +cubeSize,  1f, 0f, 1f,  //p8
-			+cubeSize, -cubeSize, +cubeSize,  1f, 0f, 1f   //p6
+			+cubeSize, +cubeSize, +cubeSize, 1f, 0f, 1f,  //p8
+			+cubeSize, -cubeSize, -cubeSize, 1f, 0f, 1f,  //p7
+			+cubeSize, +cubeSize, -cubeSize, 1f, 0f, 1f,  //p5
+			+cubeSize, -cubeSize, -cubeSize, 1f, 0f, 1f,  //p7
+			+cubeSize, +cubeSize, +cubeSize, 1f, 0f, 1f,  //p8
+			+cubeSize, -cubeSize, +cubeSize, 1f, 0f, 1f   //p6
 		)
 
 		val mesh = Mesh3D(vertices, View3D.layoutPosCol, View3D.programColor3D, AG.DrawType.TRIANGLES)
@@ -316,7 +378,7 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 			ag.draw(
 				vertexBuffer,
 				type = mesh.drawType,
-				program = mesh.program,
+				program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4)),
 				vertexLayout = mesh.layout,
 				vertexCount = mesh.vertexCount,
 				//vertexCount = 6 * 6,
@@ -325,13 +387,36 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 					this[u_ViewMat] = localTransform.matrix
 					this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
 					this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
+
+					this[u_Shiness] = mesh.shiness
 					ctx.lights.fastForEachWithIndex { index, light: Light3D ->
 						this[lights[index].sourcePos] = light.localTransform.translation.data
-						this[lights[index].diffuse] = light.tempArray1.apply  {
-							this[0] = light.diffuseColor.rf
-							this[1] = light.diffuseColor.gf
-							this[2] = light.diffuseColor.bf
-							this[3] = 1f
+						val diffuse = light.diffuseColor
+						val specular = light.specularColor
+						val ambient = light.ambientColor
+
+						//println(light.diffuseColor.withAd(1.0))
+						//println(diffuse)
+						//println(specular)
+						//println(ambient)
+
+						this[lights[index].diffuse] = light.tempArray1.apply {
+							val scale = (light.power * light.diffusePower).toFloat()
+							this[0] = (diffuse.rf * scale)
+							this[1] = (diffuse.gf * scale)
+							this[2] = (diffuse.bf * scale)
+						}
+						this[lights[index].specular] = light.tempArray2.apply {
+							val scale = (light.power * light.specularPower).toFloat()
+							this[0] = (specular.rf * scale)
+							this[1] = (specular.gf * scale)
+							this[2] = (specular.bf * scale)
+						}
+						this[lights[index].ambient] = light.tempArray3.apply {
+							val scale = (light.power * light.ambientPower).toFloat()
+							this[0] = (ambient.rf * scale)
+							this[1] = (ambient.gf * scale)
+							this[2] = (ambient.bf * scale)
 						}
 					}
 				},

@@ -13,7 +13,7 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.interpolation.*
 import kotlin.jvm.*
 
-suspend fun main(args: Array<String>) = Demo2.main(args)
+suspend fun main(args: Array<String>) = Demo3.main(args)
 
 object Demo1 {
 	@JvmStatic
@@ -63,13 +63,16 @@ object Demo2 {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
-			val light = light().position(0, 1, 0)
+			val light1 = light().position(0, 10, +10).diffuseColor(Colors.RED)
+			val light2 = light().position(10, 0, +10).diffuseColor(Colors.BLUE)
+
 			launchImmediately {
 				while (true) {
-					tween(light::localY[-2], time = 1.seconds, easing = Easing.SMOOTH)
-					tween(light::localY[+2], time = 1.seconds, easing = Easing.SMOOTH)
+					tween(light1::localY[-20], light2::localX[-20], time = 1.seconds, easing = Easing.SMOOTH)
+					tween(light1::localY[+20], light2::localX[+20], time = 1.seconds, easing = Easing.SMOOTH)
 				}
 			}
+
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
@@ -87,9 +90,9 @@ object Demo2 {
 
 			var tick = 0
 			addUpdatable {
-				val angle = (tick / 4.0).degrees
+				val angle = (tick / 1.0).degrees
 				camera.positionLookingAt(
-					cos(angle * 2) * 4, cos(angle * 3) * 4, -sin(angle) * 4, // Orbiting camera
+					cos(angle * 1) * 4, 0.0, -sin(angle * 1) * 4, // Orbiting camera
 					0, 0, 0
 				)
 				tick++
@@ -105,6 +108,54 @@ object Demo2 {
 				cos(angle) * distance, 0.0, sin(angle) * distance, // Orbiting camera
 				v.localTransform.translation.x, v.localTransform.translation.y, v.localTransform.translation.z
 			)
+		}
+	}
+}
+
+object Demo3 {
+	@JvmStatic
+	suspend fun main(args: Array<String>) = Korge(title = "KorGE 3D", bgcolor = Colors.DARKGREY) {
+		//delay(10.seconds)
+		//println("delay")
+		scene3D {
+			val light1 = light().position(0, 10, +10).diffuseColor(Colors.RED)
+			val light2 = light().position(10, 0, +10).diffuseColor(Colors.BLUE)
+
+			for (light in findByType<Light3D>()) {
+				println("LIGHT: $light")
+			}
+
+			launchImmediately {
+				while (true) {
+					tween(light1::localY[-20], light2::localX[-20], time = 1.seconds, easing = Easing.SMOOTH)
+					tween(light1::localY[+20], light2::localX[+20], time = 1.seconds, easing = Easing.SMOOTH)
+				}
+			}
+
+			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
+			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
+			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
+			val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
+			//val library = resourcesVfs["plane.dae"].readColladaLibrary()
+			//val cubeGeom = library.geometryDefs["Cube-mesh"]!! as Library3D.RawGeometryDef
+			val cubeGeom = library.geometryDefs.values.first() as Library3D.RawGeometryDef
+			val cube = mesh(cubeGeom.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
+			println(library)
+			/*
+            launchImmediately {
+                orbit(cube, 4.0, time = 10.seconds)
+            }
+            */
+
+			var tick = 0
+			addUpdatable {
+				val angle = (tick / 1.0).degrees
+				camera.positionLookingAt(
+					cos(angle * 1) * 4, 0.0, -sin(angle * 1) * 4, // Orbiting camera
+					0, 0, 0
+				)
+				tick++
+			}
 		}
 	}
 }

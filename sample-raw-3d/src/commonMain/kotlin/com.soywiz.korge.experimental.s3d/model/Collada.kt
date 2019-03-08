@@ -293,7 +293,7 @@ object ColladaParser {
 
 			//println(combinedData.toString())
 
-			library.geometryDefs[geom.id] = Library3D.RawGeometryDef(Mesh3D(combinedData.toFloatArray(), VertexLayout(View3D.a_pos, View3D.a_norm), View3D.programNorm3D, AG.DrawType.TRIANGLES))
+			library.geometryDefs[geom.id] = Library3D.RawGeometryDef(Mesh3D(combinedData.toFloatArray(), VertexLayout(View3D.a_pos, View3D.a_norm), null, AG.DrawType.TRIANGLES))
 			log { "px: $px" }
 			log { "py: $py" }
 			log { "pz: $pz" }

@@ -2,7 +2,7 @@ package com.soywiz.korge.experimental.s3d
 
 import com.soywiz.korma.geom.*
 
-abstract class Camera3D : Object3D() {
+abstract class Camera3D : View3D() {
 	private var projMat = Matrix3D()
 	private var width: Double = 0.0
 	private var height: Double = 0.0
@@ -29,6 +29,10 @@ abstract class Camera3D : Object3D() {
 	}
 
 	protected abstract fun updateMatrix(mat: Matrix3D, width: Double, height: Double)
+
+	override fun render(ctx: RenderContext3D) {
+		// Do nothing except when debugging
+	}
 
 	class Perspective(
 		fov: Angle = 60.degrees,
