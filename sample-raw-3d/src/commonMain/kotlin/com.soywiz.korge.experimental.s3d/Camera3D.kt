@@ -55,6 +55,7 @@ abstract class Camera3D : View3D() {
 	}
 }
 
+// @TODO: Move to KorMA
 private val tempMatrix3D = Matrix3D()
 class Transform3D {
 	@PublishedApi
@@ -157,5 +158,3 @@ class Transform3D {
 }
 
 typealias PerspectiveCamera3D = Camera3D.Perspective
-typealias Position3D = Vector3D
-typealias Scale3D = Vector3D

@@ -2,4 +2,5 @@ apply plugin: "korge"
 
 korge {
 	id = "com.soywiz.samples.raw3d"
+	dependencyMulti("com.soywiz:korag-opengl:1.6.7")
 }

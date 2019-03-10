@@ -5,11 +5,12 @@ import com.soywiz.kds.iterators.*
 import com.soywiz.kmem.*
 import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
+import com.soywiz.korag.shader.gl.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
-import kotlin.reflect.*
+import kotlin.native.concurrent.*
 
 inline fun Container.scene3D(views: Views3D = Views3D(), callback: Stage3D.() -> Unit = {}): Stage3DView =
 	Stage3DView(Stage3D(views).apply(callback)).addTo(this)
@@ -90,6 +91,8 @@ fun View3D?.foreachDescendant(handler: (View3D) -> Unit) {
 
 class RenderContext3D() {
 	lateinit var ag: AG
+	val bindMat4 = Matrix3D()
+	val bones = Array(128) { Matrix3D() }
 	val tmepMat = Matrix3D()
 	val projMat: Matrix3D = Matrix3D()
 	val lights = arrayListOf<Light3D>()
@@ -100,92 +103,6 @@ class RenderContext3D() {
 }
 
 abstract class View3D {
-	companion object {
-		fun transpose(a: Operand) = Program.Func("transpose", a)
-		fun inverse(a: Operand) = Program.Func("inverse", a)
-
-		val u_Shiness = Uniform("u_shiness", VarType.Float1)
-		val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
-		val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
-		val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
-		val u_NormMat = Uniform("u_NormMat", VarType.Mat4)
-		val a_pos = Attribute("a_Pos", VarType.Float3, normalized = false)
-		val a_norm = Attribute("a_Norm", VarType.Float3, normalized = true)
-		val a_col = Attribute("a_Col", VarType.Float3, normalized = true)
-		val v_col = Varying("v_Col", VarType.Float3)
-
-		val v_Pos = Varying("v_Pos", VarType.Float3)
-		val v_Norm = Varying("v_Norm", VarType.Float3)
-
-		val programColor3D = Program(
-			vertex = VertexShader {
-				SET(v_col, a_col)
-				SET(out, u_ProjMat * u_ModMat * u_ViewMat * vec4(a_pos, 1f.lit))
-			},
-			fragment = FragmentShader {
-				SET(out, vec4(v_col, 1f.lit))
-				//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
-			},
-			name = "programColor3D"
-		)
-
-		class LightAttributes(val id: Int) {
-			val sourcePos = Uniform("light${id}_pos", VarType.Float3)
-			val diffuse = Uniform("light${id}_diffuse", VarType.Float4)
-			val specular = Uniform("light${id}_specular", VarType.Float4)
-			val ambient = Uniform("light${id}_ambient", VarType.Float4)
-		}
-
-		val lights = (0 until 4).map { LightAttributes(it) }
-
-		fun Program.Builder.addLight(light: LightAttributes, out: Operand) {
-			val v = v_Pos
-			val N = v_Norm
-
-			val L = createTemp(VarType.Float3)
-			val E = createTemp(VarType.Float3)
-			val R = createTemp(VarType.Float3)
-
-			SET(L, normalize(light.sourcePos["xyz"] - v))
-			SET(E, normalize(-v)) // we are in Eye Coordinates, so EyePos is (0,0,0)
-			SET(R, normalize(-reflect(L, N)))
-
-			SET(out["rgb"], out["rgb"] + light.ambient["rgb"])
-			SET(out["rgb"], out["rgb"] + clamp(light.diffuse * max(dot(N, L), 0f.lit), 0f.lit, 1f.lit)["rgb"])
-			SET(out["rgb"], out["rgb"] + clamp(light.specular * pow(max(dot(R, E), 0f.lit), 0.3f.lit * u_Shiness), 0f.lit, 1f.lit)["rgb"])
-		}
-
-		val programCache = LinkedHashMap<String, Program>()
-
-		fun getProgram3D(nlights: Int): Program {
-			return programCache.getOrPut("program_lights_$nlights") {
-				Program(
-					vertex = VertexShader {
-						val modelViewMat = createTemp(VarType.Mat4)
-						val normalMat = createTemp(VarType.Mat4)
-						SET(modelViewMat, u_ModMat * u_ViewMat)
-						SET(normalMat, u_NormMat)
-						SET(v_Pos, vec3(modelViewMat * vec4(a_pos, 1f.lit)))
-						SET(v_Norm, vec3(normalMat * vec4(a_norm, 1f.lit)))
-						SET(out, u_ProjMat * modelViewMat * vec4(a_pos, 1f.lit))
-					},
-					fragment = FragmentShader {
-						//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
-						SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
-						for (n in 0 until nlights) {
-							addLight(lights[n], out)
-						}
-					},
-					name = "programColor3D"
-				)
-			}
-		}
-
-		val layoutPosCol = VertexLayout(a_pos, a_col)
-
-		private val FLOATS_PER_VERTEX = layoutPosCol.totalSize / Int.SIZE_BYTES /*Float.SIZE_BYTES is not defined*/
-	}
-
 	var name: String? = null
 	val localTransform = Transform3D()
 
@@ -278,7 +195,19 @@ fun <T : View3D> T.addTo(container: Container3D) = this.apply {
 	this.parent = container
 }
 
-class Mesh3D(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType) {
+data class Bone3D(
+	val name: String,
+	val matrix: Matrix3D
+)
+
+data class Skeleton3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
+	//val matrices = Array(bones.size) { Matrix3D() }
+	val matrices = Array(Shaders3D.MAX_BONE_MATS) { Matrix3D() }
+}
+
+class Mesh3D constructor(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType, val maxWeights: Int = 0) {
+	var skeleton: Skeleton3D? = null
+
 	var shiness = 0.5
 	//val modelMat = Matrix3D()
 	val vertexSizeInBytes = layout.totalSize
@@ -346,7 +275,7 @@ class Cube(var width: Double, var height: Double, var depth: Double) : ViewWithM
 			+cubeSize, -cubeSize, +cubeSize, 1f, 0f, 1f   //p6
 		)
 
-		val mesh = Mesh3D(vertices, View3D.layoutPosCol, View3D.programColor3D, AG.DrawType.TRIANGLES)
+		val mesh = Mesh3D(vertices, Shaders3D.layoutPosCol, Shaders3D.programColor3D, AG.DrawType.TRIANGLES)
 	}
 }
 
@@ -377,53 +306,73 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 			//tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
 			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
-			ag.draw(
-				vertexBuffer,
-				type = mesh.drawType,
-				program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4)),
-				vertexLayout = mesh.layout,
-				vertexCount = mesh.vertexCount,
-				//vertexCount = 6 * 6,
-				uniforms = uniformValues.apply {
-					this[u_ProjMat] = ctx.projCameraMat
-					this[u_ViewMat] = localTransform.matrix
-					this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
-					this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
+			Shaders3D.apply {
+				ag.draw(
+					vertexBuffer,
+					type = mesh.drawType,
+					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights),
+					vertexLayout = mesh.layout,
+					vertexCount = mesh.vertexCount,
+					//vertexCount = 6 * 6,
+					uniforms = uniformValues.apply {
+						this[u_ProjMat] = ctx.projCameraMat
+						this[u_ViewMat] = localTransform.matrix
+						this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
+						this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
 
-					this[u_Shiness] = mesh.shiness
-					ctx.lights.fastForEachWithIndex { index, light: Light3D ->
-						this[lights[index].sourcePos] = light.localTransform.translation.data
-						val diffuse = light.diffuseColor
-						val specular = light.specularColor
-						val ambient = light.ambientColor
+						this[u_Shiness] = mesh.shiness
 
-						//println(light.diffuseColor.withAd(1.0))
-						//println(diffuse)
-						//println(specular)
-						//println(ambient)
+						val skeleton = mesh.skeleton
+						if (skeleton != null) {
+							this[u_BindMat] = ctx.bindMat4.copyFrom(skeleton.bindShapeMatrix)
+							skeleton.bones.fastForEachWithIndex { index, bone ->
+								skeleton.matrices[index].copyFrom(bone.matrix)
+								//skeleton.matrices[index].identity()
+							}
+							//skeleton.matrices[0].rotate(10.degrees, 15.degrees, 0.degrees)
+							//skeleton.matrices[1].rotate(20.degrees, 15.degrees, 0.degrees)
+							//skeleton.matrices[2].rotate(30.degrees, 15.degrees, 0.degrees)
+							//skeleton.matrices[3].rotate(40.degrees, 15.degrees, 0.degrees)
+							//skeleton.matrices[0][0, 0] = 0.1f
+							this[u_BoneMats] = skeleton.matrices
+						} else {
+							this[u_BindMat] = ctx.bindMat4.identity()
+						}
 
-						this[lights[index].diffuse] = light.tempArray1.apply {
-							val scale = (light.power * light.diffusePower).toFloat()
-							this[0] = (diffuse.rf * scale)
-							this[1] = (diffuse.gf * scale)
-							this[2] = (diffuse.bf * scale)
+						ctx.lights.fastForEachWithIndex { index, light: Light3D ->
+							this[lights[index].sourcePos] = light.localTransform.translation.data
+							val diffuse = light.diffuseColor
+							val specular = light.specularColor
+							val ambient = light.ambientColor
+
+							//println(light.diffuseColor.withAd(1.0))
+							//println(diffuse)
+							//println(specular)
+							//println(ambient)
+
+							this[lights[index].diffuse] = light.tempArray1.apply {
+								val scale = (light.power * light.diffusePower).toFloat()
+								this[0] = (diffuse.rf * scale)
+								this[1] = (diffuse.gf * scale)
+								this[2] = (diffuse.bf * scale)
+							}
+							this[lights[index].specular] = light.tempArray2.apply {
+								val scale = (light.power * light.specularPower).toFloat()
+								this[0] = (specular.rf * scale)
+								this[1] = (specular.gf * scale)
+								this[2] = (specular.bf * scale)
+							}
+							this[lights[index].ambient] = light.tempArray3.apply {
+								val scale = (light.power * light.ambientPower).toFloat()
+								this[0] = (ambient.rf * scale)
+								this[1] = (ambient.gf * scale)
+								this[2] = (ambient.bf * scale)
+							}
 						}
-						this[lights[index].specular] = light.tempArray2.apply {
-							val scale = (light.power * light.specularPower).toFloat()
-							this[0] = (specular.rf * scale)
-							this[1] = (specular.gf * scale)
-							this[2] = (specular.bf * scale)
-						}
-						this[lights[index].ambient] = light.tempArray3.apply {
-							val scale = (light.power * light.ambientPower).toFloat()
-							this[0] = (ambient.rf * scale)
-							this[1] = (ambient.gf * scale)
-							this[2] = (ambient.bf * scale)
-						}
-					}
-				},
-				renderState = rs
-			)
+					},
+					renderState = rs
+				)
+			}
 		}
 	}
 }

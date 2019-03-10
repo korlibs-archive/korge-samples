@@ -15,6 +15,19 @@ internal fun StrReader.readFloats(list: com.soywiz.kds.FloatArrayList = com.soyw
 	return list
 }
 
+internal fun StrReader.readIds(list: ArrayList<String> = ArrayList(7)): ArrayList<String> {
+	while (!eof) {
+		val pos0 = pos
+		val id = skipSpaces().tryReadId() ?: ""
+		skipSpaces()
+		val pos1 = pos
+		if (pos1 == pos0) error("Invalid identifier at $pos0 in '$str'")
+		list.add(id)
+		//println("float: $float, ${reader.pos}/${reader.length}")
+	}
+	return list
+}
+
 internal fun StrReader.readInts(list: com.soywiz.kds.IntArrayList = com.soywiz.kds.IntArrayList(7)): com.soywiz.kds.IntArrayList {
 	while (!eof) {
 		val pos0 = pos
@@ -28,10 +41,10 @@ internal fun StrReader.readInts(list: com.soywiz.kds.IntArrayList = com.soywiz.k
 	return list
 }
 
-internal fun StrReader.readMatrix(): com.soywiz.korma.geom.Matrix3D {
+internal fun StrReader.readMatrix3D(): com.soywiz.korma.geom.Matrix3D {
 	val f = readFloats(com.soywiz.kds.FloatArrayList())
 	if (f.size == 16) {
-		return com.soywiz.korma.geom.Matrix3D().setRows(
+		return com.soywiz.korma.geom.Matrix3D().setColumns(
 			f[0], f[1], f[2], f[3],
 			f[4], f[5], f[6], f[7],
 			f[8], f[9], f[10], f[11],
@@ -76,6 +89,17 @@ internal fun StrReader.tryReadNumber(default: Double = Double.NaN): Double {
 	val end = pos
 	if (end == start) return default
 	return NumberParser.parseDouble(this.str, start, end)
+}
+
+internal fun StrReader.tryReadId(): String? {
+	val start = pos
+	skipWhile {
+		@Suppress("ConvertTwoComparisonsToRangeCheck")
+		(it >= '0' && it <= '9') || (it >= 'a' && it <= 'z') || (it >= 'A' && it <= 'Z') || (it == '_') || (it == '.')
+	}
+	val end = pos
+	if (end == start) return null
+	return this.str.substring(start, end)
 }
 
 // Allocation-free matching

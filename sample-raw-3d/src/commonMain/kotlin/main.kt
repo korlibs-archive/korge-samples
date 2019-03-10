@@ -7,6 +7,7 @@ import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
+import com.soywiz.korio.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
@@ -17,7 +18,9 @@ suspend fun main(args: Array<String>) = Demo3.main(args)
 
 object Demo1 {
 	@JvmStatic
-	suspend fun main(args: Array<String>) = Korge(title = "KorGE 3D") {
+	fun main(args: Array<String>) = Korio { main() }
+
+	suspend fun main() = Korge(title = "KorGE 3D") {
 		image(resourcesVfs["korge.png"].readNativeImage()).alpha(0.5)
 
 		scene3D {
@@ -59,7 +62,9 @@ object Demo1 {
 
 object Demo2 {
 	@JvmStatic
-	suspend fun main(args: Array<String>) = Korge(title = "KorGE 3D", bgcolor = Colors.DARKGREY) {
+	fun main(args: Array<String>) = Korio { main() }
+
+	suspend fun main() = Korge(title = "KorGE 3D", bgcolor = Colors.DARKGREY) {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
@@ -114,16 +119,16 @@ object Demo2 {
 
 object Demo3 {
 	@JvmStatic
-	suspend fun main(args: Array<String>) = Korge(title = "KorGE 3D", bgcolor = Colors.DARKGREY) {
+	fun main(args: Array<String>) = Korio { main() }
+
+	suspend fun main() = Korge(title = "KorGE 3D", bgcolor = Colors.DARKGREY) {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
 			val light1 = light().position(0, 10, +10).colors(Colors.RED, Colors.RED, Colors.RED)
 			val light2 = light().position(10, 0, +10).colors(Colors.BLUE, Colors.BLUE, Colors.BLUE)
 
-			for (light in findByType<Light3D>()) {
-				println("LIGHT: $light")
-			}
+			for (light in findByType<Light3D>()) println("LIGHT: $light")
 
 			launchImmediately {
 				while (true) {
@@ -135,11 +140,15 @@ object Demo3 {
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
-			val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
+			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
+			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
+			val library = resourcesVfs["skinning.dae"].readColladaLibrary()
+			//val library = resourcesVfs["shape1.dae"].readColladaLibrary()
 			//val library = resourcesVfs["plane.dae"].readColladaLibrary()
 			//val cubeGeom = library.geometryDefs["Cube-mesh"]!! as Library3D.RawGeometryDef
 			val cubeGeom = library.geometryDefs.values.first() as Library3D.RawGeometryDef
-			val cube = mesh(cubeGeom.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
+			val cube = mesh(cubeGeom.mesh)
+			//val cube = mesh(cubeGeom.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
 			println(library)
 			/*
             launchImmediately {
@@ -151,7 +160,8 @@ object Demo3 {
 			addUpdatable {
 				val angle = (tick / 1.0).degrees
 				camera.positionLookingAt(
-					cos(angle * 1) * 4, 0.0, -sin(angle * 1) * 4, // Orbiting camera
+					cos(angle * 1) * 6, 2.0, -sin(angle * 1) * 6, // Orbiting camera
+					//1, 0, 4,
 					0, 0, 0
 				)
 				tick++
