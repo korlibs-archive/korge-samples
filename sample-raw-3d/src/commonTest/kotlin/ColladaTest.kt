@@ -113,7 +113,12 @@ class ColladaTest {
 	}
 
 	@Test
-	fun testLoadSkinningModel() = suspendTest {
+	fun testLoadSkinedModel() = suspendTest {
 		val library = resourcesVfs["skinning.dae"].readColladaLibrary()
+	}
+
+	@Test
+	fun testLoadTexturedModel() = suspendTest {
+		val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
 	}
 }

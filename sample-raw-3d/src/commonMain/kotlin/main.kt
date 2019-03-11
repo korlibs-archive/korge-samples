@@ -5,6 +5,7 @@ import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.experimental.s3d.model.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
+import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.*
@@ -14,7 +15,8 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.interpolation.*
 import kotlin.jvm.*
 
-suspend fun main(args: Array<String>) = Demo3.main(args)
+//suspend fun main(args: Array<String>) = Demo3.main(args)
+suspend fun main(args: Array<String>) = Demo3.main()
 
 object Demo1 {
 	@JvmStatic
@@ -81,6 +83,7 @@ object Demo2 {
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
+			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
 			val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
 			//val library = resourcesVfs["plane.dae"].readColladaLibrary()
 			//val cubeGeom = library.geometryDefs["Cube-mesh"]!! as Library3D.RawGeometryDef
@@ -125,6 +128,8 @@ object Demo3 {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
+			val light1 = light().position(0, 1, 1).colors(Colors.WHITE, Colors.WHITE, Colors.WHITE).power(1.0)
+			/*
 			val light1 = light().position(0, 10, +10).colors(Colors.RED, Colors.RED, Colors.RED)
 			val light2 = light().position(10, 0, +10).colors(Colors.BLUE, Colors.BLUE, Colors.BLUE)
 
@@ -136,6 +141,7 @@ object Demo3 {
 					tween(light1::localY[+20], light2::localX[+20], time = 1.seconds, easing = Easing.SMOOTH)
 				}
 			}
+			*/
 
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
@@ -143,11 +149,23 @@ object Demo3 {
 			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
 			val library = resourcesVfs["skinning.dae"].readColladaLibrary()
+			//val library = resourcesVfs["Fallera.dae"].readColladaLibrary()
+			//val library = resourcesVfs["skinning_sample.dae"].readColladaLibrary()
+			//val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape1.dae"].readColladaLibrary()
 			//val library = resourcesVfs["plane.dae"].readColladaLibrary()
 			//val cubeGeom = library.geometryDefs["Cube-mesh"]!! as Library3D.RawGeometryDef
 			val cubeGeom = library.geometryDefs.values.first() as Library3D.RawGeometryDef
+			val tex = resourcesVfs["korge.png"].readBitmapOptimized()
+			//val tex = resourcesVfs["Fallera.jpg"].readBitmapOptimized()
+			//val cube = mesh(cubeGeom.mesh)
+			//val cube = mesh(cubeGeom.mesh).scale(0.02, 0.02, 0.02).rotation(z = 90.degrees)
+			//val cube = mesh(cubeGeom.mesh).scale(0.02, 0.02, 0.02).rotation(0.degrees, 0.degrees, 90.degrees)
+			//val cube = mesh(cubeGeom.mesh).rotation(y = 90.degrees) // @TODO: Kotlin.JS BUG
 			val cube = mesh(cubeGeom.mesh)
+			cube.mesh.texture = tex
+
+			//val cube = mesh(cubeGeom.mesh).scale(0.02, 0.02, 0.02)
 			//val cube = mesh(cubeGeom.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
 			println(library)
 			/*

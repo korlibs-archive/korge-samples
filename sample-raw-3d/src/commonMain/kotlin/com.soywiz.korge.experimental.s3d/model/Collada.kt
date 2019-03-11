@@ -114,6 +114,21 @@ class ColladaParser {
 				}
 			}
 
+			val TEXCOORD = geom.inputs["TEXCOORD"]
+			if (TEXCOORD != null) {
+				for (pname in listOf("S", "T")) {
+					val p = (TEXCOORD.source.params[pname] as? FloatSourceParam)?.floats
+					val array = when (pname) {
+						"S" -> u0
+						"T" -> v0
+						else -> TODO()
+					}
+					if (p != null) {
+						TEXCOORD.indices.fastForEach { index -> array.add(p[index]) }
+					}
+				}
+			}
+
 			val skin = geomIdToSkin[geom.id]
 
 			val maxWeights: Int
@@ -151,11 +166,11 @@ class ColladaParser {
 						weightWeights[n].add(0f)
 					}
 				}
-				println("jointSrcParam: $jointSrcParam")
-				println("weightSrcParam: $weightSrcParam")
-				println("joint: $joint")
-				println("weight: $weight")
-				println("---")
+				//println("jointSrcParam: $jointSrcParam")
+				//println("weightSrcParam: $weightSrcParam")
+				//println("joint: $joint")
+				//println("weight: $weight")
+				//println("---")
 			} else {
 				maxWeights = 0
 			}
@@ -173,6 +188,7 @@ class ColladaParser {
 			// @TODO: We should use separate components
 			val combinedData = floatArrayListOf()
 			val hasNormals = (nx.size >= px.size)
+			val hasTexture = TEXCOORD != null
 			for (n in 0 until px.size) {
 				combinedData.add(px[n])
 				combinedData.add(py[n])
@@ -181,6 +197,10 @@ class ColladaParser {
 					combinedData.add(nx[n])
 					combinedData.add(ny[n])
 					combinedData.add(nz[n])
+				}
+				if (hasTexture) {
+					combinedData.add(u0[n])
+					combinedData.add(1f - v0[n])
 				}
 				if (maxWeights > 0) {
 					for (m in 0 until maxWeights) {
@@ -202,6 +222,7 @@ class ColladaParser {
 					VertexLayout(buildList {
 						add(Shaders3D.a_pos)
 						if (hasNormals) add(Shaders3D.a_norm)
+						if (hasTexture) add(Shaders3D.a_tex)
 						if (maxWeights >= 4) add(Shaders3D.a_boneIndex0)
 						if (maxWeights >= 4) add(Shaders3D.a_weight0)
 					}),

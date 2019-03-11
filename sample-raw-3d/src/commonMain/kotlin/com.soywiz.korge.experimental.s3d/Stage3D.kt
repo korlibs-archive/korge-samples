@@ -5,12 +5,11 @@ import com.soywiz.kds.iterators.*
 import com.soywiz.kmem.*
 import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
-import com.soywiz.korag.shader.gl.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
+import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
-import kotlin.native.concurrent.*
 
 inline fun Container.scene3D(views: Views3D = Views3D(), callback: Stage3D.() -> Unit = {}): Stage3DView =
 	Stage3DView(Stage3D(views).apply(callback)).addTo(this)
@@ -41,6 +40,12 @@ class Light3D : View3D() {
 	fun ambientColor(color: RGBA): Light3D = this.apply { this.ambientColor = color }
 
 	fun colors(ambient: RGBA, diffuse: RGBA = ambient, specular: RGBA = diffuse) = this.diffuseColor(diffuse).specularColor(specular).ambientColor(ambient)
+	fun power(globalPower: Double = 1.0, diffusePower: Double = 1.0, specularPower: Double = 0.2, ambientPower: Double = 0.1) = apply {
+		this.power = globalPower
+		this.diffusePower = diffusePower
+		this.specularPower = specularPower
+		this.ambientPower = ambientPower
+	}
 
 	override fun render(ctx: RenderContext3D) {
 	}
@@ -64,6 +69,7 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx.ag.clear(depth = 1f, clearColor = false)
 		//ctx.ag.clear(color = Colors.RED)
 		ctx3D.ag = ctx.ag
+		ctx3D.rctx = ctx
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
 		ctx3D.cameraMat.copyFrom(stage3D.camera.localTransform.matrix)
 		ctx3D.cameraMatInv.invert(stage3D.camera.localTransform.matrix)
@@ -91,6 +97,8 @@ fun View3D?.foreachDescendant(handler: (View3D) -> Unit) {
 
 class RenderContext3D() {
 	lateinit var ag: AG
+	lateinit var rctx: RenderContext
+	val textureUnit = AG.TextureUnit()
 	val bindMat4 = Matrix3D()
 	val bones = Array(128) { Matrix3D() }
 	val tmepMat = Matrix3D()
@@ -173,7 +181,7 @@ inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 
 	localTransform.setTranslation(x, y, z, w)
 }
 
-inline fun <T : View3D> T.rotation(x: Angle, y: Angle, z: Angle): T = this.apply {
+inline fun <T : View3D> T.rotation(x: Angle = 0.degrees, y: Angle = 0.degrees, z: Angle = 0.degrees): T = this.apply {
 	localTransform.setRotation(x, y, z)
 }
 
@@ -207,6 +215,7 @@ data class Skeleton3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
 
 class Mesh3D constructor(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType, val maxWeights: Int = 0) {
 	var skeleton: Skeleton3D? = null
+	var texture: Bitmap? = null
 
 	var shiness = 0.5
 	//val modelMat = Matrix3D()
@@ -307,10 +316,11 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
 			Shaders3D.apply {
+				val meshTexture = mesh.texture
 				ag.draw(
 					vertexBuffer,
 					type = mesh.drawType,
-					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights),
+					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights, meshTexture != null),
 					vertexLayout = mesh.layout,
 					vertexCount = mesh.vertexCount,
 					//vertexCount = 6 * 6,
@@ -322,11 +332,18 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 
 						this[u_Shiness] = mesh.shiness
 
+						if (meshTexture != null) {
+							ctx.textureUnit.texture = ctx.rctx.agBitmapTextureManager.getTextureBase(meshTexture).base
+							ctx.textureUnit.linear = true
+							this[u_TexUnit] = ctx.textureUnit
+						}
+
 						val skeleton = mesh.skeleton
 						if (skeleton != null) {
 							this[u_BindMat] = ctx.bindMat4.copyFrom(skeleton.bindShapeMatrix)
 							skeleton.bones.fastForEachWithIndex { index, bone ->
 								skeleton.matrices[index].copyFrom(bone.matrix)
+								//skeleton.matrices[index].copyFrom(bone.matrix)
 								//skeleton.matrices[index].identity()
 							}
 							//skeleton.matrices[0].rotate(10.degrees, 15.degrees, 0.degrees)

@@ -16,10 +16,13 @@ object Shaders3D {
 	val u_BindMat = Uniform("u_BindMat", VarType.Mat4)
 	val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
 	val u_NormMat = Uniform("u_NormMat", VarType.Mat4)
-	val MAX_BONE_MATS = 16
+	//val MAX_BONE_MATS = 16
+	val MAX_BONE_MATS = 64
 	val u_BoneMats = Uniform("u_BoneMats", VarType.Mat4, arrayCount = MAX_BONE_MATS)
+	val u_TexUnit = Uniform("u_TexUnit", VarType.TextureUnit)
 	val a_pos = Attribute("a_Pos", VarType.Float3, normalized = false)
-	val a_norm = Attribute("a_Norm", VarType.Float3, normalized = true)
+	val a_norm = Attribute("a_Norm", VarType.Float3, normalized = false)
+	val a_tex = Attribute("a_TexCoords", VarType.Float2, normalized = false)
 	val a_boneIndex0 = Attribute("a_BoneIndex0", VarType.Float4, normalized = false)
 	val a_weight0 = Attribute("a_Weight0", VarType.Float4, normalized = false)
 	val a_col = Attribute("a_Col", VarType.Float3, normalized = true)
@@ -27,6 +30,7 @@ object Shaders3D {
 
 	val v_Pos = Varying("v_Pos", VarType.Float3)
 	val v_Norm = Varying("v_Norm", VarType.Float3)
+	val v_TexCoords = Varying("v_TexCoords", VarType.Float2)
 
 	val v_Temp1 = Varying("v_Temp1", VarType.Float4)
 
@@ -82,8 +86,9 @@ object Shaders3D {
 		0f.lit, 0f.lit, 0f.lit, 1f.lit
 	)
 
-	fun getProgram3D(nlights: Int, nweights: Int): Program {
-		return programCache.getOrPut("program_L${nlights}_W${nweights}") {
+	@Suppress("RemoveCurlyBracesFromTemplate")
+	fun getProgram3D(nlights: Int, nweights: Int, hasTexture: Boolean): Program {
+		return programCache.getOrPut("program_L${nlights}_W${nweights}_T${hasTexture}") {
 			Program(
 				vertex = VertexShader {
 					val modelViewMat = createTemp(VarType.Mat4)
@@ -103,8 +108,11 @@ object Shaders3D {
 
 					SET(modelViewMat, u_ModMat * u_ViewMat)
 					SET(normalMat, u_NormMat)
-					SET(v_Pos, vec3(modelViewMat * skinMatrix * u_BindMat * vec4(a_pos, 1f.lit)))
-					SET(v_Norm, vec3(normalMat * skinMatrix * u_BindMat * vec4(a_norm, 1f.lit)))
+					SET(v_Pos, vec3(modelViewMat * u_BindMat * skinMatrix * vec4(a_pos, 1f.lit)))
+					SET(v_Norm, vec3(normalMat * u_BindMat * skinMatrix * vec4(a_norm, 1f.lit)))
+					if (hasTexture) {
+						SET(v_TexCoords, a_tex["xy"])
+					}
 
 					SET(out, u_ProjMat * vec4(v_Pos, 1f.lit))
 
@@ -115,7 +123,12 @@ object Shaders3D {
 				},
 				fragment = FragmentShader {
 					//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
-					SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
+					//SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
+					if (hasTexture) {
+						SET(out, vec4(texture2D(u_TexUnit, v_TexCoords["xy"])["rgb"], 1f.lit))
+					} else {
+						SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
+					}
 					for (n in 0 until nlights) {
 						addLight(lights[n], out)
 					}
