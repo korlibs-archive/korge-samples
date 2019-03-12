@@ -1,5 +1,6 @@
 package com.soywiz.korge.experimental.s3d
 
+import com.soywiz.korge.experimental.s3d.model.internal.*
 import com.soywiz.korma.geom.*
 
 abstract class Camera3D : View3D() {
@@ -34,6 +35,8 @@ abstract class Camera3D : View3D() {
 		// Do nothing except when debugging
 	}
 
+	abstract fun clone(): Camera3D
+
 	class Perspective(
 		fov: Angle = 60.degrees,
 		near: Double = 0.3,
@@ -51,6 +54,10 @@ abstract class Camera3D : View3D() {
 
 		override fun updateMatrix(mat: Matrix3D, width: Double, height: Double) {
 			mat.setToPerspective(fov, if (height != 0.0) width / height else 1.0, near, far)
+		}
+
+		override fun clone(): Perspective = Perspective(fov, near, far).apply {
+			this.localTransform.copyFrom(this@Perspective.localTransform)
 		}
 	}
 }
@@ -156,6 +163,19 @@ class Transform3D {
 		matrixDirty = true
 		scale.setTo(x, y, z, w)
 	}
+
+	fun copyFrom(localTransform: Transform3D) {
+		this.setMatrix(localTransform.matrix)
+	}
+
+	fun setToInterpolated(a: Transform3D, b: Transform3D, t: Double) {
+		_translation.setToInterpolated(a.translation, b.translation, t)
+		_rotation.setToInterpolated(a.rotation, b.rotation, t)
+		_scale.setToInterpolated(a.scale, b.scale, t)
+		matrixDirty = true
+	}
+
+	override fun toString(): String = "Transform3D(translation=$translation,rotation=$rotation,scale=$scale)"
 }
 
 typealias PerspectiveCamera3D = Camera3D.Perspective

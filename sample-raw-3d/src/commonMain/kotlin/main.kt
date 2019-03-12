@@ -147,7 +147,8 @@ object Demo3 {
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
 			//val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
-			val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
+			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
+			val library = resourcesVfs["monkey_smooth_two_camera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
 			//val library = resourcesVfs["skinning.dae"].readColladaLibrary()
 			//val library = resourcesVfs["Fallera.dae"].readColladaLibrary()
@@ -169,10 +170,15 @@ object Demo3 {
 			//cube.mesh.texture = tex
 
 			val mainSceneView = library.mainScene.instantiate()
+			val cameras = mainSceneView.findByType<Camera3D>()
+
+			val camera1 = cameras.first().clone()
+			val camera2 = cameras.last().clone()
+
 			//ambientColor = Colors.RED
 			//ambientColor = Colors.WHITE
 			//ambientColor = Colors.WHITE
-			camera = mainSceneView.findByType<Camera3D>().first()
+			camera = camera1.clone()
 			this += mainSceneView
 			//this += box()
 
@@ -197,6 +203,19 @@ object Demo3 {
 				tick++
 			}
 			*/
+			launchImmediately {
+				while (true) {
+					tween(time = 2.seconds, easing = Easing.SMOOTH) {
+						camera.localTransform.setToInterpolated(camera1.localTransform, camera2.localTransform, it)
+					}
+					tween(time = 2.seconds, easing = Easing.SMOOTH) {
+						camera.localTransform.setToInterpolated(camera2.localTransform, camera1.localTransform, it)
+					}
+				}
+			}
+
+			//println(camera1.localTransform)
+			//println(camera2.localTransform)
 		}
 	}
 }
