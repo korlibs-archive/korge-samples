@@ -100,7 +100,7 @@ class Transform3D {
 		return _scale
 	}
 
-	fun setMatrix(mat: Matrix3D) {
+	fun setMatrix(mat: Matrix3D) = this.apply {
 		transformDirty = true
 		this.matrix.copyFrom(mat)
 	}
@@ -176,6 +176,7 @@ class Transform3D {
 	}
 
 	override fun toString(): String = "Transform3D(translation=$translation,rotation=$rotation,scale=$scale)"
+	fun clone(): Transform3D = Transform3D().setMatrix(this.matrix)
 }
 
 typealias PerspectiveCamera3D = Camera3D.Perspective

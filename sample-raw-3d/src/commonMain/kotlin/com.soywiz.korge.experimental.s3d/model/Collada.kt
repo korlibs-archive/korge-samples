@@ -24,7 +24,8 @@ class ColladaParser {
 	data class NamesSourceParam(override val name: String, val names: ArrayList<String>) : SourceParam
 	data class Source(val id: String, val params: FastStringMap<SourceParam>)
 	data class Input(val semantic: String, val offset: Int, val source: Source, val indices: IntArrayList)
-	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap())
+	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap(), var materialId: String? = null) {
+	}
 	data class Skin(
 		val controllerId: String,
 		val controllerName: String,
@@ -236,7 +237,8 @@ class ColladaParser {
 						this.skeleton = Skeleton3D(skinDef.bindShapeMatrix, skinDef.bones.map { it.toBone() })
 					}
 				},
-				skinDef
+				skin = skinDef,
+				material = geom.materialId?.let { materialDefs[it] }
 			)
 			log { "px: $px" }
 			log { "py: $py" }
@@ -310,17 +312,30 @@ class ColladaParser {
 	}
 
 	fun Library3D.parseMaterials(xml: Xml) {
-		for (material in xml["library_materials"]["material"]) {
+		for (materialXml in xml["library_materials"]["material"]) {
+			val materialId = materialXml.str("id")
+			val materialName = materialXml.str("name")
+			val effects = materialXml["instance_effect"].map { instance_effect ->
+				effectDefs[instance_effect.str("url").trim('#')]
+			}.filterNotNull()
+			val material = Library3D.MaterialDef(materialId, materialName, effects)
+			materialDefs[materialId] = material
 		}
 	}
 
 	fun Library3D.parseEffects(xml: Xml) {
-		for (animation in xml["library_effects"]["effect"]) {
+		for (effectXml in xml["library_effects"]["effect"]) {
+			val effectId = effectXml.str("id")
+			val effectName = effectXml.str("name")
 		}
 	}
 
 	fun Library3D.parseImages(xml: Xml) {
-		for (animation in xml["library_images"]["image"]) {
+		for (image in xml["library_images"]["image"]) {
+			val imageId = image.str("id")
+			val imageName = image.str("name")
+			val initFrom = image["init_from"].text.trim()
+			imageDefs[imageId] = Library3D.ImageDef(imageId, imageName, initFrom)
 		}
 	}
 
@@ -412,6 +427,8 @@ class ColladaParser {
 
 				for (triangles in mesh["triangles"]) {
 					val trianglesCount = triangles.getInt("count") ?: 0
+					geom.materialId = triangles.getString("material")
+
 					log { "triangles: $triangles" }
 					var stride = 1
 					val inputs = arrayListOf<Input>()
@@ -640,3 +657,5 @@ class ColladaParser {
 }
 
 private val Iterable<Xml>.allNodeChildren: Iterable<Xml> get() = this.flatMap(Xml::allNodeChildren)
+private val Iterable<Xml>.firstText: String? get() = this.firstOrNull()?.text
+private val Iterable<Xml>.text: String get() = this.joinToString("") { it.text }

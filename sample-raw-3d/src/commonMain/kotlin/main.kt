@@ -15,8 +15,8 @@ import com.soywiz.korma.interpolation.*
 import kotlin.jvm.*
 
 //suspend fun main(args: Array<String>) = Demo3.main(args)
-//suspend fun main(args: Array<String>) = Demo3.main()
-suspend fun main(args: Array<String>) = Demo1.main()
+suspend fun main(args: Array<String>) = Demo3.main()
+//suspend fun main(args: Array<String>) = Demo1.main()
 
 object Demo1 {
 	@JvmStatic
@@ -145,10 +145,10 @@ object Demo3 {
 
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
-			//val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
+			val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
-			val library = resourcesVfs["monkey_smooth_two_camera.dae"].readColladaLibrary()
+			//val library = resourcesVfs["monkey_smooth_two_camera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
 			//val library = resourcesVfs["skinning.dae"].readColladaLibrary()
 			//val library = resourcesVfs["Fallera.dae"].readColladaLibrary()
@@ -172,8 +172,8 @@ object Demo3 {
 			val mainSceneView = library.mainScene.instantiate()
 			val cameras = mainSceneView.findByType<Camera3D>()
 
-			val camera1 = cameras.first().clone()
-			val camera2 = cameras.last().clone()
+			val camera1 = cameras.first()
+			val camera2 = cameras.last()
 
 			//ambientColor = Colors.RED
 			//ambientColor = Colors.WHITE

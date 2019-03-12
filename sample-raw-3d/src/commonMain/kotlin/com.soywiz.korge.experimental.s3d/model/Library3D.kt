@@ -9,6 +9,8 @@ data class Library3D(
 	val cameraDefs: FastStringMap<CameraDef> = FastStringMap(),
 	val lightDefs: FastStringMap<LightDef> = FastStringMap(),
 	val materialDefs: FastStringMap<MaterialDef> = FastStringMap(),
+	val effectDefs: FastStringMap<EffectDef> = FastStringMap(),
+	val imageDefs: FastStringMap<ImageDef> = FastStringMap(),
 	val geometryDefs: FastStringMap<GeometryDef> = FastStringMap(),
 	val skins: FastStringMap<ColladaParser.Skin> = FastStringMap()
 ) {
@@ -34,9 +36,13 @@ data class Library3D(
 
 	open class Def
 
+	open class EffectDef() : Def()
+
+	open class ImageDef(val id: String, val name: String, val initFrom: String) : Def()
+
 	open class ObjectDef : Def()
 
-	open class MaterialDef : Def()
+	open class MaterialDef(val id: String, val name: String, val effects: List<EffectDef>) : Def()
 
 	open class LightDef : ObjectDef()
 
@@ -45,7 +51,8 @@ data class Library3D(
 
 	data class GeometryDef(
 		val mesh: Mesh3D,
-		val skin: SkinDef? = null
+		val skin: SkinDef? = null,
+		val material: MaterialDef? = null
 	) : ObjectDef()
 
 	data class BoneDef(val name: String, val pose: Matrix3D) : Def() {
