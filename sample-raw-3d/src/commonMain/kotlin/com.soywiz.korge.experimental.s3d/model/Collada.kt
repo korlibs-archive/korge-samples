@@ -6,6 +6,7 @@ import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
 import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.experimental.s3d.model.internal.*
+import com.soywiz.korim.color.*
 import com.soywiz.korio.file.*
 import com.soywiz.korio.serialization.xml.*
 import com.soywiz.korio.util.*
@@ -52,9 +53,9 @@ class ColladaParser {
 		for (skin in skins) {
 			library.skins[skin.controllerId] = skin
 		}
+		generateGeometries(geometries, skins)
 		parseVisualScenes(xml)
 		parseScene(xml)
-		generateGeometries(geometries, skins)
 	}
 
 	fun Library3D.generateGeometries(geometries: List<Geometry>, skins: List<Skin>) {
@@ -216,8 +217,9 @@ class ColladaParser {
 
 			//println(combinedData.toString())
 
-			geometryDefs[geom.id] = Library3D.RawGeometryDef(
+			geometryDefs[geom.id] = Library3D.GeometryDef(
 				Mesh3D(
+					//combinedData.toFloatArray().toFBuffer(),
 					combinedData.toFloatArray(),
 					VertexLayout(buildList {
 						add(Shaders3D.a_pos)
@@ -247,6 +249,13 @@ class ColladaParser {
 
 	fun Library3D.parseScene(xml: Xml) {
 		val scene = xml["scene"]
+		for (instance_visual_scene in scene["instance_visual_scene"]) {
+			val id = instance_visual_scene.str("url").trim('#')
+			val scene = scenes[id]
+			if (scene != null) {
+				mainScene.children += scene
+			}
+		}
 	}
 
 	fun parseControllers(xml: Xml): List<Skin> {
@@ -322,9 +331,27 @@ class ColladaParser {
 
 	fun Library3D.parseLights(xml: Xml) {
 		for (light in xml["library_lights"]["light"]) {
-			val id = light.getString("id")
-			val name = light.getString("name")
+			var lightDef: Library3D.LightDef? = null
+			val id = light.str("id")
+			val name = light.str("name")
 			log { "Light id=$id, name=$name" }
+			for (technique in light["technique_common"].allNodeChildren) {
+				when (technique.nameLC) {
+					"point" -> {
+						val color = technique["color"].firstOrNull()?.text?.reader()?.readVector3D() ?: Vector3D(1, 1, 1)
+						val constant_attenuation = technique["constant_attenuation"].firstOrNull()?.text?.toDoubleOrNull() ?: 1.0
+						val linear_attenuation = technique["linear_attenuation"].firstOrNull()?.text?.toDoubleOrNull() ?: 0.0
+						val quadratic_attenuation = technique["quadratic_attenuation"].firstOrNull()?.text?.toDoubleOrNull() ?: 0.00111109
+						lightDef = Library3D.PointLightDef(RGBA.float(color.x, color.y, color.z, 1f), constant_attenuation, linear_attenuation, quadratic_attenuation)
+					}
+					else -> {
+						println("WARNING: Unsupported light.technique_common.${technique.nameLC}")
+					}
+				}
+			}
+			if (lightDef != null) {
+				lightDefs[id] = lightDef
+			}
 		}
 	}
 
@@ -419,35 +446,109 @@ class ColladaParser {
 
 	fun Library3D.parseVisualScenes(xml: Xml) {
 		for (vscene in xml["library_visual_scenes"]["visual_scene"]) {
-			val id = vscene.getString("id")
-			val name = vscene.getString("name")
-			log { "VisualScene id=$id, name=$name" }
+			val scene = Library3D.Scene3D()
+			scene.id = vscene.str("id")
+			scene.name = vscene.str("name")
 			for (node in vscene["node"]) {
-				val id = node.getString("id")
-				val name = node.getString("name")
-				var transform = Matrix3D()
-				node.allNodeChildren.fastForEach { v ->
-					when (v.nameLC) {
-						"matrix" -> {
-							val sid = v.getString("sid")
-							val matrix = v.text.reader().readMatrix3D()
-							when (sid) {
-								"transform" -> {
-									transform = matrix
-								}
-								else -> {
-									log { "  Unhandled matrix sid=$sid" }
-								}
-							}
-						}
-						else -> {
-							log { "  Unhandled ${v.nameLC}" }
-						}
+				val instance = parseVisualSceneNode(node)
+				scene.children += instance
+			}
+			scenes[scene.id] = scene
+		}
+	}
+
+	fun Library3D.parseVisualSceneNode(node: Xml): Library3D.Instance3D {
+		val instance = Library3D.Instance3D()
+		var location: Vector3D? = null
+		var scale: Vector3D? = null
+		var rotationX: Vector3D? = null
+		var rotationY: Vector3D? = null
+		var rotationZ: Vector3D? = null
+
+		instance.id = node.str("id")
+		instance.name = node.str("name")
+		instance.type = node.str("type")
+
+		for (child in node.allNodeChildren) {
+			when (child.nameLC) {
+				"matrix" -> {
+					val sid = child.str("sid")
+					when (sid) {
+						"transform" -> instance.transform.copyFrom(child.text.reader().readMatrix3D())
+						else -> println("WARNING: Unsupported node.matrix.sid=$sid")
 					}
 				}
-				log { "  Node id=$id, name=$name, transform=$transform" }
+				"translate" -> {
+					val sid = child.str("sid")
+					when (sid) {
+						"location" -> location = child.text.reader().readVector3D()
+						else -> println("WARNING: Unsupported node.translate.sid=$sid")
+					}
+				}
+				"rotate" -> {
+					val sid = child.str("sid")
+					when (sid) {
+						"rotationX" -> rotationX = child.text.reader().readVector3D()
+						"rotationY" -> rotationY = child.text.reader().readVector3D()
+						"rotationZ" -> rotationZ = child.text.reader().readVector3D()
+						else -> println("WARNING: Unsupported node.rotate.sid=$sid")
+					}
+				}
+				"scale" -> {
+					val sid = child.str("sid")
+					when (sid) {
+						"scale" -> scale = child.text.reader().readVector3D()
+						else -> println("WARNING: Unsupported node.scale.sid=$sid")
+					}
+				}
+				"instance_camera" -> {
+					val cameraId = child.str("url").trim('#')
+					instance.def = cameraDefs[cameraId]
+				}
+				"instance_light" -> {
+					val lightId = child.str("url").trim('#')
+					instance.def = lightDefs[lightId]
+				}
+				"instance_geometry" -> {
+					val geometryId = child.str("url").trim('#')
+					val geometryName = child.str("name")
+					instance.def = geometryDefs[geometryId]
+				}
+				"node" -> {
+					val childInstance = parseVisualSceneNode(child)
+					instance.children.add(childInstance)
+				}
+				"extra" -> {
+				}
+				else -> {
+					println("WARNING: Unsupported node.${child.nameLC}")
+				}
 			}
 		}
+		if (location != null || scale != null || rotationX != null || rotationY != null || rotationZ != null) {
+			val trns = location ?: Vector3D(0, 0, 0, 1)
+			val scl = scale ?: Vector3D(1, 1, 1)
+			val rotX = rotationX ?: Vector3D(1, 0, 0, 0)
+			val rotY = rotationY ?: Vector3D(0, 1, 0, 0)
+			val rotZ = rotationZ ?: Vector3D(0, 0, 1, 0)
+			rotationVectorToEulerRotation(rotX)
+
+			instance.transform.setTRS(
+				trns,
+				Quaternion().setTo(combine(rotationVectorToEulerRotation(rotX), rotationVectorToEulerRotation(rotY), rotationVectorToEulerRotation(rotZ))),
+				scl
+			)
+		}
+		return instance
+	}
+
+	private fun combine(a: EulerRotation, b: EulerRotation, c: EulerRotation, out: EulerRotation = EulerRotation()): EulerRotation {
+		return out.setTo(a.x + b.x + c.x, a.y + b.y + c.y, a.z + b.z + c.z)
+	}
+
+	private fun rotationVectorToEulerRotation(vec: Vector3D, out: EulerRotation = EulerRotation()): EulerRotation {
+		val degrees = vec.w.degrees
+		return out.setTo(degrees * vec.x, degrees * vec.y, degrees * vec.z)
 	}
 
 	val sourceArrayParams = FastStringMap<SourceParam>()
@@ -537,3 +638,5 @@ class ColladaParser {
 	@Deprecated("", ReplaceWith("log { str }", "com.soywiz.korge.experimental.s3d.model.ColladaParser.log"))
 	inline fun log(str: String) = log { str }
 }
+
+private val Iterable<Xml>.allNodeChildren: Iterable<Xml> get() = this.flatMap(Xml::allNodeChildren)

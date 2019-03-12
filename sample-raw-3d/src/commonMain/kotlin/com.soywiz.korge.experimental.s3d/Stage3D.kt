@@ -5,6 +5,7 @@ import com.soywiz.kds.iterators.*
 import com.soywiz.kmem.*
 import com.soywiz.korag.*
 import com.soywiz.korag.shader.*
+import com.soywiz.korge.experimental.s3d.model.internal.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
@@ -19,32 +20,25 @@ class Views3D {
 
 fun Container3D.light(callback: Light3D.() -> Unit = {}) = Light3D().apply(callback).addTo(this)
 
-class Light3D : View3D() {
-	var diffuseColor = Colors.WHITE
-	var specularColor = Colors.WHITE
-	var ambientColor = Colors.WHITE
-	var diffusePower = 1.0
-	var specularPower = 0.2
-	var ambientPower = 0.1
-	var power = 1.0
-	internal val tempArray1 = FloatArray(4)
-	internal val tempArray2 = FloatArray(4)
-	internal val tempArray3 = FloatArray(4)
+open class Light3D(
+	var color: RGBA = Colors.WHITE,
+	var constantAttenuation: Double = 1.0,
+	var linearAttenuation: Double = 0.0,
+	var quadraticAttenuation: Double = 0.00111109
+) : View3D() {
+	internal val tempVec1 = Vector3D()
+	internal val tempVec2 = Vector3D()
 
-	//val diffuseColorPremult get() = diffuseColor.withAd(power).premultiplied
-	//val specularColorPremult get() = specularColor.withAd(power).premultiplied
-	//val ambientColorPremult get() = ambientColor.withAd(power).premultiplied
-
-	fun diffuseColor(color: RGBA): Light3D = this.apply { this.diffuseColor = color }
-	fun specularColor(color: RGBA): Light3D = this.apply { this.specularColor = color }
-	fun ambientColor(color: RGBA): Light3D = this.apply { this.ambientColor = color }
-
-	fun colors(ambient: RGBA, diffuse: RGBA = ambient, specular: RGBA = diffuse) = this.diffuseColor(diffuse).specularColor(specular).ambientColor(ambient)
-	fun power(globalPower: Double = 1.0, diffusePower: Double = 1.0, specularPower: Double = 0.2, ambientPower: Double = 0.1) = apply {
-		this.power = globalPower
-		this.diffusePower = diffusePower
-		this.specularPower = specularPower
-		this.ambientPower = ambientPower
+	fun setTo(
+		color: RGBA = Colors.WHITE,
+		constantAttenuation: Double = 1.0,
+		linearAttenuation: Double = 0.0,
+		quadraticAttenuation: Double = 0.00111109
+	) = this.apply {
+		this.color = color
+		this.constantAttenuation = constantAttenuation
+		this.linearAttenuation = linearAttenuation
+		this.quadraticAttenuation = quadraticAttenuation
 	}
 
 	override fun render(ctx: RenderContext3D) {
@@ -53,7 +47,10 @@ class Light3D : View3D() {
 
 class Stage3D(val views: Views3D) : Container3D() {
 	lateinit var view: Stage3DView
-	var camera = Camera3D.Perspective().apply {
+	//var ambientColor: RGBA = Colors.WHITE
+	var ambientColor: RGBA = Colors.BLACK // No ambient light
+	var ambientPower: Double = 0.3
+	var camera: Camera3D = Camera3D.Perspective().apply {
 		positionLookingAt(0, 1, -10, 0, 0, 0)
 	}
 }
@@ -72,6 +69,7 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx3D.rctx = ctx
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
 		ctx3D.cameraMat.copyFrom(stage3D.camera.localTransform.matrix)
+		ctx3D.ambientColor.setToColorPremultiplied(stage3D.ambientColor).scale(stage3D.ambientPower)
 		ctx3D.cameraMatInv.invert(stage3D.camera.localTransform.matrix)
 		ctx3D.projCameraMat.multiply(ctx3D.projMat, ctx3D.cameraMatInv)
 		ctx3D.lights.clear()
@@ -83,6 +81,8 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		stage3D.render(ctx3D)
 	}
 }
+
+
 
 fun View3D?.foreachDescendant(handler: (View3D) -> Unit) {
 	if (this != null) {
@@ -108,9 +108,11 @@ class RenderContext3D() {
 	val cameraMat: Matrix3D = Matrix3D()
 	val cameraMatInv: Matrix3D = Matrix3D()
 	val dynamicVertexBufferPool = Pool { ag.createVertexBuffer() }
+	val ambientColor: Vector3D = Vector3D()
 }
 
 abstract class View3D {
+	var id: String? = null
 	var name: String? = null
 	val localTransform = Transform3D()
 
@@ -140,6 +142,18 @@ abstract class View3D {
 open class Container3D : View3D() {
 	val children = arrayListOf<View3D>()
 
+	fun removeChild(child: View3D) {
+		children.remove(child)
+	}
+
+	fun addChild(child: View3D) {
+		child.removeFromParent()
+		children += child
+		child.parent = this
+	}
+
+	operator fun plusAssign(child: View3D) = addChild(child)
+
 	override fun render(ctx: RenderContext3D) {
 		children.fastForEach {
 			it.render(ctx)
@@ -147,9 +161,20 @@ open class Container3D : View3D() {
 	}
 }
 
+fun View3D.removeFromParent() {
+	parent?.removeChild(this)
+	parent = null
+}
+
 inline fun <reified T : View3D> View3D?.findByType() = sequence<T> {
 	for (it in descendants()) {
 		if (it is T) yield(it)
+	}
+}
+
+inline fun <reified T : View3D> View3D?.findByTypeWithName(name: String) = sequence<T> {
+	for (it in descendants()) {
+		if (it is T && it.name == name) yield(it)
 	}
 }
 
@@ -198,9 +223,7 @@ inline fun <T : View3D> T.positionLookingAt(px: Number, py: Number, pz: Number, 
 }
 
 fun <T : View3D> T.addTo(container: Container3D) = this.apply {
-	this.parent?.children?.remove(this)
-	container.children += this
-	this.parent = container
+	container.addChild(this)
 }
 
 data class Bone3D(
@@ -214,6 +237,15 @@ data class Skeleton3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
 }
 
 class Mesh3D constructor(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType, val maxWeights: Int = 0) {
+	val fbuffer by lazy {
+		FBuffer.alloc(data.size * 4).apply {
+			setAlignedArrayFloat32(0, this@Mesh3D.data, 0, this@Mesh3D.data.size)
+		}
+		//FBuffer.wrap(MemBufferAlloc(data.size * 4)).apply {
+		//	arraycopy(this@Mesh3D.data, 0, this@apply.mem, 0, this@Mesh3D.data.size) // Bug in kmem-js?
+		//}
+	}
+
 	var skeleton: Skeleton3D? = null
 	var texture: Bitmap? = null
 
@@ -309,7 +341,9 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 		val ag = ctx.ag
 
 		ctx.dynamicVertexBufferPool.alloc { vertexBuffer ->
-			vertexBuffer.upload(mesh.data)
+			//vertexBuffer.upload(mesh.data)
+			vertexBuffer.upload(mesh.fbuffer)
+
 			//tempMat2.invert()
 			//tempMat3.multiply(ctx.cameraMatInv, this.localTransform.matrix)
 			//tempMat3.multiply(ctx.cameraMatInv, Matrix3D().invert(this.localTransform.matrix))
@@ -356,35 +390,15 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 							this[u_BindMat] = ctx.bindMat4.identity()
 						}
 
+						this[u_AmbientColor] = ctx.ambientColor
+
 						ctx.lights.fastForEachWithIndex { index, light: Light3D ->
-							this[lights[index].sourcePos] = light.localTransform.translation.data
-							val diffuse = light.diffuseColor
-							val specular = light.specularColor
-							val ambient = light.ambientColor
-
-							//println(light.diffuseColor.withAd(1.0))
-							//println(diffuse)
-							//println(specular)
-							//println(ambient)
-
-							this[lights[index].diffuse] = light.tempArray1.apply {
-								val scale = (light.power * light.diffusePower).toFloat()
-								this[0] = (diffuse.rf * scale)
-								this[1] = (diffuse.gf * scale)
-								this[2] = (diffuse.bf * scale)
-							}
-							this[lights[index].specular] = light.tempArray2.apply {
-								val scale = (light.power * light.specularPower).toFloat()
-								this[0] = (specular.rf * scale)
-								this[1] = (specular.gf * scale)
-								this[2] = (specular.bf * scale)
-							}
-							this[lights[index].ambient] = light.tempArray3.apply {
-								val scale = (light.power * light.ambientPower).toFloat()
-								this[0] = (ambient.rf * scale)
-								this[1] = (ambient.gf * scale)
-								this[2] = (ambient.bf * scale)
-							}
+							val lightColor = light.color
+							this[lights[index].u_sourcePos] = light.localTransform.translation
+							//println("light.localTransform.translation:${light.localTransform.translation}")
+							this[lights[index].u_color] = light.tempVec1.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f)
+							//println(light.tempVec1.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f))
+							this[lights[index].u_attenuation] = light.tempVec2.setTo(light.constantAttenuation, light.linearAttenuation, light.quadraticAttenuation)
 						}
 					},
 					renderState = rs

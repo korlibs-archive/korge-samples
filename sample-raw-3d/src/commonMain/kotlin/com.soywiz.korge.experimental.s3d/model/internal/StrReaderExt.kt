@@ -41,10 +41,18 @@ internal fun StrReader.readInts(list: com.soywiz.kds.IntArrayList = com.soywiz.k
 	return list
 }
 
+internal fun StrReader.readVector3D():  com.soywiz.korma.geom.Vector3D {
+	val f = readFloats(com.soywiz.kds.FloatArrayList())
+	return when {
+		f.size == 4 -> com.soywiz.korma.geom.Vector3D(f[0], f[1], f[2], f[3])
+		else -> com.soywiz.korma.geom.Vector3D(f[0], f[1], f[2])
+	}
+}
+
 internal fun StrReader.readMatrix3D(): com.soywiz.korma.geom.Matrix3D {
 	val f = readFloats(com.soywiz.kds.FloatArrayList())
 	if (f.size == 16) {
-		return com.soywiz.korma.geom.Matrix3D().setColumns( // This is correct
+		return com.soywiz.korma.geom.Matrix3D().setRows(
 			f[0], f[1], f[2], f[3],
 			f[4], f[5], f[6], f[7],
 			f[8], f[9], f[10], f[11],

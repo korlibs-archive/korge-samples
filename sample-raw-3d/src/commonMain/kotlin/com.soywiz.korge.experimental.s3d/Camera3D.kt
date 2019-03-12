@@ -75,6 +75,7 @@ class Transform3D {
 	private val _rotation = Quaternion()
 	private val _scale = Scale3D(1, 1, 1)
 	private fun updateTRS() {
+		transformDirty = false
 		matrix.getTRS(_translation, rotation, _scale)
 		transformDirty = false
 	}
@@ -93,8 +94,8 @@ class Transform3D {
 	}
 
 	fun setMatrix(mat: Matrix3D) {
-		this.matrix.copyFrom(mat)
 		transformDirty = true
+		this.matrix.copyFrom(mat)
 	}
 
 	@PublishedApi

@@ -11,6 +11,7 @@ object Shaders3D {
 	operator fun Operand.get(index: Operand) = Program.ArrayAccess(this, index)
 
 	val u_Shiness = Uniform("u_shiness", VarType.Float1)
+	val u_AmbientColor = Uniform("u_ambientColor", VarType.Float4)
 	val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 	val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
 	val u_BindMat = Uniform("u_BindMat", VarType.Mat4)
@@ -47,10 +48,9 @@ object Shaders3D {
 	)
 
 	class LightAttributes(val id: Int) {
-		val sourcePos = Uniform("light${id}_pos", VarType.Float3)
-		val diffuse = Uniform("light${id}_diffuse", VarType.Float4)
-		val specular = Uniform("light${id}_specular", VarType.Float4)
-		val ambient = Uniform("light${id}_ambient", VarType.Float4)
+		val u_sourcePos = Uniform("light${id}_pos", VarType.Float3)
+		val u_color = Uniform("light${id}_color", VarType.Float4)
+		val u_attenuation = Uniform("light${id}_attenuation", VarType.Float3)
 	}
 
 	val lights = (0 until 4).map { LightAttributes(it) }
@@ -63,13 +63,33 @@ object Shaders3D {
 		val E = createTemp(VarType.Float3)
 		val R = createTemp(VarType.Float3)
 
-		SET(L, normalize(light.sourcePos["xyz"] - v))
+		val attenuation = createTemp(VarType.Float1)
+		val dist = createTemp(VarType.Float1)
+		val NdotL = createTemp(VarType.Float1)
+		val lightDir = createTemp(VarType.Float3)
+
+		SET(L, normalize(light.u_sourcePos["xyz"] - v))
 		SET(E, normalize(-v)) // we are in Eye Coordinates, so EyePos is (0,0,0)
 		SET(R, normalize(-reflect(L, N)))
 
-		SET(out["rgb"], out["rgb"] + light.ambient["rgb"])
-		SET(out["rgb"], out["rgb"] + clamp(light.diffuse * max(dot(N, L), 0f.lit), 0f.lit, 1f.lit)["rgb"])
-		SET(out["rgb"], out["rgb"] + clamp(light.specular * pow(max(dot(R, E), 0f.lit), 0.3f.lit * u_Shiness), 0f.lit, 1f.lit)["rgb"])
+		val constantAttenuation = light.u_attenuation.x
+		val linearAttenuation = light.u_attenuation.y
+		val quadraticAttenuation = light.u_attenuation.z
+		SET(lightDir, light.u_sourcePos["xyz"] - v_Pos)
+		SET(dist, length(lightDir))
+		//SET(dist, length(vec3(4f.lit, 1f.lit, 6f.lit) - vec3(0f.lit, 0f.lit, 0f.lit)))
+
+		SET(attenuation, 1f.lit / (constantAttenuation + linearAttenuation * dist + quadraticAttenuation * dist * dist))
+		//SET(attenuation, 1f.lit / (1f.lit + 0f.lit * dist + 0.00111109f.lit * dist * dist))
+		//SET(attenuation, 0.9.lit)
+		SET(NdotL, max(dot(normalize(N), normalize(lightDir)), 0f.lit))
+
+		IF(NdotL ge 0f.lit) {
+			SET(out["rgb"], out["rgb"] + (light.u_color["rgb"] * NdotL + u_AmbientColor["rgb"]) * attenuation)
+		}
+		//SET(out["rgb"], out["rgb"] * attenuation)
+		//SET(out["rgb"], out["rgb"] + clamp(light.diffuse * max(dot(N, L), 0f.lit), 0f.lit, 1f.lit)["rgb"])
+		//SET(out["rgb"], out["rgb"] + clamp(light.specular * pow(max(dot(R, E), 0f.lit), 0.3f.lit * u_Shiness), 0f.lit, 1f.lit)["rgb"])
 	}
 
 	@ThreadLocal
@@ -96,20 +116,30 @@ object Shaders3D {
 
 					val skinMatrix = createTemp(VarType.Mat4)
 
+					val localPos = createTemp(VarType.Float4)
+					val localNorm = createTemp(VarType.Float4)
+
+					SET(localPos, vec4(1f.lit))
+					SET(localNorm, vec4(0f.lit))
+
 					if (nweights == 0) {
 						SET(skinMatrix, mat4Identity())
+						SET(localPos, vec4(a_pos, 1f.lit))
+						SET(localNorm, vec4(a_norm, 0f.lit))
 					} else {
 						for (wIndex in 0 until nweights) {
 							IF(getBoneIndex(wIndex) ge 0.lit) {
-								SET(skinMatrix, skinMatrix + (getBone(wIndex) * getWeight(wIndex)))
+								SET(skinMatrix, getBone(wIndex))
+								SET(localPos, localPos + skinMatrix * vec4(a_pos, 1f.lit) * getWeight(wIndex))
+								SET(localNorm, localNorm + skinMatrix * vec4(a_norm, 0f.lit) * getWeight(wIndex))
 							}
 						}
 					}
 
 					SET(modelViewMat, u_ModMat * u_ViewMat)
 					SET(normalMat, u_NormMat)
-					SET(v_Pos, vec3(modelViewMat * u_BindMat * skinMatrix * vec4(a_pos, 1f.lit)))
-					SET(v_Norm, vec3(normalMat * u_BindMat * skinMatrix * vec4(a_norm, 1f.lit)))
+					SET(v_Pos, vec3(modelViewMat * u_BindMat * localPos))
+					SET(v_Norm, vec3(normalMat * u_BindMat * localNorm))
 					if (hasTexture) {
 						SET(v_TexCoords, a_tex["xy"])
 					}
