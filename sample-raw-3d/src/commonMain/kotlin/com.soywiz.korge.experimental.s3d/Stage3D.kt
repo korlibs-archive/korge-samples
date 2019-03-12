@@ -75,7 +75,7 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx3D.lights.clear()
 		stage3D.foreachDescendant {
 			if (it is Light3D) {
-				ctx3D.lights.add(it)
+				if (it.active) ctx3D.lights.add(it)
 			}
 		}
 		stage3D.render(ctx3D)
@@ -112,6 +112,7 @@ class RenderContext3D() {
 }
 
 abstract class View3D {
+	var active = true
 	var id: String? = null
 	var name: String? = null
 	val localTransform = Transform3D()
@@ -236,7 +237,33 @@ data class Skeleton3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
 	val matrices = Array(Shaders3D.MAX_BONE_MATS) { Matrix3D() }
 }
 
-class Mesh3D constructor(val data: FloatArray, val layout: VertexLayout, val program: Program?, val drawType: AG.DrawType, val maxWeights: Int = 0) {
+open class MaterialLight(val kind: String)
+data class MaterialLightColor(val color: RGBA) : MaterialLight("color") {
+	val colorVec = Vector3D().setToColor(color)
+}
+data class MaterialLightTexture(val bitmap: Bitmap?) : MaterialLight("texture") {
+	val textureUnit = AG.TextureUnit()
+}
+
+data class Material3D(
+	val emission: MaterialLight,
+	val ambient: MaterialLight,
+	val diffuse: MaterialLight,
+	val specular: MaterialLight,
+	val shiness: Float,
+	val indexOfRefraction: Float
+) {
+	val kind: String = "${emission.kind}_${ambient.kind}_${diffuse.kind}_${specular.kind}"
+}
+
+class Mesh3D constructor(
+	val data: FloatArray,
+	val layout: VertexLayout,
+	val program: Program?,
+	val drawType: AG.DrawType,
+	val hasTexture: Boolean = false,
+	val maxWeights: Int = 0
+) {
 	val fbuffer by lazy {
 		FBuffer.alloc(data.size * 4).apply {
 			setAlignedArrayFloat32(0, this@Mesh3D.data, 0, this@Mesh3D.data.size)
@@ -247,9 +274,8 @@ class Mesh3D constructor(val data: FloatArray, val layout: VertexLayout, val pro
 	}
 
 	var skeleton: Skeleton3D? = null
-	var texture: Bitmap? = null
+	var material: Material3D? = null
 
-	var shiness = 0.5
 	//val modelMat = Matrix3D()
 	val vertexSizeInBytes = layout.totalSize
 	val vertexSizeInFloats = vertexSizeInBytes / 4
@@ -316,7 +342,7 @@ class Cube(var width: Double, var height: Double, var depth: Double) : ViewWithM
 			+cubeSize, -cubeSize, +cubeSize, 1f, 0f, 1f   //p6
 		)
 
-		val mesh = Mesh3D(vertices, Shaders3D.layoutPosCol, Shaders3D.programColor3D, AG.DrawType.TRIANGLES)
+		val mesh = Mesh3D(vertices, Shaders3D.layoutPosCol, Shaders3D.programColor3D, AG.DrawType.TRIANGLES, hasTexture = false)
 	}
 }
 
@@ -337,6 +363,19 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 		mat.identity()
 	}
 
+	fun AG.UniformValues.setMaterialLight(ctx: RenderContext3D, uniform: Shaders3D.MaterialLightUniform, actual: MaterialLight) {
+		when (actual) {
+			is MaterialLightColor -> {
+				this[uniform.u_color] = actual.colorVec
+			}
+			is MaterialLightTexture -> {
+				actual.textureUnit.texture = actual.bitmap?.let { ctx.rctx.agBitmapTextureManager.getTextureBase(it).base }
+				actual.textureUnit.linear = true
+				this[uniform.u_texUnit] = actual.textureUnit
+			}
+		}
+	}
+
 	override fun render(ctx: RenderContext3D) {
 		val ag = ctx.ag
 
@@ -350,11 +389,11 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 			//tempMat3.multiply(this.localTransform.matrix, ctx.cameraMat)
 
 			Shaders3D.apply {
-				val meshTexture = mesh.texture
+				val meshMaterial = mesh.material
 				ag.draw(
 					vertexBuffer,
 					type = mesh.drawType,
-					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights, meshTexture != null),
+					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights, meshMaterial, mesh.hasTexture),
 					vertexLayout = mesh.layout,
 					vertexCount = mesh.vertexCount,
 					//vertexCount = 6 * 6,
@@ -364,12 +403,14 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 						this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
 						this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
 
-						this[u_Shiness] = mesh.shiness
+						this[u_Shiness] = meshMaterial?.shiness ?: 0.5f
+						this[u_IndexOfRefraction] = meshMaterial?.indexOfRefraction ?: 1f
 
-						if (meshTexture != null) {
-							ctx.textureUnit.texture = ctx.rctx.agBitmapTextureManager.getTextureBase(meshTexture).base
-							ctx.textureUnit.linear = true
-							this[u_TexUnit] = ctx.textureUnit
+						if (meshMaterial != null) {
+							setMaterialLight(ctx, ambient, meshMaterial.ambient)
+							setMaterialLight(ctx, diffuse, meshMaterial.diffuse)
+							setMaterialLight(ctx, emission, meshMaterial.emission)
+							setMaterialLight(ctx, specular, meshMaterial.specular)
 						}
 
 						val skeleton = mesh.skeleton

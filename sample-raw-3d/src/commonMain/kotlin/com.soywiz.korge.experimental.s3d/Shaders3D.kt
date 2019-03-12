@@ -11,6 +11,7 @@ object Shaders3D {
 	operator fun Operand.get(index: Operand) = Program.ArrayAccess(this, index)
 
 	val u_Shiness = Uniform("u_shiness", VarType.Float1)
+	val u_IndexOfRefraction = Uniform("u_indexOfRefraction", VarType.Float1)
 	val u_AmbientColor = Uniform("u_ambientColor", VarType.Float4)
 	val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 	val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
@@ -55,6 +56,29 @@ object Shaders3D {
 
 	val lights = (0 until 4).map { LightAttributes(it) }
 
+	class MaterialLightUniform(val kind: String) {
+		//val mat = Material3D
+		val u_color = Uniform("u_${kind}_color", VarType.Float4)
+		val u_texUnit = Uniform("u_${kind}_texUnit", VarType.TextureUnit)
+	}
+
+	val emission = MaterialLightUniform("emission")
+	val ambient = MaterialLightUniform("ambient")
+	val diffuse = MaterialLightUniform("diffuse")
+	val specular = MaterialLightUniform("specular")
+
+	fun Program.Builder.computeMaterialLightColor(out: Operand, uniform: MaterialLightUniform, light: MaterialLight) {
+		when (light) {
+			is MaterialLightColor -> {
+				SET(out, uniform.u_color)
+			}
+			is MaterialLightTexture -> {
+				SET(out, vec4(texture2D(uniform.u_texUnit, v_TexCoords["xy"])["rgb"], 1f.lit))
+			}
+			else -> error("Unsupported MateriaList: $light")
+		}
+	}
+
 	fun Program.Builder.addLight(light: LightAttributes, out: Operand) {
 		val v = v_Pos
 		val N = v_Norm
@@ -85,7 +109,7 @@ object Shaders3D {
 		SET(NdotL, max(dot(normalize(N), normalize(lightDir)), 0f.lit))
 
 		IF(NdotL ge 0f.lit) {
-			SET(out["rgb"], out["rgb"] + (light.u_color["rgb"] * NdotL + u_AmbientColor["rgb"]) * attenuation)
+			SET(out["rgb"], out["rgb"] + (light.u_color["rgb"] * NdotL + u_AmbientColor["rgb"]) * attenuation * u_Shiness)
 		}
 		//SET(out["rgb"], out["rgb"] * attenuation)
 		//SET(out["rgb"], out["rgb"] + clamp(light.diffuse * max(dot(N, L), 0f.lit), 0f.lit, 1f.lit)["rgb"])
@@ -107,8 +131,8 @@ object Shaders3D {
 	)
 
 	@Suppress("RemoveCurlyBracesFromTemplate")
-	fun getProgram3D(nlights: Int, nweights: Int, hasTexture: Boolean): Program {
-		return programCache.getOrPut("program_L${nlights}_W${nweights}_T${hasTexture}") {
+	fun getProgram3D(nlights: Int, nweights: Int, meshMaterial: Material3D?, hasTexture: Boolean): Program {
+		return programCache.getOrPut("program_L${nlights}_W${nweights}_M${meshMaterial?.kind}_T${hasTexture}") {
 			Program(
 				vertex = VertexShader {
 					val modelViewMat = createTemp(VarType.Mat4)
@@ -154,11 +178,18 @@ object Shaders3D {
 				fragment = FragmentShader {
 					//SET(out, vec4(1f.lit, 1f.lit, 1f.lit, 1f.lit))
 					//SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
-					if (hasTexture) {
-						SET(out, vec4(texture2D(u_TexUnit, v_TexCoords["xy"])["rgb"], 1f.lit))
+					//if (hasTexture) {
+					//	SET(out, vec4(texture2D(u_TexUnit, v_TexCoords["xy"])["rgb"], 1f.lit))
+					//} else {
+					//	SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
+					//}
+
+					if (meshMaterial != null) {
+						computeMaterialLightColor(out, diffuse, meshMaterial.diffuse)
 					} else {
 						SET(out, vec4(0f.lit, 0f.lit, 0f.lit, 1f.lit))
 					}
+
 					for (n in 0 until nlights) {
 						addLight(lights[n], out)
 					}

@@ -13,7 +13,9 @@ import com.soywiz.korio.util.*
 import com.soywiz.korma.geom.*
 import kotlin.math.*
 
-suspend fun VfsFile.readColladaLibrary(): Library3D = ColladaParser.parse(readXml())
+suspend fun VfsFile.readColladaLibrary(loadTextures: Boolean = true): Library3D {
+	return ColladaParser.parse(readXml()).also { if (loadTextures) it.loadTextures() }.also { it.instantiateMaterials() }
+}
 
 class ColladaParser {
 	interface SourceParam {
@@ -218,6 +220,8 @@ class ColladaParser {
 
 			//println(combinedData.toString())
 
+			val materialDef = geom.materialId?.let { materialDefs[it] }
+
 			geometryDefs[geom.id] = Library3D.GeometryDef(
 				Mesh3D(
 					//combinedData.toFloatArray().toFBuffer(),
@@ -231,6 +235,7 @@ class ColladaParser {
 					}),
 					null,
 					AG.DrawType.TRIANGLES,
+					hasTexture = hasTexture,
 					maxWeights = maxWeights
 				).apply {
 					if (skinDef != null) {
@@ -238,7 +243,7 @@ class ColladaParser {
 					}
 				},
 				skin = skinDef,
-				material = geom.materialId?.let { materialDefs[it] }
+				material = materialDef
 			)
 			log { "px: $px" }
 			log { "py: $py" }
@@ -323,10 +328,78 @@ class ColladaParser {
 		}
 	}
 
+	fun Library3D.parseLightKindType(xml: Xml?, lightKind: String, params: FastStringMap<Any>): Library3D.LightKindDef? {
+		if (xml == null) return null
+		val nodeName = xml.nameLC
+		val colorXml = xml["color"].firstOrNull()
+		if (colorXml != null) {
+			val sid = colorXml.str("sid")
+			val f = colorXml.text.reader().readFloats()
+			return Library3D.LightColorDef(sid, RGBA.float(f[0], f[1], f[2], f[3]), lightKind)
+		}
+		val textureXml = xml["texture"].firstOrNull()
+		if (textureXml != null) {
+			return Library3D.LightTexDef(nodeName, params[textureXml.str("texture")] as? Library3D.EffectParamSampler2D?, lightKind)
+		}
+		return null
+	}
+
 	fun Library3D.parseEffects(xml: Xml) {
 		for (effectXml in xml["library_effects"]["effect"]) {
 			val effectId = effectXml.str("id")
 			val effectName = effectXml.str("name")
+			val profile_COMMONXml = effectXml["profile_COMMON"].firstOrNull()
+			if (profile_COMMONXml != null) {
+				var emission: Library3D.LightKindDef? = null
+				var ambient: Library3D.LightKindDef? = null
+				var diffuse: Library3D.LightKindDef? = null
+				var specular: Library3D.LightKindDef? = null
+				var shiness: Float? = null
+				var index_of_refraction: Float? = null
+				val params = FastStringMap<Any>()
+
+				for (nodeXml in profile_COMMONXml.allNodeChildren) {
+					when (nodeXml.nameLC) {
+						"newparam" -> {
+							val sid = nodeXml.str("sid")
+							val surfaceXml = nodeXml["surface"].firstOrNull()
+							if (surfaceXml != null) {
+								val surfaceType = surfaceXml.str("type")
+								val initFrom = surfaceXml["init_from"].text
+								val image = imageDefs[initFrom]
+								params[sid] = Library3D.EffectParamSurface(surfaceType, image)
+							}
+							val sampler2DSource = nodeXml["sampler2D"]["source"].firstText
+							if (sampler2DSource != null) {
+								params[sid] = Library3D.EffectParamSampler2D(params[sampler2DSource] as? Library3D.EffectParamSurface?)
+							}
+						}
+						"technique" -> {
+							val sid = nodeXml.str("sid")
+							for (tech in nodeXml.allNodeChildren) {
+								when (tech.nameLC) {
+									"gouraud", "phong" -> { // Smooth lighting
+										emission = parseLightKindType(tech["emission"].firstOrNull(), tech.nameLC, params) ?: emission
+										ambient = parseLightKindType(tech["ambient"].firstOrNull(), tech.nameLC, params) ?: ambient
+										diffuse = parseLightKindType(tech["diffuse"].firstOrNull(), tech.nameLC, params) ?: diffuse
+										specular = parseLightKindType(tech["specular"].firstOrNull(), tech.nameLC, params) ?: specular
+										shiness = tech["shiness"]["float"].firstText?.toFloatOrNull() ?: shiness
+										index_of_refraction = tech["index_of_refraction"]["float"].firstText?.toFloatOrNull() ?: index_of_refraction
+									}
+									"extra" -> Unit
+									else -> println("WARNING: Unsupported library_effects.effect.profile_COMMON.technique.${tech.nameLC}")
+								}
+							}
+						}
+						"extra" -> Unit
+						else -> {
+							println("WARNING: Unsupported library_effects.effect.profile_COMMON.${nodeXml.nameLC}")
+						}
+					}
+				}
+
+				effectDefs[effectId] = Library3D.StandardEffectDef(effectId, effectName, emission, ambient, diffuse, specular, shiness, index_of_refraction)
+			}
 		}
 	}
 
