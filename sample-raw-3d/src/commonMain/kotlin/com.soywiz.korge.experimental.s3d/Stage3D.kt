@@ -26,8 +26,8 @@ open class Light3D(
 	var linearAttenuation: Double = 0.0,
 	var quadraticAttenuation: Double = 0.00111109
 ) : View3D() {
-	internal val tempVec1 = Vector3D()
-	internal val tempVec2 = Vector3D()
+	internal val colorVec = Vector3D()
+	internal val attenuationVec = Vector3D()
 
 	fun setTo(
 		color: RGBA = Colors.WHITE,
@@ -227,12 +227,15 @@ fun <T : View3D> T.addTo(container: Container3D) = this.apply {
 	container.addChild(this)
 }
 
-data class Bone3D(
+data class Bone3D constructor(
 	val name: String,
-	val matrix: Matrix3D
-)
+	val invBindMatrix: Matrix3D
+) {
+	//val finalMatrix: Matrix3D = invBindMatrix.clone()
+	val finalMatrix: Matrix3D = Matrix3D()
+}
 
-data class Skeleton3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
+data class Skin3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
 	//val matrices = Array(bones.size) { Matrix3D() }
 	val matrices = Array(Shaders3D.MAX_BONE_MATS) { Matrix3D() }
 }
@@ -264,6 +267,8 @@ class Mesh3D constructor(
 	val hasTexture: Boolean = false,
 	val maxWeights: Int = 0
 ) {
+	var skin: Skin3D? = null
+
 	val fbuffer by lazy {
 		FBuffer.alloc(data.size * 4).apply {
 			setAlignedArrayFloat32(0, this@Mesh3D.data, 0, this@Mesh3D.data.size)
@@ -273,7 +278,6 @@ class Mesh3D constructor(
 		//}
 	}
 
-	var skeleton: Skeleton3D? = null
 	var material: Material3D? = null
 
 	//val modelMat = Matrix3D()
@@ -350,7 +354,11 @@ inline fun Container3D.mesh(mesh: Mesh3D, callback: ViewWithMesh3D.() -> Unit = 
 	return ViewWithMesh3D(mesh).apply(callback).addTo(this)
 }
 
-open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
+open class ViewWithMesh3D(
+	var mesh: Mesh3D,
+	var skeleton: View3D? = null
+) : View3D() {
+
 	private val uniformValues = AG.UniformValues()
 	private val rs = AG.RenderState(depthFunc = AG.CompareMode.LESS_EQUAL)
 	//private val rs = AG.RenderState(depthFunc = AG.CompareMode.ALWAYS)
@@ -396,12 +404,14 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 					program = mesh.program ?: getProgram3D(ctx.lights.size.clamp(0, 4), mesh.maxWeights, meshMaterial, mesh.hasTexture),
 					vertexLayout = mesh.layout,
 					vertexCount = mesh.vertexCount,
+					blending = AG.Blending.NONE,
 					//vertexCount = 6 * 6,
 					uniforms = uniformValues.apply {
 						this[u_ProjMat] = ctx.projCameraMat
 						this[u_ViewMat] = localTransform.matrix
 						this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
-						this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
+						//this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
+						this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert()
 
 						this[u_Shiness] = meshMaterial?.shiness ?: 0.5f
 						this[u_IndexOfRefraction] = meshMaterial?.indexOfRefraction ?: 1f
@@ -413,11 +423,11 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 							setMaterialLight(ctx, specular, meshMaterial.specular)
 						}
 
-						val skeleton = mesh.skeleton
+						val skeleton = mesh.skin
 						if (skeleton != null) {
-							this[u_BindMat] = ctx.bindMat4.copyFrom(skeleton.bindShapeMatrix)
+							this[u_BindShapeMatrix] = ctx.bindMat4.copyFrom(skeleton.bindShapeMatrix)
 							skeleton.bones.fastForEachWithIndex { index, bone ->
-								skeleton.matrices[index].copyFrom(bone.matrix)
+								skeleton.matrices[index].copyFrom(bone.finalMatrix)
 								//skeleton.matrices[index].copyFrom(bone.matrix)
 								//skeleton.matrices[index].identity()
 							}
@@ -428,7 +438,7 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 							//skeleton.matrices[0][0, 0] = 0.1f
 							this[u_BoneMats] = skeleton.matrices
 						} else {
-							this[u_BindMat] = ctx.bindMat4.identity()
+							this[u_BindShapeMatrix] = ctx.bindMat4.identity()
 						}
 
 						this[u_AmbientColor] = ctx.ambientColor
@@ -436,10 +446,8 @@ open class ViewWithMesh3D(var mesh: Mesh3D) : View3D() {
 						ctx.lights.fastForEachWithIndex { index, light: Light3D ->
 							val lightColor = light.color
 							this[lights[index].u_sourcePos] = light.localTransform.translation
-							//println("light.localTransform.translation:${light.localTransform.translation}")
-							this[lights[index].u_color] = light.tempVec1.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f)
-							//println(light.tempVec1.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f))
-							this[lights[index].u_attenuation] = light.tempVec2.setTo(light.constantAttenuation, light.linearAttenuation, light.quadraticAttenuation)
+							this[lights[index].u_color] = light.colorVec.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f)
+							this[lights[index].u_attenuation] = light.attenuationVec.setTo(light.constantAttenuation, light.linearAttenuation, light.quadraticAttenuation)
 						}
 					},
 					renderState = rs

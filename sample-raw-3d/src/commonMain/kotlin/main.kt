@@ -15,8 +15,8 @@ import com.soywiz.korma.interpolation.*
 import kotlin.jvm.*
 
 //suspend fun main(args: Array<String>) = Demo3.main(args)
-suspend fun main(args: Array<String>) = Demo3.main()
-//suspend fun main(args: Array<String>) = Demo1.main()
+//suspend fun main(args: Array<String>) = Demo3.main()
+suspend fun main(args: Array<String>) = Demo1.main()
 
 object Demo1 {
 	@JvmStatic
@@ -145,12 +145,12 @@ object Demo3 {
 
 			//val library = resourcesVfs["scene.dae"].readColladaLibrary()
 			//val library = resourcesVfs["cilinder.dae"].readColladaLibrary()
-			val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
+			//val library = resourcesVfs["box_textured.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey-smooth.dae"].readColladaLibrary()
 			//val library = resourcesVfs["monkey_smooth_two_camera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
-			//val library = resourcesVfs["skinning.dae"].readColladaLibrary()
+			val library = resourcesVfs["skinning.dae"].readColladaLibrary()
 			//val library = resourcesVfs["Fallera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["model.dae"].readColladaLibrary()
 			//val library = resourcesVfs["skinning_sample.dae"].readColladaLibrary()
@@ -172,8 +172,8 @@ object Demo3 {
 			val mainSceneView = library.mainScene.instantiate()
 			val cameras = mainSceneView.findByType<Camera3D>()
 
-			val camera1 = cameras.first()
-			val camera2 = cameras.last()
+			val camera1 = cameras.firstOrNull() ?: camera
+			val camera2 = cameras.lastOrNull() ?: camera
 
 			//ambientColor = Colors.RED
 			//ambientColor = Colors.WHITE
@@ -191,25 +191,27 @@ object Demo3 {
             }
             */
 
-			/*
-			var tick = 0
-			addUpdatable {
-				val angle = (tick / 1.0).degrees
-				camera.positionLookingAt(
-					cos(angle * 1) * 6, 2.0, -sin(angle * 1) * 6, // Orbiting camera
-					//1, 0, 4,
-					0, 0, 0
-				)
-				tick++
-			}
-			*/
-			launchImmediately {
-				while (true) {
-					tween(time = 2.seconds, easing = Easing.SMOOTH) {
-						camera.localTransform.setToInterpolated(camera1.localTransform, camera2.localTransform, it)
-					}
-					tween(time = 2.seconds, easing = Easing.SMOOTH) {
-						camera.localTransform.setToInterpolated(camera2.localTransform, camera1.localTransform, it)
+			if (camera1 == camera2) {
+				var tick = 0
+				val camera1Len = camera.localTransform.translation.length3
+				addUpdatable {
+					val angle = (tick / 1.0).degrees
+					camera.positionLookingAt(
+						cos(angle * 1) * camera1Len, 2.0, -sin(angle * 1) * camera1Len, // Orbiting camera
+						//1, 0, 4,
+						0, 0, 0
+					)
+					tick++
+				}
+			} else {
+				launchImmediately {
+					while (true) {
+						tween(time = 2.seconds, easing = Easing.SMOOTH) {
+							camera.localTransform.setToInterpolated(camera1.localTransform, camera2.localTransform, it)
+						}
+						tween(time = 2.seconds, easing = Easing.SMOOTH) {
+							camera.localTransform.setToInterpolated(camera2.localTransform, camera1.localTransform, it)
+						}
 					}
 				}
 			}

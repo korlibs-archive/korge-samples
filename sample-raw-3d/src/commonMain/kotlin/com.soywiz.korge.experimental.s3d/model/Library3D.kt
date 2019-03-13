@@ -15,7 +15,7 @@ data class Library3D(
 	val effectDefs: FastStringMap<EffectDef> = FastStringMap(),
 	val imageDefs: FastStringMap<ImageDef> = FastStringMap(),
 	val geometryDefs: FastStringMap<GeometryDef> = FastStringMap(),
-	val skins: FastStringMap<ColladaParser.Skin> = FastStringMap()
+	val skinDefs: FastStringMap<ColladaParser.Skin> = FastStringMap()
 ) {
 
 	suspend fun loadTextures() {
@@ -45,6 +45,8 @@ data class Library3D(
 		var id: String = ""
 		var name: String = ""
 		var type: String = ""
+		var skin: ColladaParser.Skin? = null
+		var skeleton: Instance3D? = null
 	}
 
 	open class Scene3D : Instance3D() {
@@ -96,8 +98,8 @@ data class Library3D(
 		val material: MaterialDef? = null
 	) : ObjectDef()
 
-	data class BoneDef(val name: String, val pose: Matrix3D) : Def() {
-		fun toBone() = Bone3D(name, pose.clone())
+	data class BoneDef(val name: String, val invBindMatrix: Matrix3D) : Def() {
+		fun toBone() = Bone3D(name, invBindMatrix.clone())
 	}
 
 	data class SkinDef(
@@ -125,7 +127,7 @@ fun Library3D.Instance3D.instantiate(): View3D {
 			}
 		}
 		is Library3D.GeometryDef -> {
-			ViewWithMesh3D(def.mesh)
+			ViewWithMesh3D(def.mesh, this.skeleton?.instantiate())
 		}
 		is Library3D.PerspectiveCameraDef -> {
 			Camera3D.Perspective(def.xfov, def.zmin, def.zmax)

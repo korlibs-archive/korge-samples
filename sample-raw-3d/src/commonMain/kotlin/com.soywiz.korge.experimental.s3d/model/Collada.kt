@@ -26,8 +26,7 @@ class ColladaParser {
 	data class NamesSourceParam(override val name: String, val names: ArrayList<String>) : SourceParam
 	data class Source(val id: String, val params: FastStringMap<SourceParam>)
 	data class Input(val semantic: String, val offset: Int, val source: Source, val indices: IntArrayList)
-	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap(), var materialId: String? = null) {
-	}
+	data class Geometry(val id: String, val name: String, val inputs: FastStringMap<Input> = FastStringMap(), var materialId: String? = null)
 	data class Skin(
 		val controllerId: String,
 		val controllerName: String,
@@ -54,7 +53,7 @@ class ColladaParser {
 		parseAnimations(xml)
 		val skins = parseControllers(xml)
 		for (skin in skins) {
-			library.skins[skin.controllerId] = skin
+			library.skinDefs[skin.controllerId] = skin
 		}
 		generateGeometries(geometries, skins)
 		parseVisualScenes(xml)
@@ -239,7 +238,7 @@ class ColladaParser {
 					maxWeights = maxWeights
 				).apply {
 					if (skinDef != null) {
-						this.skeleton = Skeleton3D(skinDef.bindShapeMatrix, skinDef.bones.map { it.toBone() })
+						this.skin = Skin3D(skinDef.bindShapeMatrix, skinDef.bones.map { it.toBone() })
 					}
 				},
 				skin = skinDef,
@@ -535,19 +534,20 @@ class ColladaParser {
 	}
 
 	fun Library3D.parseVisualScenes(xml: Xml) {
+		val instancesById = FastStringMap<Library3D.Instance3D>()
 		for (vscene in xml["library_visual_scenes"]["visual_scene"]) {
 			val scene = Library3D.Scene3D()
 			scene.id = vscene.str("id")
 			scene.name = vscene.str("name")
 			for (node in vscene["node"]) {
-				val instance = parseVisualSceneNode(node)
+				val instance = parseVisualSceneNode(node, instancesById)
 				scene.children += instance
 			}
 			scenes[scene.id] = scene
 		}
 	}
 
-	fun Library3D.parseVisualSceneNode(node: Xml): Library3D.Instance3D {
+	fun Library3D.parseVisualSceneNode(node: Xml, instancesById: FastStringMap<Library3D.Instance3D>): Library3D.Instance3D {
 		val instance = Library3D.Instance3D()
 		var location: Vector3D? = null
 		var scale: Vector3D? = null
@@ -558,6 +558,8 @@ class ColladaParser {
 		instance.id = node.str("id")
 		instance.name = node.str("name")
 		instance.type = node.str("type")
+
+		instancesById[instance.id] = instance
 
 		for (child in node.allNodeChildren) {
 			when (child.nameLC) {
@@ -605,8 +607,17 @@ class ColladaParser {
 					instance.def = geometryDefs[geometryId]
 				}
 				"node" -> {
-					val childInstance = parseVisualSceneNode(child)
+					val childInstance = parseVisualSceneNode(child, instancesById)
 					instance.children.add(childInstance)
+				}
+				"instance_controller" -> {
+					val skinId = child.str("url").trim('#')
+					val skeletonId = child["skeleton"].firstText?.trim('#') ?: ""
+					val skin = skinDefs[skinId]
+					val skeleton = instancesById[skeletonId]
+					instance.def = geometryDefs[skin?.skinSource ?: ""]
+					instance.skin = skin
+					instance.skeleton = skeleton
 				}
 				"extra" -> {
 				}

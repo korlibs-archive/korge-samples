@@ -15,7 +15,7 @@ object Shaders3D {
 	val u_AmbientColor = Uniform("u_ambientColor", VarType.Float4)
 	val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 	val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
-	val u_BindMat = Uniform("u_BindMat", VarType.Mat4)
+	val u_BindShapeMatrix = Uniform("u_BindMat", VarType.Mat4)
 	val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
 	val u_NormMat = Uniform("u_NormMat", VarType.Mat4)
 	//val MAX_BONE_MATS = 16
@@ -156,14 +156,16 @@ object Shaders3D {
 								SET(skinMatrix, getBone(wIndex))
 								SET(localPos, localPos + skinMatrix * vec4(a_pos, 1f.lit) * getWeight(wIndex))
 								SET(localNorm, localNorm + skinMatrix * vec4(a_norm, 0f.lit) * getWeight(wIndex))
+								//SET(localPos, localPos + vec4(a_pos, 1f.lit) * getWeight(wIndex))
+								//SET(localNorm, localNorm + vec4(a_norm, 0f.lit) * getWeight(wIndex))
 							}
 						}
 					}
 
 					SET(modelViewMat, u_ModMat * u_ViewMat)
 					SET(normalMat, u_NormMat)
-					SET(v_Pos, vec3(modelViewMat * u_BindMat * localPos))
-					SET(v_Norm, vec3(normalMat * u_BindMat * localNorm))
+					SET(v_Pos, vec3(modelViewMat * u_BindShapeMatrix * localPos))
+					SET(v_Norm, vec3(normalMat * u_BindShapeMatrix * localNorm))
 					if (hasTexture) {
 						SET(v_TexCoords, a_tex["xy"])
 					}
