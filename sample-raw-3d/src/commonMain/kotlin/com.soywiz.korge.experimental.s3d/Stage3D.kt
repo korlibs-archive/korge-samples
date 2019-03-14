@@ -68,9 +68,9 @@ class Stage3DView(val stage3D: Stage3D) : View() {
 		ctx3D.ag = ctx.ag
 		ctx3D.rctx = ctx
 		ctx3D.projMat.copyFrom(stage3D.camera.getProjMatrix(ctx.ag.backWidth.toDouble(), ctx.ag.backHeight.toDouble()))
-		ctx3D.cameraMat.copyFrom(stage3D.camera.localTransform.matrix)
+		ctx3D.cameraMat.copyFrom(stage3D.camera.transform.matrix)
 		ctx3D.ambientColor.setToColorPremultiplied(stage3D.ambientColor).scale(stage3D.ambientPower)
-		ctx3D.cameraMatInv.invert(stage3D.camera.localTransform.matrix)
+		ctx3D.cameraMatInv.invert(stage3D.camera.transform.matrix)
 		ctx3D.projCameraMat.multiply(ctx3D.projMat, ctx3D.cameraMatInv)
 		ctx3D.lights.clear()
 		stage3D.foreachDescendant {
@@ -115,29 +115,69 @@ abstract class View3D {
 	var active = true
 	var id: String? = null
 	var name: String? = null
-	val localTransform = Transform3D()
+	val transform = Transform3D()
 
 	var localX: Double
-		set(localX) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.x.toDouble()
+		set(localX) = run { transform.setTranslation(localX, localY, localZ, localW) }
+		get() = transform.translation.x.toDouble()
 
 	var localY: Double
-		set(localY) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.y.toDouble()
+		set(localY) = run { transform.setTranslation(localX, localY, localZ, localW) }
+		get() = transform.translation.y.toDouble()
 
 	var localZ: Double
-		set(localZ) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.z.toDouble()
+		set(localZ) = run { transform.setTranslation(localX, localY, localZ, localW) }
+		get() = transform.translation.z.toDouble()
 
 	var localW: Double
-		set(localW) = run { localTransform.setTranslation(localX, localY, localZ, localW) }
-		get() = localTransform.translation.w.toDouble()
+		set(localW) = run { transform.setTranslation(localX, localY, localZ, localW) }
+		get() = transform.translation.w.toDouble()
 
 	var parent: Container3D? = null
 	val modelMat = Matrix3D()
 	//val position = Vector3D()
 
 	abstract fun render(ctx: RenderContext3D)
+}
+
+class Skeleton3D(val skin: Skin3D, val headJoint: Joint3D) : View3D() {
+	val allJoints = headJoint.descendantsAndThis
+	val jointsByName = allJoints.associateBy { it.name }
+	val matrices = Array(allJoints.size) { Matrix3D() }
+
+	//init {
+	//	println(jointsByName)
+	//	println(jointsByName.values.map { it.name })
+	//	println(jointsByName.values.map { it.name })
+	//}
+
+	override fun render(ctx: RenderContext3D) {
+	}
+}
+
+open class Joint3D constructor(val skin: Skin3D, val bone: Bone3D, val jointParent: Joint3D? = null, initialMatrix: Matrix3D) : Container3D() {
+//open class Joint3D constructor(val jointParent: Joint3D? = null, initialMatrix: Matrix3D) : View3D() {
+	val index = bone.index
+	init {
+		this.transform.setMatrix(initialMatrix)
+		this.name = bone.name
+	}
+	val poseMatrix = this.transform.globalMatrix.clone()
+	val poseMatrixInv = poseMatrix.clone().invert()
+	//val poseMatrixInv = bone.invBindMatrix * skin.bindShapeMatrix
+
+	val childJoints = arrayListOf<Joint3D>()
+	val descendants: List<Joint3D> get() = childJoints.flatMap { it.descendantsAndThis }
+	val descendantsAndThis: List<Joint3D> get() = listOf(this) + descendants
+
+	init {
+		Unit
+	}
+
+	override fun render(ctx: RenderContext3D) {
+	}
+
+	override fun toString(): String = "Joint3D($index, $name)"
 }
 
 open class Container3D : View3D() {
@@ -190,6 +230,7 @@ fun View3D?.descendants(): Sequence<View3D> = sequence<View3D> {
 }
 
 operator fun View3D?.get(name: String): View3D? {
+	if (this?.id == name) return this
 	if (this?.name == name) return this
 	if (this is Container3D) {
 		this.children.fastForEach {
@@ -200,27 +241,26 @@ operator fun View3D?.get(name: String): View3D? {
 	return null
 }
 
-
 fun <T : View3D> T.name(name: String) = this.apply { this.name = name }
 
 inline fun <T : View3D> T.position(x: Number, y: Number, z: Number, w: Number = 1f): T = this.apply {
-	localTransform.setTranslation(x, y, z, w)
+	transform.setTranslation(x, y, z, w)
 }
 
 inline fun <T : View3D> T.rotation(x: Angle = 0.degrees, y: Angle = 0.degrees, z: Angle = 0.degrees): T = this.apply {
-	localTransform.setRotation(x, y, z)
+	transform.setRotation(x, y, z)
 }
 
 inline fun <T : View3D> T.scale(x: Number = 1, y: Number = 1, z: Number = 1, w: Number = 1): T = this.apply {
-	localTransform.setScale(x, y, z, w)
+	transform.setScale(x, y, z, w)
 }
 
 inline fun <T : View3D> T.lookAt(x: Number, y: Number, z: Number): T = this.apply {
-	localTransform.lookAt(x, y, z)
+	transform.lookAt(x, y, z)
 }
 
 inline fun <T : View3D> T.positionLookingAt(px: Number, py: Number, pz: Number, tx: Number, ty: Number, tz: Number): T = this.apply {
-	localTransform.setTranslationAndLookAt(px, py, pz, tx, ty, tz)
+	transform.setTranslationAndLookAt(px, py, pz, tx, ty, tz)
 }
 
 fun <T : View3D> T.addTo(container: Container3D) = this.apply {
@@ -228,16 +268,14 @@ fun <T : View3D> T.addTo(container: Container3D) = this.apply {
 }
 
 data class Bone3D constructor(
+	val index: Int,
 	val name: String,
 	val invBindMatrix: Matrix3D
 ) {
-	//val finalMatrix: Matrix3D = invBindMatrix.clone()
-	val finalMatrix: Matrix3D = Matrix3D()
 }
 
 data class Skin3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
 	//val matrices = Array(bones.size) { Matrix3D() }
-	val matrices = Array(Shaders3D.MAX_BONE_MATS) { Matrix3D() }
 }
 
 open class MaterialLight(val kind: String)
@@ -356,7 +394,7 @@ inline fun Container3D.mesh(mesh: Mesh3D, callback: ViewWithMesh3D.() -> Unit = 
 
 open class ViewWithMesh3D(
 	var mesh: Mesh3D,
-	var skeleton: View3D? = null
+	var skeleton: Skeleton3D? = null
 ) : View3D() {
 
 	private val uniformValues = AG.UniformValues()
@@ -408,10 +446,10 @@ open class ViewWithMesh3D(
 					//vertexCount = 6 * 6,
 					uniforms = uniformValues.apply {
 						this[u_ProjMat] = ctx.projCameraMat
-						this[u_ViewMat] = localTransform.matrix
+						this[u_ViewMat] = transform.globalMatrix
 						this[u_ModMat] = tempMat2.multiply(tempMat1.apply { prepareExtraModelMatrix(this) }, modelMat)
 						//this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert().transpose()
-						this[u_NormMat] = tempMat3.multiply(tempMat2, localTransform.matrix).invert()
+						this[u_NormMat] = tempMat3.multiply(tempMat2, transform.globalMatrix).invert()
 
 						this[u_Shiness] = meshMaterial?.shiness ?: 0.5f
 						this[u_IndexOfRefraction] = meshMaterial?.indexOfRefraction ?: 1f
@@ -423,29 +461,26 @@ open class ViewWithMesh3D(
 							setMaterialLight(ctx, specular, meshMaterial.specular)
 						}
 
-						val skeleton = mesh.skin
+						val skeleton = this@ViewWithMesh3D.skeleton
+						this[u_BindShapeMatrix] = ctx.bindMat4.identity()
 						if (skeleton != null) {
-							this[u_BindShapeMatrix] = ctx.bindMat4.copyFrom(skeleton.bindShapeMatrix)
-							skeleton.bones.fastForEachWithIndex { index, bone ->
-								skeleton.matrices[index].copyFrom(bone.finalMatrix)
-								//skeleton.matrices[index].copyFrom(bone.matrix)
-								//skeleton.matrices[index].identity()
+							//this[u_BindShapeMatrix] = ctx.bindMat4.copyFrom(skeleton.skin.bindShapeMatrix)
+							//skeleton.allJoints[1].transform.rotate(10.degrees, 0.degrees, 0.degrees)
+							skeleton.allJoints.fastForEach {
+								//skeleton.matrices[it.index].copyFrom(it.inverseBindTransform)
+								skeleton.matrices[it.index].multiply(it.poseMatrixInv, it.transform.globalMatrix)
+								//if (it.name == "Upper_Leg.L") println("${it.name}: ${skeleton.matrices[it.index]}")
 							}
-							//skeleton.matrices[0].rotate(10.degrees, 15.degrees, 0.degrees)
-							//skeleton.matrices[1].rotate(20.degrees, 15.degrees, 0.degrees)
-							//skeleton.matrices[2].rotate(30.degrees, 15.degrees, 0.degrees)
-							//skeleton.matrices[3].rotate(40.degrees, 15.degrees, 0.degrees)
-							//skeleton.matrices[0][0, 0] = 0.1f
 							this[u_BoneMats] = skeleton.matrices
 						} else {
-							this[u_BindShapeMatrix] = ctx.bindMat4.identity()
+
 						}
 
 						this[u_AmbientColor] = ctx.ambientColor
 
 						ctx.lights.fastForEachWithIndex { index, light: Light3D ->
 							val lightColor = light.color
-							this[lights[index].u_sourcePos] = light.localTransform.translation
+							this[lights[index].u_sourcePos] = light.transform.translation
 							this[lights[index].u_color] = light.colorVec.setTo(lightColor.rf, lightColor.gf, lightColor.bf, 1f)
 							this[lights[index].u_attenuation] = light.attenuationVec.setTo(light.constantAttenuation, light.linearAttenuation, light.quadraticAttenuation)
 						}

@@ -11,6 +11,7 @@ import com.soywiz.korio.file.*
 import com.soywiz.korio.serialization.xml.*
 import com.soywiz.korio.util.*
 import com.soywiz.korma.geom.*
+import com.soywiz.klock.*
 import kotlin.math.*
 
 suspend fun VfsFile.readColladaLibrary(loadTextures: Boolean = true): Library3D {
@@ -142,7 +143,7 @@ class ColladaParser {
 				maxWeights = skin.maxVcount.nextMultipleOf(4)
 				var pos = 0
 
-				if (maxWeights > 4) error("Too much weights for the current implementation $maxWeights > 4")
+				//if (maxWeights > 4) error("Too much weights for the current implementation $maxWeights > 4")
 
 				val jointSrcParam = joint.source.params["JOINT"] as NamesSourceParam
 				val weightSrcParam = weight.source.params["WEIGHT"] as FloatSourceParam
@@ -183,7 +184,9 @@ class ColladaParser {
 				val INV_BIND_MATRIX = skin.jointInputs["INV_BIND_MATRIX"] ?: error("Can't find INV_BIND_MATRIX")
 				val JOINT_NAMES = (JOINT.source.params["JOINT"] as? NamesSourceParam)?.names ?: error("Can't find JOINT.JOINT")
 				val TRANSFORM = (INV_BIND_MATRIX.source.params["TRANSFORM"] as? MatrixSourceParam)?.matrices ?: error("Can't find INV_BIND_MATRIX.TRANSFORM")
-				Library3D.SkinDef(skin.bindShapeMatrix, JOINT_NAMES.zip(TRANSFORM).map { Library3D.BoneDef(it.first, it.second) })
+				val skin = Library3D.SkinDef(skin.bindShapeMatrix, JOINT_NAMES.zip(TRANSFORM).withIndex().map { Library3D.BoneDef(it.index, it.value.first, it.value.second) })
+				skin.bones.fastForEach { it.skin = skin }
+				skin
 			} else {
 				null
 			}
@@ -229,8 +232,8 @@ class ColladaParser {
 						add(Shaders3D.a_pos)
 						if (hasNormals) add(Shaders3D.a_norm)
 						if (hasTexture) add(Shaders3D.a_tex)
-						if (maxWeights >= 4) add(Shaders3D.a_boneIndex0)
-						if (maxWeights >= 4) add(Shaders3D.a_weight0)
+						for (n in 0 until 4) if (maxWeights > n * 4) add(Shaders3D.a_boneIndex[n])
+						for (n in 0 until 4) if (maxWeights > n * 4) add(Shaders3D.a_weight[n])
 					}),
 					null,
 					AG.DrawType.TRIANGLES,
@@ -238,7 +241,7 @@ class ColladaParser {
 					maxWeights = maxWeights
 				).apply {
 					if (skinDef != null) {
-						this.skin = Skin3D(skinDef.bindShapeMatrix, skinDef.bones.map { it.toBone() })
+						this.skin = skinDef.toSkin()
 					}
 				},
 				skin = skinDef,
@@ -412,7 +415,44 @@ class ColladaParser {
 	}
 
 	fun Library3D.parseAnimations(xml: Xml) {
-		for (animation in xml["library_animations"]["animation"]) {
+		val sources = FastStringMap<SourceParam>()
+		for (animationXml in xml["library_animations"]["animation"]) {
+			val srcs = parseSources(animationXml, sources)
+			val animationId = animationXml.str("id")
+			val sourcesById = srcs.associateBy { it.id }
+			val samplerXml = animationXml["sampler"].firstOrNull()
+			val inputParams = FastStringMap<Source?>()
+			if (samplerXml != null) {
+				val samplerId = samplerXml.str("id")
+				for (inputXml in samplerXml["input"]) {
+					val inputSemantic = inputXml.str("semantic")
+					val inputSourceId = inputXml.str("source").trim('#')
+					inputParams[inputSemantic] = sourcesById[inputSourceId]
+				}
+				println("$samplerId -> $inputParams")
+				println("$samplerId -> $inputParams")
+			}
+			val channelXml = animationXml["channel"].firstOrNull()
+			if (channelXml != null) {
+				val channelSource = channelXml.str("source").trim('#')
+				val channelTargetInfo = channelXml.str("target").split('/', limit = 2)
+				val channelTarget = channelTargetInfo.getOrElse(0) { "" }
+				val channelProp = channelTargetInfo.getOrElse(1) { "" }
+				val times = (inputParams["INPUT"]!!.params["TIME"] as FloatSourceParam).floats
+				val transforms = (inputParams["OUTPUT"]!!.params["TRANSFORM"] as MatrixSourceParam).matrices
+				val interpolations = (inputParams["INTERPOLATION"]!!.params["INTERPOLATION"] as NamesSourceParam).names
+
+				//println("$channelSource -> $channelTarget")
+				val frames = (0 until times.size).map {
+					Library3D.AnimationKeyDef(times[it].seconds, transforms[it], interpolations[it])
+				}
+				animationDefs[animationId] = Library3D.AnimationDef(
+					animationId,
+					channelTarget, channelProp,
+					frames,
+					(frames.map { it.time.seconds }.max() ?: 0.0).seconds
+				)
+			}
 		}
 	}
 
@@ -497,7 +537,12 @@ class ColladaParser {
 				log { "SOURCES.KEYS: " + sources.keys }
 				log { "SOURCES: ${sources.keys.map { it to sources[it] }.toMap()}" }
 
-				for (triangles in mesh["triangles"]) {
+				val triangles = mesh["triangles"]?.firstOrNull() ?: mesh["polylist"]?.firstOrNull()
+
+				if (triangles != null) {
+					if (triangles.nameLC != "triangles") {
+						println("WARNING: polylist instead of triangles not fully implemented!")
+					}
 					val trianglesCount = triangles.getInt("count") ?: 0
 					geom.materialId = triangles.getString("material")
 
@@ -536,7 +581,7 @@ class ColladaParser {
 	fun Library3D.parseVisualScenes(xml: Xml) {
 		val instancesById = FastStringMap<Library3D.Instance3D>()
 		for (vscene in xml["library_visual_scenes"]["visual_scene"]) {
-			val scene = Library3D.Scene3D()
+			val scene = Library3D.Scene3D(this)
 			scene.id = vscene.str("id")
 			scene.name = vscene.str("name")
 			for (node in vscene["node"]) {
@@ -548,7 +593,7 @@ class ColladaParser {
 	}
 
 	fun Library3D.parseVisualSceneNode(node: Xml, instancesById: FastStringMap<Library3D.Instance3D>): Library3D.Instance3D {
-		val instance = Library3D.Instance3D()
+		val instance = Library3D.Instance3D(this)
 		var location: Vector3D? = null
 		var scale: Vector3D? = null
 		var rotationX: Vector3D? = null
@@ -556,6 +601,7 @@ class ColladaParser {
 		var rotationZ: Vector3D? = null
 
 		instance.id = node.str("id")
+		instance.sid = node.getString("sid")
 		instance.name = node.str("name")
 		instance.type = node.str("type")
 
@@ -618,6 +664,7 @@ class ColladaParser {
 					instance.def = geometryDefs[skin?.skinSource ?: ""]
 					instance.skin = skin
 					instance.skeleton = skeleton
+					instance.skeletonId = skeletonId
 				}
 				"extra" -> {
 				}
@@ -699,9 +746,7 @@ class ColladaParser {
 											val floats = (data as FloatSourceParam).floats.data
 											val out = Array(count) { Matrix3D() }
 											for (n in 0 until count) {
-												val off = (n * stride) + totalOffset
-												val mat = out[n]
-												for (m in 0 until 16) mat.data[m] = floats[off + m]
+												out[n].setFromColladaData(floats, (n * stride) + totalOffset)
 												//mat.transpose()
 											}
 											sourceParams[paramName] = MatrixSourceParam(paramName, out)

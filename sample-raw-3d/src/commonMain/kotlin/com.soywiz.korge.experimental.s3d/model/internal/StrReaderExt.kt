@@ -49,15 +49,19 @@ internal fun StrReader.readVector3D():  com.soywiz.korma.geom.Vector3D {
 	}
 }
 
+//fun com.soywiz.korma.geom.Matrix3D.setFromColladaData(f: FloatArray, o: Int) = setColumns(
+fun com.soywiz.korma.geom.Matrix3D.setFromColladaData(f: FloatArray, o: Int) = setRows(
+	f[o + 0], f[o + 1], f[o + 2], f[o + 3],
+	f[o + 4], f[o + 5], f[o + 6], f[o + 7],
+	f[o + 8], f[o + 9], f[o + 10], f[o + 11],
+	f[o + 12], f[o + 13], f[o + 14], f[o + 15]
+)
+
 internal fun StrReader.readMatrix3D(): com.soywiz.korma.geom.Matrix3D {
 	val f = readFloats(com.soywiz.kds.FloatArrayList())
 	if (f.size == 16) {
-		return com.soywiz.korma.geom.Matrix3D().setRows(
-			f[0], f[1], f[2], f[3],
-			f[4], f[5], f[6], f[7],
-			f[8], f[9], f[10], f[11],
-			f[12], f[13], f[14], f[15]
-		)
+		//return com.soywiz.korma.geom.Matrix3D().setRows(
+		return com.soywiz.korma.geom.Matrix3D().setFromColladaData(f.data, 0)
 	} else {
 		error("Invalid matrix size ${f.size} : str='$str'")
 	}

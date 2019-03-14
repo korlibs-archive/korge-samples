@@ -25,8 +25,8 @@ object Shaders3D {
 	val a_pos = Attribute("a_Pos", VarType.Float3, normalized = false)
 	val a_norm = Attribute("a_Norm", VarType.Float3, normalized = false)
 	val a_tex = Attribute("a_TexCoords", VarType.Float2, normalized = false)
-	val a_boneIndex0 = Attribute("a_BoneIndex0", VarType.Float4, normalized = false)
-	val a_weight0 = Attribute("a_Weight0", VarType.Float4, normalized = false)
+	val a_boneIndex = Array(4) { Attribute("a_BoneIndex$it", VarType.Float4, normalized = false) }
+	val a_weight = Array(4) { Attribute("a_Weight$it", VarType.Float4, normalized = false) }
 	val a_col = Attribute("a_Col", VarType.Float3, normalized = true)
 	val v_col = Varying("v_Col", VarType.Float3)
 
@@ -119,8 +119,8 @@ object Shaders3D {
 	@ThreadLocal
 	val programCache = LinkedHashMap<String, Program>()
 
-	private fun Program.Builder.getBoneIndex(index: Int) = int(a_boneIndex0[index])
-	private fun Program.Builder.getWeight(index: Int) = a_weight0[index]
+	private fun Program.Builder.getBoneIndex(index: Int) = int(a_boneIndex[index / 4][index % 4])
+	private fun Program.Builder.getWeight(index: Int) = a_weight[index / 4][index % 4]
 	private fun Program.Builder.getBone(index: Int) = u_BoneMats[getBoneIndex(index)]
 
 	fun Program.Builder.mat4Identity() = Program.Func("mat4",
@@ -164,8 +164,8 @@ object Shaders3D {
 
 					SET(modelViewMat, u_ModMat * u_ViewMat)
 					SET(normalMat, u_NormMat)
-					SET(v_Pos, vec3(modelViewMat * u_BindShapeMatrix * localPos))
-					SET(v_Norm, vec3(normalMat * u_BindShapeMatrix * localNorm))
+					SET(v_Pos, vec3(modelViewMat * localPos))
+					SET(v_Norm, vec3(normalMat * localNorm))
 					if (hasTexture) {
 						SET(v_TexCoords, a_tex["xy"])
 					}

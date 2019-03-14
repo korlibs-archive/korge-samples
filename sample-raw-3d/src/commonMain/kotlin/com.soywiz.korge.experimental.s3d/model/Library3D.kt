@@ -1,6 +1,7 @@
 package com.soywiz.korge.experimental.s3d.model
 
 import com.soywiz.kds.*
+import com.soywiz.klock.*
 import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
@@ -15,8 +16,13 @@ data class Library3D(
 	val effectDefs: FastStringMap<EffectDef> = FastStringMap(),
 	val imageDefs: FastStringMap<ImageDef> = FastStringMap(),
 	val geometryDefs: FastStringMap<GeometryDef> = FastStringMap(),
-	val skinDefs: FastStringMap<ColladaParser.Skin> = FastStringMap()
+	val skinDefs: FastStringMap<ColladaParser.Skin> = FastStringMap(),
+	val animationDefs: FastStringMap<AnimationDef> = FastStringMap()
 ) {
+	data class AnimationKeyDef(val time: TimeSpan, val matrix: Matrix3D, val interpolation: String) : Def() {
+		val transform = Transform3D().setMatrix(matrix)
+	}
+	data class AnimationDef(val id: String, val target: String, val property: String, val keyFrames: List<AnimationKeyDef>, val totalTime: TimeSpan) : Def()
 
 	suspend fun loadTextures() {
 		imageDefs.fastValueForEach { image ->
@@ -24,32 +30,39 @@ data class Library3D(
 		}
 	}
 
+	val boneDefs = FastStringMap<BoneDef>()
+
 	fun instantiateMaterials() {
 		geometryDefs.fastValueForEach { geom ->
+			for (bone in geom.skin?.bones ?: listOf()) {
+				boneDefs[bone.name] = bone
+			}
 			geom.mesh.material = geom.material?.instantiate()
 		}
 	}
 
 	val library = this
 
-	val mainScene = Scene3D().apply {
+	val mainScene = Scene3D(this).apply {
 		id = "MainScene"
 		name = "MainScene"
 	}
 	var scenes = FastStringMap<Scene3D>()
 
-	open class Instance3D {
+	open class Instance3D(val library: Library3D) {
 		val transform = Matrix3D()
 		var def: Def? = null
 		val children = arrayListOf<Instance3D>()
 		var id: String = ""
+		var sid: String? = null
 		var name: String = ""
 		var type: String = ""
 		var skin: ColladaParser.Skin? = null
 		var skeleton: Instance3D? = null
+		var skeletonId: String? = null
 	}
 
-	open class Scene3D : Instance3D() {
+	open class Scene3D(library: Library3D) : Instance3D(library) {
 	}
 
 	open class Def
@@ -78,7 +91,6 @@ data class Library3D(
 	data class EffectParamSurface(val surfaceType: String, val initFrom: Library3D.ImageDef?)
 	data class EffectParamSampler2D(val surface: EffectParamSurface?)
 
-
 	open class EffectDef() : Def()
 
 	data class StandardEffectDef(
@@ -98,14 +110,17 @@ data class Library3D(
 		val material: MaterialDef? = null
 	) : ObjectDef()
 
-	data class BoneDef(val name: String, val invBindMatrix: Matrix3D) : Def() {
-		fun toBone() = Bone3D(name, invBindMatrix.clone())
+	data class BoneDef constructor(val index: Int, val name: String, val invBindMatrix: Matrix3D) : Def() {
+		lateinit var skin: SkinDef
+		fun toBone() = Bone3D(index, name, invBindMatrix.clone())
 	}
 
 	data class SkinDef(
 		val bindShapeMatrix: Matrix3D,
 		val bones: List<BoneDef>
-	) : Def()
+	) : Def() {
+		fun toSkin() = Skin3D(bindShapeMatrix, bones.map { it.toBone() })
+	}
 
 
 	class PointLightDef(
@@ -116,18 +131,28 @@ data class Library3D(
 	) : LightDef()
 }
 
-fun Library3D.Instance3D.instantiate(): View3D {
+class LibraryInstantiateContext {
+	val viewsById = FastStringMap<View3D>()
+}
+
+fun Library3D.Instance3D.instantiate(jointParent: Joint3D? = null, ctx: LibraryInstantiateContext = LibraryInstantiateContext()): View3D {
 	val def = this.def
 	val view: View3D = when (def) {
 		null -> {
-			Container3D().also { container ->
-				for (child in children) {
-					container.addChild(child.instantiate())
+			if (type.equals("JOINT", ignoreCase = true)) {
+				val boneDef = library.boneDefs[sid ?: ""] ?: error("Can't find bone '$sid'")
+				Joint3D(boneDef.skin.toSkin(), boneDef.toBone(), jointParent, this.transform).also {
+				//Joint3D(jointParent, this.transform).also {
+					jointParent?.childJoints?.add(it)
+					jointParent?.children?.add(it)
 				}
+			} else {
+				Container3D()
 			}
 		}
 		is Library3D.GeometryDef -> {
-			ViewWithMesh3D(def.mesh, this.skeleton?.instantiate())
+			val skeletonInstance = if (skeletonId != null) ctx.viewsById[skeletonId!!] as? Joint3D? else null
+			ViewWithMesh3D(def.mesh, skeletonInstance?.let { Skeleton3D(def.mesh.skin!!, it) })
 		}
 		is Library3D.PerspectiveCameraDef -> {
 			Camera3D.Perspective(def.xfov, def.zmin, def.zmax)
@@ -138,15 +163,25 @@ fun Library3D.Instance3D.instantiate(): View3D {
 		else -> TODO("def=$def")
 	}
 	view.id = this.id
+	ctx.viewsById[this.id] = view
 	view.name = this.name
 	//view.localTransform.setMatrix(this.transform.clone().transpose())
-	view.localTransform.setMatrix(this.transform)
+	view.transform.setMatrix(this.transform)
 	if (def is Library3D.PointLightDef) {
-		println(view.localTransform.matrix)
-		println(view.localTransform.translation)
-		println(view.localTransform.rotation)
-		println(view.localTransform.scale)
+		println(view.transform.matrix)
+		println(view.transform.translation)
+		println(view.transform.rotation)
+		println(view.transform.scale)
 		println("def: $def")
+	}
+	if (view is Joint3D) {
+		for (child in children) {
+			child.instantiate(view, ctx)
+		}
+	} else if (view is Container3D) {
+		for (child in children) {
+			view.addChild(child.instantiate(null, ctx))
+		}
 	}
 	return view
 }

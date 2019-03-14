@@ -57,7 +57,7 @@ abstract class Camera3D : View3D() {
 		}
 
 		override fun clone(): Perspective = Perspective(fov, near, far).apply {
-			this.localTransform.copyFrom(this@Perspective.localTransform)
+			this.transform.copyFrom(this@Perspective.transform)
 		}
 	}
 }
@@ -69,6 +69,24 @@ class Transform3D {
 	internal var matrixDirty = false
 	@PublishedApi
 	internal var transformDirty = false
+
+	companion object {
+		private val identityMat = Matrix3D()
+	}
+
+	val globalMatrixUncached: Matrix3D = Matrix3D()
+		get() = run {
+			val parent = parent?.globalMatrixUncached ?: identityMat
+			field.multiply(parent, matrix)
+			field
+		}
+
+	val globalMatrix: Matrix3D
+		get() = run {
+			// @TODO: Cache!
+			globalMatrixUncached
+		}
+
 	val matrix: Matrix3D = Matrix3D()
 		get() = run {
 			if (matrixDirty) {
@@ -76,6 +94,15 @@ class Transform3D {
 				field.setTRS(translation, rotation, scale)
 			}
 			field
+		}
+
+	var children: ArrayList<Transform3D> = arrayListOf()
+
+	var parent: Transform3D? = null
+		set(value) {
+			field?.children?.remove(this)
+			field = value
+			field?.children?.add(this)
 		}
 
 	private val _translation = Position3D(0, 0, 0)
@@ -159,6 +186,12 @@ class Transform3D {
 		rotation.setEuler(x, y, z)
 	}
 
+	private val tempEuler = EulerRotation()
+	fun rotate(x: Angle, y: Angle, z: Angle) = this.apply {
+		tempEuler.setQuaternion(this.rotation)
+		setRotation(tempEuler.x + x, tempEuler.y + y, tempEuler.z + z)
+	}
+
 	inline fun setScale(x: Number = 1f, y: Number = 1f, z: Number = 1f, w: Number = 1f) = this.apply {
 		matrixDirty = true
 		scale.setTo(x, y, z, w)
@@ -168,11 +201,12 @@ class Transform3D {
 		this.setMatrix(localTransform.matrix)
 	}
 
-	fun setToInterpolated(a: Transform3D, b: Transform3D, t: Double) {
+	fun setToInterpolated(a: Transform3D, b: Transform3D, t: Double): Transform3D {
 		_translation.setToInterpolated(a.translation, b.translation, t)
 		_rotation.setToInterpolated(a.rotation, b.rotation, t)
 		_scale.setToInterpolated(a.scale, b.scale, t)
 		matrixDirty = true
+		return this
 	}
 
 	override fun toString(): String = "Transform3D(translation=$translation,rotation=$rotation,scale=$scale)"

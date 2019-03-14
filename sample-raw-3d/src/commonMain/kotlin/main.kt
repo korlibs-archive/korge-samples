@@ -3,6 +3,7 @@ import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korge.experimental.s3d.model.*
+import com.soywiz.korge.experimental.s3d.model.internal.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
@@ -15,8 +16,8 @@ import com.soywiz.korma.interpolation.*
 import kotlin.jvm.*
 
 //suspend fun main(args: Array<String>) = Demo3.main(args)
-//suspend fun main(args: Array<String>) = Demo3.main()
-suspend fun main(args: Array<String>) = Demo1.main()
+suspend fun main(args: Array<String>) = Demo3.main()
+//suspend fun main(args: Array<String>) = Demo1.main()
 
 object Demo1 {
 	@JvmStatic
@@ -114,7 +115,7 @@ object Demo2 {
 			val angle = 360.degrees * ratio
 			camera.positionLookingAt(
 				cos(angle) * distance, 0.0, sin(angle) * distance, // Orbiting camera
-				v.localTransform.translation.x, v.localTransform.translation.y, v.localTransform.translation.z
+				v.transform.translation.x, v.transform.translation.y, v.transform.translation.z
 			)
 		}
 	}
@@ -151,6 +152,7 @@ object Demo3 {
 			//val library = resourcesVfs["monkey_smooth_two_camera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["shape2.dae"].readColladaLibrary()
 			val library = resourcesVfs["skinning.dae"].readColladaLibrary()
+			//val library = resourcesVfs["model.dae"].readColladaLibrary()
 			//val library = resourcesVfs["Fallera.dae"].readColladaLibrary()
 			//val library = resourcesVfs["model.dae"].readColladaLibrary()
 			//val library = resourcesVfs["skinning_sample.dae"].readColladaLibrary()
@@ -171,6 +173,46 @@ object Demo3 {
 
 			val mainSceneView = library.mainScene.instantiate()
 			val cameras = mainSceneView.findByType<Camera3D>()
+			mainSceneView.rotation(90.degrees, 0.degrees, 0.degrees)
+
+			class Animator(val library3D: Library3D, val view: View3D) {
+				var currentTime = 0.milliseconds
+				fun update(ms: Int) {
+					//currentTime += ms.milliseconds * 0.1
+					currentTime += ms.milliseconds
+					library3D.animationDefs.fastValueForEach { animation ->
+						val elapsedTimeInAnimation = (currentTime % animation.totalTime)
+						//genericBinarySearch(0, animation.keys.size) { animation.keys[it] }
+
+						for (n in 0 until animation.keyFrames.size - 1) {
+							val first = animation.keyFrames[n]
+							val second = animation.keyFrames[n + 1]
+							if (elapsedTimeInAnimation >= first.time && elapsedTimeInAnimation < second.time) {
+								val ratio = (elapsedTimeInAnimation - first.time) / (second.time - first.time)
+								val aview = view[animation.target]
+								if (aview != null) {
+									aview.transform.setToInterpolated(first.transform, second.transform, ratio.toDouble())
+									if (animation.target == "Upper_Arm_L") {
+										//println("ratio: $ratio, currentTime: $currentTime, elapsedTimeInAnimation: $elapsedTimeInAnimation, animation.totalTime: ${animation.totalTime}")
+										//println(aview.transform.globalMatrix)
+									}
+								}
+								//println("AVIEW: $aview : ${animation.target}")
+								break
+							}
+						}
+
+						//animation.keyFrames.binarySearch { it.time.millisecondsInt }
+						//println(animation)
+					}
+				}
+			}
+
+			val animator = Animator(library, mainSceneView)
+			addUpdatable {
+				animator.update(it)
+			}
+
 
 			val camera1 = cameras.firstOrNull() ?: camera
 			val camera2 = cameras.lastOrNull() ?: camera
@@ -192,25 +234,25 @@ object Demo3 {
             */
 
 			if (camera1 == camera2) {
-				var tick = 0
-				val camera1Len = camera.localTransform.translation.length3
-				addUpdatable {
-					val angle = (tick / 1.0).degrees
-					camera.positionLookingAt(
-						cos(angle * 1) * camera1Len, 2.0, -sin(angle * 1) * camera1Len, // Orbiting camera
-						//1, 0, 4,
-						0, 0, 0
-					)
-					tick++
-				}
+				//var tick = 0
+				//val camera1Len = camera.transform.translation.length3
+				//addUpdatable {
+				//	val angle = (tick / 1.0).degrees
+				//	camera.positionLookingAt(
+				//		cos(angle * 1) * camera1Len, 2.0, -sin(angle * 1) * camera1Len, // Orbiting camera
+				//		//1, 0, 4,
+				//		0, 0, 0
+				//	)
+				//	tick++
+				//}
 			} else {
 				launchImmediately {
 					while (true) {
 						tween(time = 2.seconds, easing = Easing.SMOOTH) {
-							camera.localTransform.setToInterpolated(camera1.localTransform, camera2.localTransform, it)
+							camera.transform.setToInterpolated(camera1.transform, camera2.transform, it)
 						}
 						tween(time = 2.seconds, easing = Easing.SMOOTH) {
-							camera.localTransform.setToInterpolated(camera2.localTransform, camera1.localTransform, it)
+							camera.transform.setToInterpolated(camera2.transform, camera1.transform, it)
 						}
 					}
 				}
