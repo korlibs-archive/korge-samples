@@ -443,7 +443,7 @@ class ColladaParser {
 				//val transforms = inputParams.getMatrices("OUTPUT", "TRANSFORM")
 				val outputSourceParam = inputParams["OUTPUT"]?.params?.values?.first()
 				val matrices = (outputSourceParam as? MatrixSourceParam?)?.matrices
-				val floats = (outputSourceParam as? FloatSourceParam?)?.floats?.data
+				val floats = (outputSourceParam as? FloatSourceParam?)?.floats?.toFloatArray()
 
 				//println("$channelSource -> $channelTarget")
 				val frames = Animation3D.Frames(
@@ -468,7 +468,7 @@ class ColladaParser {
 		(this[a]?.params?.get(b) as? NamesSourceParam?)?.names?.toTypedArray()
 
 	fun FastStringMap<Source?>.getFloats(a: String, b: String): FloatArray? =
-		(this[a]?.params?.get(b) as? FloatSourceParam?)?.floats?.data
+		(this[a]?.params?.get(b) as? FloatSourceParam?)?.floats?.toFloatArray()
 
 	fun Library3D.parseLights(xml: Xml) {
 		for (light in xml["library_lights"]["light"]) {

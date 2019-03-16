@@ -541,7 +541,7 @@ open class ViewWithMesh3D(
 								//skeleton.matrices[it.index].copyFrom(it.inverseBindTransform)
 								//skeleton.matrices[it.index].copyFrom(it.transform.globalMatrix)
 								if (it.index in skeleton.matrices.indices) {
-									skeleton.matrices[it.index].multiply(it.poseMatrixInv, it.transform.globalMatrix)
+									skeleton.matrices[it.index].multiply(it.transform.globalMatrix, it.poseMatrixInv)
 								}
 								//skeleton.matrices[it.index].multiply(it.poseMatrixInv, (it.transform.globalMatrix * it.jointTransform.matrix))
 								//skeleton.matrices[it.index].copyFrom(((it.poseMatrixInv * it.transform.globalMatrix) * it.jointTransform.matrix))

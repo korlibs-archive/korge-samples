@@ -32,6 +32,9 @@ class Animator3D(val animations: List<Animation3D>, val rootView: View3D) {
 				when (aproperty) {
 					"transform" -> {
 						if (ftransforms != null) {
+							if (n >= ftransforms.size) {
+								error("Unexpected")
+							}
 							aview.transform.setToInterpolated(ftransforms[n], ftransforms.getCyclic(n + 1), ratio.toDouble())
 						}
 					}
