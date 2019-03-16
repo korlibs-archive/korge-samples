@@ -1,7 +1,6 @@
 package com.soywiz.korge.experimental.s3d.model
 
 import com.soywiz.kds.*
-import com.soywiz.klock.*
 import com.soywiz.korge.experimental.s3d.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
@@ -17,13 +16,8 @@ data class Library3D(
 	val imageDefs: FastStringMap<ImageDef> = FastStringMap(),
 	val geometryDefs: FastStringMap<GeometryDef> = FastStringMap(),
 	val skinDefs: FastStringMap<ColladaParser.Skin> = FastStringMap(),
-	val animationDefs: FastStringMap<AnimationDef> = FastStringMap()
+	val animationDefs: FastStringMap<Animation3D> = FastStringMap()
 ) {
-	data class AnimationKeyDef(val time: TimeSpan, val matrix: Matrix3D, val interpolation: String) : Def() {
-		val transform = Transform3D().setMatrix(matrix)
-	}
-	data class AnimationDef(val id: String, val target: String, val property: String, val keyFrames: List<AnimationKeyDef>, val totalTime: TimeSpan) : Def()
-
 	suspend fun loadTextures() {
 		imageDefs.fastValueForEach { image ->
 			image.texure = resourcesVfs[image.initFrom].readBitmap()
@@ -140,7 +134,8 @@ fun Library3D.Instance3D.instantiate(jointParent: Joint3D? = null, ctx: LibraryI
 	val view: View3D = when (def) {
 		null -> {
 			if (type.equals("JOINT", ignoreCase = true)) {
-				val boneDef = library.boneDefs[sid ?: ""] ?: error("Can't find bone '$sid'")
+				//val boneDef = library.boneDefs[sid ?: ""] ?: error("Can't find bone '$sid'")
+				val boneDef = library.boneDefs[sid ?: ""] ?: Library3D.BoneDef(-1, "UNKNOWN_$sid", Matrix3D()).also { it.skin = Library3D.SkinDef(Matrix3D(), listOf()) }
 				Joint3D(boneDef.skin.toSkin(), boneDef.toBone(), jointParent, this.transform).also {
 				//Joint3D(jointParent, this.transform).also {
 					jointParent?.childJoints?.add(it)

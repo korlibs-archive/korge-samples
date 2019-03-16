@@ -117,23 +117,85 @@ abstract class View3D {
 	var name: String? = null
 	val transform = Transform3D()
 
-	var localX: Double
-		set(localX) = run { transform.setTranslation(localX, localY, localZ, localW) }
+	///////
+
+	var x: Double
+		set(localX) = run { transform.setTranslation(localX, y, z, localW) }
 		get() = transform.translation.x.toDouble()
 
-	var localY: Double
-		set(localY) = run { transform.setTranslation(localX, localY, localZ, localW) }
+	var y: Double
+		set(localY) = run { transform.setTranslation(x, localY, z, localW) }
 		get() = transform.translation.y.toDouble()
 
-	var localZ: Double
-		set(localZ) = run { transform.setTranslation(localX, localY, localZ, localW) }
+	var z: Double
+		set(localZ) = run { transform.setTranslation(x, y, localZ, localW) }
 		get() = transform.translation.z.toDouble()
 
 	var localW: Double
-		set(localW) = run { transform.setTranslation(localX, localY, localZ, localW) }
+		set(localW) = run { transform.setTranslation(x, y, z, localW) }
 		get() = transform.translation.w.toDouble()
 
-	var parent: Container3D? = null
+	///////
+
+	var scaleX: Double
+		set(scaleX) = run { transform.setScale(scaleX, scaleY, scaleZ, localScaleW) }
+		get() = transform.scale.x.toDouble()
+
+	var scaleY: Double
+		set(scaleY) = run { transform.setScale(scaleX, scaleY, scaleZ, localScaleW) }
+		get() = transform.scale.y.toDouble()
+
+	var scaleZ: Double
+		set(scaleZ) = run { transform.setScale(scaleX, scaleY, scaleZ, localScaleW) }
+		get() = transform.scale.z.toDouble()
+
+	var localScaleW: Double
+		set(scaleW) = run { transform.setScale(scaleX, scaleY, scaleZ, scaleW) }
+		get() = transform.scale.w.toDouble()
+
+	///////
+
+	var rotationX: Angle
+		set(rotationX) = run { transform.setRotation(rotationX, rotationY, rotationZ) }
+		get() = transform.rotationEuler.x
+
+	var rotationY: Angle
+		set(rotationY) = run { transform.setRotation(rotationX, rotationY, rotationZ) }
+		get() = transform.rotationEuler.y
+
+	var rotationZ: Angle
+		set(rotationZ) = run { transform.setRotation(rotationX, rotationY, rotationZ) }
+		get() = transform.rotationEuler.z
+
+	///////
+
+	var rotationQuatX: Double
+		set(rotationQuatX) = run { transform.setRotation(rotationQuatX, rotationQuatY, rotationQuatZ, rotationQuatW) }
+		get() = transform.rotation.x
+
+	var rotationQuatY: Double
+		set(rotationQuatY) = run { transform.setRotation(rotationQuatX, rotationQuatY, rotationQuatZ, rotationQuatW) }
+		get() = transform.rotation.y
+
+	var rotationQuatZ: Double
+		set(rotationQuatZ) = run { transform.setRotation(rotationQuatX, rotationQuatY, rotationQuatZ, rotationQuatW) }
+		get() = transform.rotation.z
+
+	var rotationQuatW: Double
+		set(rotationQuatW) = run { transform.setRotation(rotationQuatX, rotationQuatY, rotationQuatZ, rotationQuatW) }
+		get() = transform.rotation.w
+
+	///////
+
+	internal var _parent: Container3D? = null
+
+	var parent: Container3D?
+		set(value) {
+			_parent = value
+			_parent?.addChild(this)
+		}
+		get() = _parent
+
 	val modelMat = Matrix3D()
 	//val position = Vector3D()
 
@@ -161,18 +223,21 @@ open class Joint3D constructor(val skin: Skin3D, val bone: Bone3D, val jointPare
 	init {
 		this.transform.setMatrix(initialMatrix)
 		this.name = bone.name
+		if (jointParent != null) {
+			this.parent = jointParent
+		}
+
 	}
 	val poseMatrix = this.transform.globalMatrix.clone()
 	val poseMatrixInv = poseMatrix.clone().invert()
+	//val poseMatrixInv = bone.invBindMatrix
 	//val poseMatrixInv = bone.invBindMatrix * skin.bindShapeMatrix
 
 	val childJoints = arrayListOf<Joint3D>()
 	val descendants: List<Joint3D> get() = childJoints.flatMap { it.descendantsAndThis }
 	val descendantsAndThis: List<Joint3D> get() = listOf(this) + descendants
 
-	init {
-		Unit
-	}
+	//val jointTransform = Transform3D()
 
 	override fun render(ctx: RenderContext3D) {
 	}
@@ -190,7 +255,8 @@ open class Container3D : View3D() {
 	fun addChild(child: View3D) {
 		child.removeFromParent()
 		children += child
-		child.parent = this
+		child._parent = this
+		child.transform.parent = this.transform
 	}
 
 	operator fun plusAssign(child: View3D) = addChild(child)
@@ -274,7 +340,8 @@ data class Bone3D constructor(
 ) {
 }
 
-data class Skin3D(val bindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
+data class Skin3D(val invBindShapeMatrix: Matrix3D, val bones: List<Bone3D>) {
+	val bindShapeMatrix = invBindShapeMatrix.clone().invert()
 	//val matrices = Array(bones.size) { Matrix3D() }
 }
 
@@ -422,6 +489,9 @@ open class ViewWithMesh3D(
 		}
 	}
 
+	private val identity = Matrix3D()
+	private val identityInv = identity.clone().invert()
+
 	override fun render(ctx: RenderContext3D) {
 		val ag = ctx.ag
 
@@ -462,18 +532,24 @@ open class ViewWithMesh3D(
 						}
 
 						val skeleton = this@ViewWithMesh3D.skeleton
-						this[u_BindShapeMatrix] = ctx.bindMat4.identity()
+						this[u_BindShapeMatrix] = identity
+						this[u_InvBindShapeMatrix] = identityInv
 						if (skeleton != null) {
 							//this[u_BindShapeMatrix] = ctx.bindMat4.copyFrom(skeleton.skin.bindShapeMatrix)
 							//skeleton.allJoints[1].transform.rotate(10.degrees, 0.degrees, 0.degrees)
 							skeleton.allJoints.fastForEach {
 								//skeleton.matrices[it.index].copyFrom(it.inverseBindTransform)
-								skeleton.matrices[it.index].multiply(it.poseMatrixInv, it.transform.globalMatrix)
+								//skeleton.matrices[it.index].copyFrom(it.transform.globalMatrix)
+								if (it.index in skeleton.matrices.indices) {
+									skeleton.matrices[it.index].multiply(it.poseMatrixInv, it.transform.globalMatrix)
+								}
+								//skeleton.matrices[it.index].multiply(it.poseMatrixInv, (it.transform.globalMatrix * it.jointTransform.matrix))
+								//skeleton.matrices[it.index].copyFrom(((it.poseMatrixInv * it.transform.globalMatrix) * it.jointTransform.matrix))
 								//if (it.name == "Upper_Leg.L") println("${it.name}: ${skeleton.matrices[it.index]}")
 							}
+							//this[u_BindShapeMatrix] = this@ViewWithMesh3D.mesh.skin!!.bindShapeMatrix
+							//this[u_InvBindShapeMatrix] = this@ViewWithMesh3D.mesh.skin!!.invBindShapeMatrix
 							this[u_BoneMats] = skeleton.matrices
-						} else {
-
 						}
 
 						this[u_AmbientColor] = ctx.ambientColor

@@ -11,7 +11,6 @@ import com.soywiz.korio.file.*
 import com.soywiz.korio.serialization.xml.*
 import com.soywiz.korio.util.*
 import com.soywiz.korma.geom.*
-import com.soywiz.klock.*
 import kotlin.math.*
 
 suspend fun VfsFile.readColladaLibrary(loadTextures: Boolean = true): Library3D {
@@ -438,23 +437,38 @@ class ColladaParser {
 				val channelTargetInfo = channelXml.str("target").split('/', limit = 2)
 				val channelTarget = channelTargetInfo.getOrElse(0) { "" }
 				val channelProp = channelTargetInfo.getOrElse(1) { "" }
-				val times = (inputParams["INPUT"]!!.params["TIME"] as FloatSourceParam).floats
-				val transforms = (inputParams["OUTPUT"]!!.params["TRANSFORM"] as MatrixSourceParam).matrices
-				val interpolations = (inputParams["INTERPOLATION"]!!.params["INTERPOLATION"] as NamesSourceParam).names
+
+				val times = inputParams.getFloats("INPUT", "TIME") ?: error("Can't find INPUT.TIME for animationId=$animationId")
+				val interpolations = inputParams.getStrings("INTERPOLATION", "INTERPOLATION") ?: error("Can't find INTERPOLATION.INTERPOLATION for animationId=$animationId")
+				//val transforms = inputParams.getMatrices("OUTPUT", "TRANSFORM")
+				val outputSourceParam = inputParams["OUTPUT"]?.params?.values?.first()
+				val matrices = (outputSourceParam as? MatrixSourceParam?)?.matrices
+				val floats = (outputSourceParam as? FloatSourceParam?)?.floats?.data
 
 				//println("$channelSource -> $channelTarget")
-				val frames = (0 until times.size).map {
-					Library3D.AnimationKeyDef(times[it].seconds, transforms[it], interpolations[it])
-				}
-				animationDefs[animationId] = Library3D.AnimationDef(
+				val frames = Animation3D.Frames(
+					seconds = times,
+					interpolations = interpolations,
+					matrices = matrices,
+					floats = floats
+				)
+				animationDefs[animationId] = Animation3D(
 					animationId,
 					channelTarget, channelProp,
-					frames,
-					(frames.map { it.time.seconds }.max() ?: 0.0).seconds
+					frames
 				)
 			}
 		}
 	}
+
+	fun FastStringMap<Source?>.getMatrices(a: String, b: String): Array<Matrix3D>? =
+		(this[a]?.params?.get(b) as? MatrixSourceParam?)?.matrices
+
+	fun FastStringMap<Source?>.getStrings(a: String, b: String): Array<String>? =
+		(this[a]?.params?.get(b) as? NamesSourceParam?)?.names?.toTypedArray()
+
+	fun FastStringMap<Source?>.getFloats(a: String, b: String): FloatArray? =
+		(this[a]?.params?.get(b) as? FloatSourceParam?)?.floats?.data
 
 	fun Library3D.parseLights(xml: Xml) {
 		for (light in xml["library_lights"]["light"]) {

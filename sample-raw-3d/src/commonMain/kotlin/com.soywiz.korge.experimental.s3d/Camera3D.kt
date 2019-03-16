@@ -108,9 +108,11 @@ class Transform3D {
 	private val _translation = Position3D(0, 0, 0)
 	private val _rotation = Quaternion()
 	private val _scale = Scale3D(1, 1, 1)
+	@PublishedApi internal var _eulerRotationDirty: Boolean = true
 	private fun updateTRS() {
 		transformDirty = false
 		matrix.getTRS(_translation, rotation, _scale)
+		_eulerRotationDirty = true
 		transformDirty = false
 	}
 
@@ -122,6 +124,15 @@ class Transform3D {
 		if (transformDirty) updateTRS()
 		return _rotation
 	}
+	var rotationEuler: EulerRotation = EulerRotation()
+		private set
+		get() {
+			if (_eulerRotationDirty) {
+				_eulerRotationDirty = false
+				field.setQuaternion(rotation)
+			}
+			return field
+		}
 	val scale: Scale3D get() {
 		if (transformDirty) updateTRS()
 		return _scale
@@ -168,21 +179,25 @@ class Transform3D {
 
 	fun setRotation(quat: Quaternion) = this.apply {
 		matrixDirty = true
+		_eulerRotationDirty = true
 		rotation.setTo(quat)
 	}
 
 	inline fun setRotation(x: Number, y: Number, z: Number, w: Number) = this.apply {
 		matrixDirty = true
+		_eulerRotationDirty = true
 		rotation.setTo(x, y, z, w)
 	}
 
 	fun setRotation(euler: EulerRotation) = this.apply {
 		matrixDirty = true
+		_eulerRotationDirty = true
 		rotation.setEuler(euler)
 	}
 
 	fun setRotation(x: Angle, y: Angle, z: Angle) = this.apply {
 		matrixDirty = true
+		_eulerRotationDirty = true
 		rotation.setEuler(x, y, z)
 	}
 

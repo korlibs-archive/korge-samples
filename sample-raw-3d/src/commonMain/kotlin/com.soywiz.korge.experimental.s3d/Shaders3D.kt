@@ -16,6 +16,7 @@ object Shaders3D {
 	val u_ProjMat = Uniform("u_ProjMat", VarType.Mat4)
 	val u_ViewMat = Uniform("u_ViewMat", VarType.Mat4)
 	val u_BindShapeMatrix = Uniform("u_BindMat", VarType.Mat4)
+	val u_InvBindShapeMatrix = Uniform("u_InvBindMat", VarType.Mat4)
 	val u_ModMat = Uniform("u_ModMat", VarType.Mat4)
 	val u_NormMat = Uniform("u_NormMat", VarType.Mat4)
 	//val MAX_BONE_MATS = 16
@@ -142,6 +143,7 @@ object Shaders3D {
 
 					val localPos = createTemp(VarType.Float4)
 					val localNorm = createTemp(VarType.Float4)
+					val skinPos = createTemp(VarType.Float4)
 
 					SET(localPos, vec4(1f.lit))
 					SET(localNorm, vec4(0f.lit))
@@ -151,10 +153,11 @@ object Shaders3D {
 						SET(localPos, vec4(a_pos, 1f.lit))
 						SET(localNorm, vec4(a_norm, 0f.lit))
 					} else {
+						SET(skinPos, u_BindShapeMatrix * vec4(a_pos["xyz"], 1f.lit))
 						for (wIndex in 0 until nweights) {
 							IF(getBoneIndex(wIndex) ge 0.lit) {
 								SET(skinMatrix, getBone(wIndex))
-								SET(localPos, localPos + skinMatrix * vec4(a_pos, 1f.lit) * getWeight(wIndex))
+								SET(localPos, localPos + skinMatrix * vec4(skinPos["xyz"], 1f.lit) * getWeight(wIndex))
 								SET(localNorm, localNorm + skinMatrix * vec4(a_norm, 0f.lit) * getWeight(wIndex))
 								//SET(localPos, localPos + vec4(a_pos, 1f.lit) * getWeight(wIndex))
 								//SET(localNorm, localNorm + vec4(a_norm, 0f.lit) * getWeight(wIndex))
@@ -164,8 +167,8 @@ object Shaders3D {
 
 					SET(modelViewMat, u_ModMat * u_ViewMat)
 					SET(normalMat, u_NormMat)
-					SET(v_Pos, vec3(modelViewMat * localPos))
-					SET(v_Norm, vec3(normalMat * localNorm))
+					SET(v_Pos, vec3(modelViewMat * (u_InvBindShapeMatrix * vec4(localPos["xyz"], 1f.lit))))
+					SET(v_Norm, vec3(normalMat * vec4(localNorm["xyz"], 1f.lit)))
 					if (hasTexture) {
 						SET(v_TexCoords, a_tex["xy"])
 					}
