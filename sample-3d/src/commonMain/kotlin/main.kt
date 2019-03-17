@@ -1,7 +1,6 @@
 import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.input.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
@@ -15,7 +14,6 @@ import com.soywiz.korinject.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
-import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 
 //suspend fun main() = Demo3.main(args)
@@ -45,8 +43,8 @@ class RootScene : Scene() {
 		sceneButton<MonkeyScene>("Monkey", 1)
 		sceneButton<SkinningScene>("Skinning", 2)
 
-		//mySceneContainer.changeToDisablingButtons<CratesScene>(this)
-		contentSceneContainer.changeToDisablingButtons<SkinningScene>(this)
+		contentSceneContainer.changeToDisablingButtons<CratesScene>(this)
+		//contentSceneContainer.changeToDisablingButtons<SkinningScene>(this)
 	}
 
 	inline fun <reified T : Scene> Container.sceneButton(title: String, x: Int) {
