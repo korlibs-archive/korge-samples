@@ -4,6 +4,5 @@ apply(plugin = "korge")
 
 korge {
 	id = "com.soywiz.samples.dragonbones"
-	dependencyMulti("com.soywiz:korge-dragonbones:$korgeVersion")
-	dependencyMulti("com.soywiz:korag-opengl:1.6.7")
+	supportDragonbones()
 }

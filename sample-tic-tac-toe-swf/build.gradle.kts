@@ -8,5 +8,6 @@ korge {
 	name = "tic-tac-toe"
 	icon = projectDir["src/commonMain/resources/icon.png"]
 
-	dependencyMulti("com.soywiz:korge-swf:$korgeVersion")
+	//dependencyMulti("com.soywiz:korge-swf:$korgeVersion")
+	supportSwf()
 }

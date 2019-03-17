@@ -1,0 +1,6 @@
+apply plugin: "korge"
+
+korge {
+	id = "com.soywiz.samples.korge3d"
+	supportExperimental3d()
+}

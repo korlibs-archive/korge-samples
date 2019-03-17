@@ -11,8 +11,8 @@ korge {
 
 	admob("ca-app-pub-xxxxxxxx~yyyyyy")
 
-	dependencyMulti("com.soywiz:korma-shape-ops:$kormaVersion")
-	dependencyMulti("com.soywiz:korma-triangulate-pathfind:$kormaVersion")
-	dependencyMulti("com.soywiz:korge-dragonbones:$korgeVersion")
-	dependencyMulti("com.soywiz:korge-box2d:$korgeVersion")
+	supportShapeOps()
+	supportTriangulation()
+	supportDragonbones()
+	supportBox2d()
 }
