@@ -22,32 +22,3 @@ fun Stage.setupCircle() {
 		}
 	}
 }
-
-class Circle(radius: Double = 16.0, color: RGBA = Colors.WHITE) : Container() {
-	var radius: Double = radius
-		set(value) {
-			field = value; updateGraphics()
-		}
-
-	var color: RGBA = color
-		set(value) {
-			field = value; updateGraphics()
-		}
-
-	val graphics = graphics {
-	}
-
-	init {
-		updateGraphics()
-	}
-
-	private fun updateGraphics() {
-		graphics.apply {
-			clear()
-			fill(color) {
-				circle(0.0, 0.0, radius)
-			}
-		}
-	}
-}
-

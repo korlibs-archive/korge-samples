@@ -17,6 +17,12 @@ import org.jbox2d.dynamics.*
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My Awesome Box2D Game!") {
 	val admob = AdmobCreate(testing = true)
 
+	println("STARTED!")
+
+	addUpdatable {
+		//println("FRAME!")
+	}
+
 	launchImmediately {
 		try {
 			admob.bannerPrepareAndShow(Admob.Config("ca-app-pub-xxx/xxx"))
@@ -27,18 +33,18 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 
 	views.clearColor = Colors.DARKGREEN
 	solidRect(300, 200, Colors.DARKCYAN)
-	graphics {
+	sgraphics {
 		fill(Colors.DARKCYAN) {
-			rect(-100, -100, 300, 200)
+			rect(-1, -1, 3, 2)
 		}
 		fill(Colors.AQUAMARINE) {
-			circle(0, 0, 100)
+			circle(0, 0, 1)
 		}
 		fill(Colors.AQUAMARINE) {
-			circle(100, 0, 100)
+			circle(1, 0, 1)
 		}
 		position(100, 100)
-	}.interactive()
+	}.scale(100, 100).interactive()
 	worldView {
 		position(400, 400).scale(20)
 
@@ -66,7 +72,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 			shape = BoxShape(2f, 2f)
 			density = 1f
 			friction = 0.2f
-		}.setView(graphics {
+		}.setView(sgraphics {
 			fill(Colors.BLUE) {
 				rect(-1f, -1f, 2f, 2f)
 			}
@@ -79,15 +85,15 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 			shape = CircleShape().apply { m_radius = 2f }
 			density = 22f
 			friction = 3f
-		}.setView(graphics {
-			fillStroke(Context2d.Color(Colors.BLUE), Context2d.Color(Colors.RED), Context2d.StrokeInfo(thickness = 30.0)) {
-				circle(0, 0, 200)
+		}.setView(sgraphics {
+			fillStroke(Context2d.Color(Colors.BLUE), Context2d.Color(Colors.RED), Context2d.StrokeInfo(thickness = 0.3)) {
+				circle(0, 0, 2)
 				//rect(0, 0, 400, 20)
 			}
 			fill(Colors.DARKCYAN) {
-				circle(100, 100, 20)
+				circle(1, 1, 0.2)
 			}
-			scale(1f / 100f)
+			hitTestUsingShapes = true
 		}.interactive())
 	}
 	image(resourcesVfs["korge.png"].readBitmap())
