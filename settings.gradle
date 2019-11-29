@@ -1,0 +1,7 @@
+enableFeaturePreview("GRADLE_METADATA")
+
+for (file in rootDir.listFiles()) {
+	if (file.isDirectory() && file.name.startsWith("sample-") && (new File(file, "build.gradle").exists() || new File(file, "build.gradle").exists())) {
+		include(":${file.name}")
+	}
+}
