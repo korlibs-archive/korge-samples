@@ -6,6 +6,6 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:1.4.0e")
+		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:1.4.1")
 	}
 }
