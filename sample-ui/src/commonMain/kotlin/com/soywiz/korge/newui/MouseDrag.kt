@@ -1,3 +1,5 @@
+package com.soywiz.korge.newui
+
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*

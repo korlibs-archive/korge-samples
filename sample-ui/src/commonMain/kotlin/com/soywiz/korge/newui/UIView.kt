@@ -1,3 +1,5 @@
+package com.soywiz.korge.newui
+
 import com.soywiz.kds.*
 import com.soywiz.korge.component.*
 import com.soywiz.korge.input.*
@@ -5,11 +7,28 @@ import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import kotlin.properties.*
 
-open class UIView : Container() {
-	override var width: Double by Delegates.observable(96.0) { prop, old, new -> updatedSize() }
-	override var height: Double by Delegates.observable(32.0) { prop, old, new -> updatedSize() }
+open class UIView(
+	width: Double = 90.0,
+	height: Double = 32.0
+) : Container() {
+	override var width: Double by Delegates.observable(width) { prop, old, new -> updatedSize() }
+	override var height: Double by Delegates.observable(height) { prop, old, new -> updatedSize() }
+
+	open var uiEnabled by Delegates.observable(true) { prop, old, new -> updateEnabled() }
+	open var uiDisabled: Boolean
+		set(value) = run { uiEnabled = !value }
+		get() = !uiEnabled
+
+	fun enable(set: Boolean = true) = run { uiEnabled = set }
+	fun disable() = run { uiEnabled = false }
 
 	protected open fun updatedSize() {
+	}
+
+	protected open fun updateEnabled() {
+		mouseEnabled = uiEnabled
+		// @TODO: Shouldn't change alpha
+		alpha = if (uiEnabled) 1.0 else 0.7
 	}
 
 	override fun renderInternal(ctx: RenderContext) {
