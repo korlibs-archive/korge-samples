@@ -1,12 +1,14 @@
 import com.soywiz.kds.*
 import com.soywiz.korag.*
 import com.soywiz.korge.component.*
+import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.util.encoding.*
+import com.soywiz.korma.geom.*
 import kotlin.properties.*
 
 open class UISkin(
@@ -34,7 +36,9 @@ open class UIButton(
 	skin: UISkin = DefaultUISkin
 ) : UIView() {
 	var skin: UISkin by Delegates.observable(skin) { _, _, _ -> updateState() }
+	var label by Delegates.observable(label) { _, _, _ -> updateState() }
 	private val rect = ninePatch(skin.normal, width, height, 16.0 / 64.0, 16.0 / 64.0, (64.0 - 16.0) / 64.0, (64.0 - 16.0) / 64.0) {}
+	private val text = text(label)
 	private var bover by Delegates.observable(false) { _, _, _ -> updateState() }
 	private var bpressing by Delegates.observable(false) { _, _, _ -> updateState() }
 	init {
@@ -54,6 +58,7 @@ open class UIButton(
 				bpressing = false
 			}
 		}
+		updateState()
 	}
 
 	private fun updateState() {
@@ -68,6 +73,9 @@ open class UIButton(
 				rect.tex = skin.normal
 			}
 		}
+		text.format = Html.Format(align = Html.Alignment.MIDDLE_CENTER)
+		text.setTextBounds(Rectangle(0, 0, width, height))
+		text.setText(label)
 	}
 
 	override fun updatedSize() {
