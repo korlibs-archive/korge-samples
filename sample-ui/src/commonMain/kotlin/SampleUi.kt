@@ -1,10 +1,14 @@
+import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.newui.*
+import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
+import com.soywiz.korio.async.*
+import com.soywiz.korma.interpolation.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
 	uiSkin(OtherUISkin) {
@@ -47,6 +51,18 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 
 			for (n in 0 until 16) {
 				uiButton(label = "HELLO $n").position(0, n * 64)
+			}
+		}
+
+		val progress = uiProgressBar {
+			position(64, 32)
+			current = 0.5
+		}
+
+		launchImmediately {
+			while (true) {
+				tween(progress::current[1.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
+				tween(progress::current[1.0, 0.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
 			}
 		}
 	}
