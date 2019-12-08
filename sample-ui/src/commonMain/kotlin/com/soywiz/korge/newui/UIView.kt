@@ -11,10 +11,10 @@ open class UIView(
 	width: Double = 90.0,
 	height: Double = 32.0
 ) : Container() {
-	override var width: Double by Delegates.observable(width) { prop, old, new -> updatedSize() }
-	override var height: Double by Delegates.observable(height) { prop, old, new -> updatedSize() }
+	override var width: Double by uiObservable(width) { updatedSize() }
+	override var height: Double by uiObservable(height) { updatedSize() }
 
-	open var uiEnabled by Delegates.observable(true) { prop, old, new -> updateEnabled() }
+	open var uiEnabled by uiObservable(true) { updateEnabled() }
 	open var uiDisabled: Boolean
 		set(value) = run { uiEnabled = !value }
 		get() = !uiEnabled

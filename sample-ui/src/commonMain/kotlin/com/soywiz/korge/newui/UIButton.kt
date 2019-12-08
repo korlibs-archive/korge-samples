@@ -12,7 +12,7 @@ inline fun Container.uiButton(
 	width: Number = 128,
 	height: Number = 64,
 	label: String = "Button",
-	skin: UISkin = defaultUiSkin,
+	skin: UISkin = defaultUISkin,
 	block: UIButton.() -> Unit = {}
 ): UIButton = UIButton(width.toDouble(), height.toDouble(), label, skin).also { addChild(it) }.apply(block)
 
@@ -22,17 +22,17 @@ open class UIButton(
 	label: String = "Button",
 	skin: UISkin = DefaultUISkin
 ) : UIView(width, height) {
-	var forcePressed  by Delegates.observable(false) { _, _, _ -> updateState() }
-	var skin: UISkin by Delegates.observable(skin) { _, _, _ -> updateState() }
-	var label by Delegates.observable(label) { _, _, _ -> updateState() }
+	var forcePressed  by uiObservable(false) { updateState() }
+	var skin: UISkin by uiObservable(skin) { updateState() }
+	var label by uiObservable(label) { updateState() }
 	private val rect = ninePatch(skin.normal, width, height, 16.0 / 64.0, 16.0 / 64.0, (64.0 - 16.0) / 64.0, (64.0 - 16.0) / 64.0) {}
 	private val textShadow = text(label).also { it.position(1, 1) }
 	private val text = text(label)
-	private var bover by Delegates.observable(false) { _, _, _ -> updateState() }
-	private var bpressing by Delegates.observable(false) { _, _, _ -> updateState() }
+	private var bover by uiObservable(false) { updateState() }
+	private var bpressing by uiObservable(false) { updateState() }
 
 	// @TODO: Make mouseEnabled open
-	//override var mouseEnabled = Delegates.observable(true) { _, _, _ -> updateState() }
+	//override var mouseEnabled = uiObservable(true) { updateState() }
 
 	init {
 		mouse {

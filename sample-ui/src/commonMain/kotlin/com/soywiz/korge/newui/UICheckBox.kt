@@ -12,7 +12,7 @@ inline fun Container.uiCheckBox(
 	width: Number = 96.0,
 	height: Number = 32.0,
 	label: String = "CheckBox",
-	skin: UISkin = defaultUiSkin,
+	skin: UISkin = defaultUISkin,
 	block: UICheckBox.() -> Unit = {}
 ): UICheckBox = UICheckBox(checked, width.toDouble(), height.toDouble(), label, skin).also { addChild(it) }.apply(block)
 
@@ -23,8 +23,8 @@ open class UICheckBox(
 	label: String = "CheckBox",
 	skin: UISkin = DefaultUISkin
 ) : UIView(width, height) {
-	var checked by Delegates.observable(checked) { _, _, _ -> onPropsUpdate() }
-	var label by Delegates.observable(label) { _, _, _ -> onPropsUpdate() }
+	var checked by uiObservable(checked) { onPropsUpdate() }
+	var label by uiObservable(label) { onPropsUpdate() }
 
 	private val area = solidRect(16, 16, Colors.TRANSPARENT_BLACK)
 	//private val box = solidRect(16, 16, Colors.DARKGREY)

@@ -3,7 +3,6 @@ package com.soywiz.korge.newui
 import com.soywiz.kmem.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
-import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
 import com.soywiz.korma.geom.*
 import kotlin.math.*
@@ -18,7 +17,7 @@ inline fun Container.uiScrollBar(
 	buttonSize: Number = 32.0,
 	direction: UIScrollBar.Direction = if (width.toDouble() > height.toDouble()) UIScrollBar.Direction.Horizontal else UIScrollBar.Direction.Vertical,
 	stepSize: Double = pageSize.toDouble() / 10.0,
-	skin: UISkin = defaultUiSkin,
+	skin: UISkin = defaultUISkin,
 	block: UIScrollBar.() -> Unit = {}
 ): UIScrollBar = UIScrollBar(width.toDouble(), height.toDouble(), current.toDouble(), pageSize.toDouble(), totalSize.toDouble(), buttonSize.toDouble(), direction, stepSize, skin).also { addChild(it) }.apply(block)
 
@@ -35,18 +34,18 @@ open class UIScrollBar(
 ) : UIView() {
 	val onChange = Signal<UIScrollBar>()
 	enum class Direction { Vertical, Horizontal }
-	var current by Delegates.observable(current) { _, _, _ -> updatedPos() }
-	var pageSize by Delegates.observable(pageSize) { _, _, _ -> updatedPos() }
-	var totalSize by Delegates.observable(totalSize) { _, _, _ -> updatedPos() }
-	var direction by Delegates.observable(direction) { _, _, _ -> reshape() }
+	var current by uiObservable(current) { updatedPos() }
+	var pageSize by uiObservable(pageSize) { updatedPos() }
+	var totalSize by uiObservable(totalSize) { updatedPos() }
+	var direction by uiObservable(direction) { reshape() }
 	val isHorizontal get() = direction == Direction.Horizontal
 	val isVertical get() = direction == Direction.Vertical
 	override var ratio: Double
 		set(value) = run { current = value.clamp01() * (totalSize - pageSize) }
 		get() = (current / (totalSize - pageSize)).clamp(0.0, 1.0)
-	override var width: Double by Delegates.observable(width) { _, _, _ -> reshape() }
-	override var height: Double by Delegates.observable(height) { _, _, _ -> reshape() }
-	var buttonSize by Delegates.observable(buttonSize) { _, _, _ -> reshape() }
+	override var width: Double by uiObservable(width) { reshape() }
+	override var height: Double by uiObservable(height) { reshape() }
+	var buttonSize by uiObservable(buttonSize) { reshape() }
 	val buttonWidth get() = if (isHorizontal) buttonSize else width
 	val buttonHeight get() = if (isHorizontal) height else buttonSize
 	val clientWidth get() = if (isHorizontal) width - buttonWidth * 2 else width

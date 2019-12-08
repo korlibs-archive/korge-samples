@@ -2,9 +2,9 @@ package com.soywiz.korge.newui
 
 import kotlin.reflect.*
 
-inline fun <T> uiObservable(value: T, noinline observe: () -> Unit) = UiObservable(value, observe)
+inline fun <T> uiObservable(value: T, noinline observe: () -> Unit) = UIObservable(value, observe)
 
-class UiObservable<T>(val initial: T, val observe: () -> Unit) {
+class UIObservable<T>(val initial: T, val observe: () -> Unit) {
 	var currentValue = initial
 
 	operator fun getValue(obj: Any, prop: KProperty<*>): T {

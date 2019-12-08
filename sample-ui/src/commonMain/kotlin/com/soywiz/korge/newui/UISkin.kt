@@ -6,13 +6,13 @@ import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 
 @PublishedApi
-internal var View.internalDefaultUiSkin: UISkin? by extraProperty("defaultUiSkin") { null }
-var View.defaultUiSkin: UISkin
-	set(value) = run { internalDefaultUiSkin = value }
-	get() = internalDefaultUiSkin ?: parent?.defaultUiSkin ?: DefaultUISkin
+internal var View.internalDefaultUISkin: UISkin? by extraProperty("defaultUiSkin") { null }
+var View.defaultUISkin: UISkin
+	set(value) = run { internalDefaultUISkin = value }
+	get() = internalDefaultUISkin ?: parent?.defaultUISkin ?: DefaultUISkin
 
 fun Container.uiSkin(skin: UISkin, block: Container.() -> Unit) {
-	defaultUiSkin = skin
+	defaultUISkin = skin
 	block()
 }
 

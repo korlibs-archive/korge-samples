@@ -1,6 +1,5 @@
 package com.soywiz.korge.newui
 
-import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 
 inline fun Container.uiScrollableArea(
@@ -11,10 +10,11 @@ inline fun Container.uiScrollableArea(
 	buttonSize: Number = 32.0,
 	verticalScroll: Boolean = true,
 	horizontalScroll: Boolean = true,
+	skin: UISkin = defaultUISkin,
 	config: UIScrollableArea.() -> Unit = {},
 	block: Container.() -> Unit = {}
 ): UIScrollableArea = UIScrollableArea(
-	width.toDouble(), height.toDouble(), contentWidth.toDouble(), contentHeight.toDouble(), buttonSize.toDouble(), verticalScroll, horizontalScroll
+	width.toDouble(), height.toDouble(), contentWidth.toDouble(), contentHeight.toDouble(), buttonSize.toDouble(), verticalScroll, horizontalScroll, skin
 ).also { addChild(it) }.also(config).also { block(it.container) }
 
 // @TODO: Optimize this!
@@ -26,7 +26,8 @@ open class UIScrollableArea(
 	contentHeight: Double = 512.0,
 	buttonSize: Double = 32.0,
 	verticalScroll: Boolean = true,
-	horizontalScroll: Boolean = true
+	horizontalScroll: Boolean = true,
+	skin: UISkin = DefaultUISkin
 ) : UIView(width, height) {
 	var buttonSize by uiObservable(buttonSize) { updatedSize() }
 
@@ -41,8 +42,8 @@ open class UIScrollableArea(
 
 	val clipContainer = clipContainer(clientWidth, clientHeight)
 	val container = clipContainer.fixedSizeContainer(contentWidth, contentHeight)
-	val horScroll = uiScrollBar(width, buttonSize).also { it.onChange { moved() } }
-	val verScroll = uiScrollBar(buttonSize, height).also { it.onChange { moved() } }
+	val horScroll = uiScrollBar(width, buttonSize, skin = skin).also { it.onChange { moved() } }
+	val verScroll = uiScrollBar(buttonSize, height, skin = skin).also { it.onChange { moved() } }
 
 	init {
 		updatedSize()
