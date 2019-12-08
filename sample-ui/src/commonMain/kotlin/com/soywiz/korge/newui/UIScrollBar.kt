@@ -78,7 +78,7 @@ open class UIScrollBar(
 		}
 		background.onClick {
 			val pos = if (isHorizontal) caretButton.localMouseX(views!!) else caretButton.localMouseY(views!!)
-			deltaCurrent(pageSize * pos.sign)
+			deltaCurrent(this.pageSize * pos.sign)
 		}
 		caretButton.onMouseDrag {
 			val lmouse = background.localMouseXY(views, tempP)
@@ -98,7 +98,8 @@ open class UIScrollBar(
 	}
 
 	private fun deltaCurrent(value: Double) {
-		current = (current + value).clamp(0.0, totalSize)
+		println("deltaCurrent: $value")
+		current = (current + value).clamp(0.0, totalSize - pageSize)
 	}
 
 	private fun reshape() {
@@ -106,7 +107,7 @@ open class UIScrollBar(
 			background.position(buttonWidth, 0).size(clientWidth, clientHeight)
 			lessButton.position(0, 0).size(buttonWidth, buttonHeight)
 			moreButton.position(width - buttonWidth, 0).size(buttonWidth, buttonHeight)
-			val caretWidth = (clientWidth * (pageSize / totalSize)).clamp(4.0, clientHeight)
+			val caretWidth = (clientWidth * (pageSize / totalSize)).clamp(4.0, clientWidth)
 			caretButton.position(buttonWidth + (clientWidth - caretWidth) * ratio, 0).size(caretWidth, buttonHeight)
 		} else {
 			background.position(0, buttonHeight).size(clientWidth, clientHeight)

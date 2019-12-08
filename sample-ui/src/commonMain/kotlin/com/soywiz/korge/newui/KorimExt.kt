@@ -14,3 +14,5 @@ fun Bitmap32.checkMatchDimensions(other: Bitmap32): Bitmap32 {
 fun Bitmap32.copyTo(other: Bitmap32): Bitmap32 = checkMatchDimensions(other).also { arraycopy(this.data, 0, other.data, 0, this.data.size) }
 fun Bitmap32.inverted(target: Bitmap32 = Bitmap32(width, height)): Bitmap32 = copyTo(target).also { invert() }
 //fun Bitmap32.colorTransform(target: ColorTransform = ColorTransform(width, height)): Bitmap32 = copyTo(target).also { invert() }
+
+fun RGBA.transform(transform: ColorTransform) = RGBA(transform.applyToColor(this.value))
