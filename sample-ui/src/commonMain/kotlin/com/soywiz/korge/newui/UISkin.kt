@@ -1,6 +1,7 @@
 package com.soywiz.korge.newui
 
 import com.soywiz.kds.*
+import com.soywiz.korge.html.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
@@ -16,9 +17,10 @@ fun Container.uiSkin(skin: UISkin, block: Container.() -> Unit) {
 	block()
 }
 
-open class UISkin(
+data class UISkin(
 	val normal: BmpSlice,
 	val hover: BmpSlice,
 	val down: BmpSlice,
-	val backColor: RGBA = Colors.DARKGREY
+	val backColor: RGBA = Colors.DARKGREY,
+	val font: Html.FontFace = Html.FontFace.Named("Arial")
 )

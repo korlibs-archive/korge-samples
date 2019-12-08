@@ -37,8 +37,8 @@ open class UIScrollableArea(
 	var verticalScroll by uiObservable(verticalScroll) { updatedSize() }
 	var horizontalScroll by uiObservable(horizontalScroll) { updatedSize() }
 
-	val clientWidth get() = width - buttonSize
-	val clientHeight get() = height - buttonSize
+	val clientWidth get() = if (verticalScroll) width - buttonSize else width
+	val clientHeight get() = if (horizontalScroll) height - buttonSize else height
 
 	val clipContainer = clipContainer(clientWidth, clientHeight)
 	val container = clipContainer.fixedSizeContainer(contentWidth, contentHeight)
@@ -63,8 +63,8 @@ open class UIScrollableArea(
 		clipContainer.size(clientWidth, clientHeight)
 		container.size(contentWidth, contentHeight)
 
-		horScroll.size(width - buttonSize, buttonSize).position(0, height - buttonSize).also { it.visible = horizontalScroll }
-		verScroll.size(buttonSize, height - buttonSize).position(width - buttonSize, 0).also { it.visible = verticalScroll }
+		horScroll.size(clientWidth, buttonSize).position(0, height - buttonSize).also { it.visible = horizontalScroll }
+		verScroll.size(buttonSize, clientHeight).position(width - buttonSize, 0).also { it.visible = verticalScroll }
 	}
 
 	protected fun moved() {

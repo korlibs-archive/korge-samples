@@ -77,7 +77,7 @@ private val OTHER_UI_SKIN_IMG by lazy {
 	DEFAULT_UI_SKIN_IMG.withColorTransform(otherColorTransform)
 }
 
-object OtherUISkin : UISkin(
+val OtherUISkin = DefaultUISkin.copy(
 	normal = OTHER_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
 	hover = OTHER_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
 	down = OTHER_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64),
