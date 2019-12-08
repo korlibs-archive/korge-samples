@@ -25,7 +25,7 @@ open class UIProgressBar(
 		get() = current / maximum
 
 	private val bg = solidRect(width, height, skin.backColor)
-	private val progress = uiButton(width, height, "").also { mouseEnabled = false }
+	private val progress = uiButton(width, height, "", skin = skin).also { mouseEnabled = false }
 
 	init {
 		updatedSize()

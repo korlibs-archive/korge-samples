@@ -97,7 +97,7 @@ open class UIScrollBar(
 	}
 
 	private fun deltaCurrent(value: Double) {
-		println("deltaCurrent: $value")
+		//println("deltaCurrent: $value")
 		current = (current + value).clamp(0.0, totalSize - pageSize)
 	}
 

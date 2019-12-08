@@ -34,19 +34,39 @@ open class UIButton(
 	// @TODO: Make mouseEnabled open
 	//override var mouseEnabled = uiObservable(true) { updateState() }
 
+	fun simulateHover() {
+		bover = true
+	}
+
+	fun simulateOut() {
+		bover = false
+	}
+
+	fun simulatePressing(value: Boolean) {
+		bpressing = value
+	}
+
+	fun simulateDown() {
+		bpressing = true
+	}
+
+	fun simulateUp() {
+		bpressing = false
+	}
+
 	init {
 		mouse {
 			onOver {
-				bover = true
+				simulateHover()
 			}
 			onOut {
-				bover = false
+				simulateOut()
 			}
 			onDown {
-				bpressing = true
+				simulateDown()
 			}
 			onUpAnywhere {
-				bpressing = false
+				simulateUp()
 			}
 		}
 		updateState()

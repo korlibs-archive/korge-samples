@@ -60,6 +60,9 @@ open class UIScrollableArea(
 		verScroll.pageSize = clientHeight
 		verScroll.stepSize = clientHeight / 4
 
+		clipContainer.size(clientWidth, clientHeight)
+		container.size(contentWidth, contentHeight)
+
 		horScroll.size(width - buttonSize, buttonSize).position(0, height - buttonSize).also { it.visible = horizontalScroll }
 		verScroll.size(buttonSize, height - buttonSize).position(width - buttonSize, 0).also { it.visible = verticalScroll }
 	}

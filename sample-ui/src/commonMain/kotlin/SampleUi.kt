@@ -45,6 +45,10 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 			position(128, 128 + 64)
 		}
 
+		uiComboBox(items = listOf("ComboBox", "World", "this", "is", "a", "list", "of", "elements")) {
+			position(128, 128 + 64 + 32)
+		}
+
 		uiScrollableArea(config = {
 			position(480, 128)
 		}) {
