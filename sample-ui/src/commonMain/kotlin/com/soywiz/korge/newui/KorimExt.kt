@@ -3,7 +3,8 @@ package com.soywiz.korge.newui
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 
-// @TODO: Copy to Korim
+// @TODO: Remove once Korim version is updated
+
 fun Bitmap32.clone() = slice().extract()
 
 fun Bitmap32.checkMatchDimensions(other: Bitmap32): Bitmap32 {

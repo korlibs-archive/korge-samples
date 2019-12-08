@@ -4,7 +4,7 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*
 
-// @TODO: Move to Korge
+// @TODO: Remove after Korge version bump
 data class MouseDragInfo(
 	var dx: Double = 0.0,
 	var dy: Double = 0.0,
