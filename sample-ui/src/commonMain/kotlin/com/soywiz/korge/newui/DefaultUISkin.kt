@@ -11,9 +11,11 @@ val DEFAULT_UI_SKIN_IMG by lazy {
 	).toBMP32()
 }
 
-val DefaultUISkin = UISkin(
-	normal = DEFAULT_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
-	hover = DEFAULT_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
-	down = DEFAULT_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64)
-)
+val DefaultUISkin by lazy {
+	UISkin(
+		normal = DEFAULT_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
+		hover = DEFAULT_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
+		down = DEFAULT_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64)
+	)
+}
 
