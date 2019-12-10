@@ -9,7 +9,11 @@ import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.font.*
+import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
+import com.soywiz.korio.file.std.*
+import com.soywiz.korio.util.*
 import com.soywiz.korma.interpolation.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
@@ -79,12 +83,18 @@ private val OTHER_UI_SKIN_IMG by lazy {
 	DEFAULT_UI_SKIN_IMG.withColorTransform(otherColorTransform)
 }
 
-suspend fun OtherUISkin(): UISkin {
-	return DefaultUISkin.copy(
-		normal = OTHER_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
-		hover = OTHER_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
-		down = OTHER_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64),
+private val OtherUISkinOnce = AsyncOnce<UISkin>()
+
+suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
+	//val ui = resourcesVfs["korge-ui.png"].readNativeImage().toBMP32().withColorTransform(otherColorTransform)
+	val ui = resourcesVfs["korge-ui.png"].readNativeImage()
+
+	DefaultUISkin.copy(
+		normal = ui.sliceWithSize(0, 0, 64, 64),
+		hover = ui.sliceWithSize(64, 0, 64, 64),
+		down = ui.sliceWithSize(127, 0, 64, 64),
 		backColor = DefaultUISkin.backColor.transform(otherColorTransform),
-		font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
+		//font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
+		font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFont())
 	)
 }

@@ -1,8 +1,13 @@
 package com.soywiz.korge.newui
 
+import com.soywiz.kds.*
+import com.soywiz.korge.html.*
+import com.soywiz.korge.scene.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.font.*
 import com.soywiz.korim.format.*
+import com.soywiz.korio.util.*
 import com.soywiz.korio.util.encoding.*
 
 val DEFAULT_UI_SKIN_IMG by lazy {
@@ -15,7 +20,45 @@ val DefaultUISkin by lazy {
 	UISkin(
 		normal = DEFAULT_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
 		hover = DEFAULT_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
-		down = DEFAULT_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64)
+		down = DEFAULT_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64),
+		font = Html.FontFace.Bitmap(getSyncDebugBmpFontOnce())
 	)
 }
 
+private class SyncOnce<T> {
+	var value: T? = null
+
+	operator fun invoke(callback: () -> T): T {
+		if (value == null) {
+			value = callback()
+		}
+		return value!!
+	}
+}
+
+
+private var bmpFontOnce2 = SyncOnce<BitmapFont>()
+
+private fun getSyncDebugBmpFontOnce() = bmpFontOnce2 {
+	val tex = PNG.decode(DebugBitmapFont.DEBUG_FONT_BYTES).toBMP32().premultiplied().slice()
+	val fntAdvance = 7
+	val fntWidth = 8
+	val fntHeight = 8
+
+	val fntBlockX = 2
+	val fntBlockY = 2
+	val fntBlockWidth = 12
+	val fntBlockHeight = 12
+
+	BitmapFont(tex.bmp, fntHeight, fntHeight, fntHeight, (0 until 256).associate {
+		val x = it % 16
+		val y = it / 16
+		it to BitmapFont.Glyph(
+			it,
+			tex.sliceWithSize(x * fntBlockWidth + fntBlockX, y * fntBlockHeight + fntBlockY, fntWidth, fntHeight),
+			0,
+			0,
+			fntAdvance
+		)
+	}.toIntMap(), IntMap())
+}
