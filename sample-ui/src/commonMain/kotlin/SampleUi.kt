@@ -3,6 +3,7 @@ import com.soywiz.korge.*
 import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.newui.*
+import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
@@ -12,6 +13,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
+import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korio.util.*
 import com.soywiz.korma.interpolation.*
@@ -95,6 +97,9 @@ suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
 		down = ui.sliceWithSize(127, 0, 64, 64),
 		backColor = DefaultUISkin.backColor.transform(otherColorTransform),
 		//font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
-		font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFont())
+		font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
 	)
 }
+
+private suspend fun VfsFile.readBitmapFontWithMipmaps(imageFormat: ImageFormat = RegisteredImageFormats, mipmaps: Boolean = true): BitmapFont =
+	readBitmapFont(imageFormat).also { it.atlas.mipmaps(mipmaps) }
