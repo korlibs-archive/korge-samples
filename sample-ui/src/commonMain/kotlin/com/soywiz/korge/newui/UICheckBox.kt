@@ -21,7 +21,7 @@ open class UICheckBox(
 	width: Double = 96.0,
 	height: Double = 32.0,
 	label: String = "CheckBox",
-	skin: UISkin = DefaultUISkin
+	private val skin: UISkin = DefaultUISkin
 ) : UIView(width, height) {
 	var checked by uiObservable(checked) { onPropsUpdate() }
 	var label by uiObservable(label) { onPropsUpdate() }
@@ -52,7 +52,7 @@ open class UICheckBox(
 				}
 			}
 		text.position(height + 8.0, 0)
-			.also { it.format = Html.Format(align = Html.Alignment.MIDDLE_LEFT) }
+			.also { it.format = Html.Format(face = skin.font, align = Html.Alignment.MIDDLE_LEFT) }
 			.also { it.setTextBounds(Rectangle(0, 0, width - height, height)) }
 			.setText(label)
 	}

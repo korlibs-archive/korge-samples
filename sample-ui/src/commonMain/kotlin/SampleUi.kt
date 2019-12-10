@@ -1,7 +1,9 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
+import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.newui.*
+import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
@@ -11,7 +13,7 @@ import com.soywiz.korio.async.*
 import com.soywiz.korma.interpolation.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
-	uiSkin(OtherUISkin) {
+	uiSkin(OtherUISkin()) {
 		uiButton(256.0, 32.0) {
 			label = "Disabled Button"
 			position(128, 128)
@@ -77,11 +79,12 @@ private val OTHER_UI_SKIN_IMG by lazy {
 	DEFAULT_UI_SKIN_IMG.withColorTransform(otherColorTransform)
 }
 
-val OtherUISkin by lazy {
-	DefaultUISkin.copy(
+suspend fun OtherUISkin(): UISkin {
+	return DefaultUISkin.copy(
 		normal = OTHER_UI_SKIN_IMG.sliceWithSize(0, 0, 64, 64),
 		hover = OTHER_UI_SKIN_IMG.sliceWithSize(64, 0, 64, 64),
 		down = OTHER_UI_SKIN_IMG.sliceWithSize(127, 0, 64, 64),
-		backColor = DefaultUISkin.backColor.transform(otherColorTransform)
+		backColor = DefaultUISkin.backColor.transform(otherColorTransform),
+		font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
 	)
 }

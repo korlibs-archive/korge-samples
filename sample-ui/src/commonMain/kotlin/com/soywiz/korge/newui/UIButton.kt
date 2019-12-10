@@ -84,7 +84,7 @@ open class UIButton(
 				rect.tex = skin.normal
 			}
 		}
-		text.format = Html.Format(align = Html.Alignment.MIDDLE_CENTER)
+		text.format = Html.Format(face = skin.font, align = Html.Alignment.MIDDLE_CENTER, color = Colors.WHITE)
 		text.setTextBounds(Rectangle(0, 0, width, height))
 		text.setText(label)
 		textShadow.format = Html.Format(face = skin.font, align = Html.Alignment.MIDDLE_CENTER, color = Colors.BLACK.withA(64))
