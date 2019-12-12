@@ -5,9 +5,9 @@ import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
-import com.soywiz.korge3d.experimental.*
-import com.soywiz.korge3d.experimental.animation.*
-import com.soywiz.korge3d.experimental.format.*
+import com.soywiz.korge3d.*
+import com.soywiz.korge3d.animation.*
+import com.soywiz.korge3d.format.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korinject.*

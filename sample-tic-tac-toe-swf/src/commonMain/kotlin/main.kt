@@ -13,7 +13,8 @@ import com.soywiz.korio.lang.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.ds.*
 
-suspend fun main() = Korge(Korge.Config(module = TicTacToeModule, debug = true))
+//suspend fun main() = Korge(Korge.Config(module = TicTacToeModule, debug = true))
+suspend fun main() = Korge(Korge.Config(module = TicTacToeModule))
 
 object TicTacToeModule : Module() {
 	override val mainScene = TicTacToeMainScene::class
