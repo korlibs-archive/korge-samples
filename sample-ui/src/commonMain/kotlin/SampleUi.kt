@@ -2,7 +2,7 @@ import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
-import com.soywiz.korge.newui.*
+import com.soywiz.korge.ui.*
 import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
@@ -22,17 +22,20 @@ import com.soywiz.korma.interpolation.*
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
 	val nativeProcess = NativeProcess(views)
 
-	uiSkin(OtherUISkin()) {
-		uiButton(256.0, 32.0) {
-			label = "Disabled Button"
+	//uiSkin(OtherUISkin()) {
+	defaultUISkin = OtherUISkin()
+	defaultUIFont = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
+	run {
+		uiTextButton(256.0, 32.0) {
+			text = "Disabled Button"
 			position(128, 128)
 			onClick {
 				println("CLICKED!")
 			}
 			disable()
 		}
-		uiButton(256.0, 32.0) {
-			label = "Enabled Button"
+		uiTextButton(256.0, 32.0) {
+			text = "Enabled Button"
 			position(128, 128 + 32)
 			onClick {
 				println("CLICKED!")
@@ -68,7 +71,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		}) {
 
 			for (n in 0 until 16) {
-				uiButton(label = "HELLO $n").position(0, n * 64)
+				uiTextButton(text = "HELLO $n").position(0, n * 64)
 			}
 		}
 
@@ -101,9 +104,10 @@ suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
 		normal = ui.sliceWithSize(0, 0, 64, 64),
 		hover = ui.sliceWithSize(64, 0, 64, 64),
 		down = ui.sliceWithSize(127, 0, 64, 64),
-		backColor = DefaultUISkin.backColor.transform(otherColorTransform),
+		backColor = DefaultUISkin.backColor.transform(otherColorTransform)
+		//,
 		//font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
-		font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
+		//font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
 	)
 }
 
