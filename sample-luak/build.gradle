@@ -1,0 +1,6 @@
+apply plugin: "korge"
+
+korge {
+	id = "com.soywiz.samples.luak"
+	dependencyMulti "com.soywiz.korlibs.luak:luak:0.1.6"
+}
