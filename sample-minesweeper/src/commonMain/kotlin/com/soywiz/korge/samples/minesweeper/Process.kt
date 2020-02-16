@@ -148,8 +148,8 @@ class Key2(val views: Views) {
 class MouseV(val views: Views) {
 	val left: Boolean get() = pressing[0]
 	val right: Boolean get() = pressing[1] || pressing[2]
-	val x: Int get() = (views.input.mouse.x / views.stage.scaleX).toInt()
-	val y: Int get() = (views.input.mouse.y / views.stage.scaleY).toInt()
+	val x: Int get() = (views.stage.localMouseX(views)).toInt()
+	val y: Int get() = (views.stage.localMouseY(views)).toInt()
 	val pressing = BooleanArray(8)
 	val pressed = BooleanArray(8)
 	val released = BooleanArray(8)
@@ -224,4 +224,3 @@ fun <T : Bitmap> BitmapSlice<T>.split(width: Int, height: Int): List<BmpSlice> {
 		}
 	}
 }
-

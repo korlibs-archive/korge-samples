@@ -45,8 +45,8 @@ class Board(
 		//timeText = Text("", 50, 50, Text.Align.center, Text.Align.middle, Color.white, Font.fromResource("font.ttf", 40));
 		val FONT_HEIGHT = 32.0
 		timeText = text("", textSize = FONT_HEIGHT).xy((bwidth * imageset.height) / 2, -FONT_HEIGHT).apply {
-			//format = Html.Format(align = Html.Alignment.CENTER, size = FONT_HEIGHT.toInt())
-			format = Html.Format(align = Html.Alignment.CENTER)
+			format = Html.Format(align = Html.Alignment.CENTER, size = FONT_HEIGHT.toInt())
+			//format = Html.Format(align = Html.Alignment.CENTER, face = defaultUIFont)
 		}
 		// Se pinta el contador como hijo del tablero
 		//timeText.group.z = this;
