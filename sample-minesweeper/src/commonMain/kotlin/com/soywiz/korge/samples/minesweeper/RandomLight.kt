@@ -37,17 +37,17 @@ class RandomLight(
 		alpha = 0.1
 
 		while (true) {
-			angle += inca
-			x = w2 - cos(angle) * w2 * excx + sx
-			y = h2 - sin(angle) * h2 * excy + sy
-			scale = 1 + (cos(angle) / 6) * incs
+			rotationDegrees += inca
+			x = w2 - cos(rotationDegrees) * w2 * excx + sx
+			y = h2 - sin(rotationDegrees) * h2 * excy + sy
+			scale = 1 + (cos(rotationDegrees) / 6) * incs
 
 			// Comprueba si una esfera de luz ha chocado con otra
 			// El sistema de colisión por defecto es inner circle
-			if (this.collision(this.type)) {
-				if (alpha <= 0.8) alpha += 0.01
+			if (this.collision<RandomLight>() != null) {
+				alpha = (alpha + 0.01).coerceIn(0.1, 0.8)
 			} else {
-				if (alpha >= 0.1) alpha -= 0.01
+				alpha = (alpha - 0.05).coerceIn(0.1, 0.8)
 			}
 
 			frame()

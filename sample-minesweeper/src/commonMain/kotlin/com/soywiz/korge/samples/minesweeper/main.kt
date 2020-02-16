@@ -15,16 +15,16 @@ class MainProcess(parent: Container) : Process(parent) {
 	val lights = arrayListOf<RandomLight>()
 
 	override suspend fun main() {
-		val light = readImage("light.png")
 		image(readImage("bg.jpg"))
-		for (n in 0 until 20) {
-			lights += RandomLight(this, light)
-		}
-
+		val light = readImage("light.png")
 		val imageset = readImage("buscaminas.png")
 		val imagenes = imageset.split(imageset.height, imageset.height)
 		val click = readSound("click.wav")
 		val boom = readSound("boom.wav")
+
+		for (n in 0 until 20) {
+			lights += RandomLight(this, light)
+		}
 
 		val board = Board(this, imageset, imagenes, click, boom, 22, 15, 40)
 

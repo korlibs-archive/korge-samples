@@ -5,9 +5,7 @@ import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korev.*
-import com.soywiz.korev.KeysEvents
 import com.soywiz.korge.component.*
-import com.soywiz.korge.input.*
 import com.soywiz.korge.time.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
@@ -24,18 +22,12 @@ abstract class Process(parent: Container) : Container() {
 
 	override val stage: Stage get() = super.stage!!
 	val views: Views get() = stage.views
-	val type: KClass<out View> get() = this::class
 	var fps: Double = 60.0
 
 	val key get() = stage.views.key
-
 	val Mouse get() = views.mouseV
 	val Screen get() = views.screenV
 	val audio get() = views.audioV
-
-	var angle: Double
-		get() = rotationDegrees
-		set(value) = run { rotationDegrees = value }
 
 	suspend fun frame() {
 		//delayFrame()
@@ -48,30 +40,19 @@ abstract class Process(parent: Container) : Container() {
 
 	abstract suspend fun main()
 
-	private lateinit var job: Job
-
-	fun destroy() {
-		removeFromParent()
-	}
-
-	open fun onDestroy() {
-	}
-
-	class ChangeActionException(val action: KSuspendFunction0<Unit>) : Exception()
-
-	init {
-		job = views.launchAsap {
-			var action = ::main
-			while (true) {
-				try {
-					action()
-					break
-				} catch (e: ChangeActionException) {
-					action = e.action
-				}
+	private val job: Job = views.launchAsap {
+		var action = ::main
+		while (true) {
+			try {
+				action()
+				break
+			} catch (e: ChangeActionException) {
+				action = e.action
 			}
 		}
+	}
 
+	init {
 		addComponent(object : StageComponent {
 			override val view: View = this@Process
 
@@ -87,37 +68,59 @@ abstract class Process(parent: Container) : Container() {
 		})
 	}
 
-	fun collision(type: KClass<out View>): Boolean {
-		return false
+	fun destroy() {
+		removeFromParent()
 	}
+
+	protected open fun onDestroy() {
+	}
+
+	class ChangeActionException(val action: KSuspendFunction0<Unit>) : Exception()
+
+	inline fun <reified T : View> collision(): T? = views.stage.findCollision<T>(this)
+	fun collision(matcher: (View) -> Boolean): View? = views.stage.findCollision(this, matcher)
 }
 
-@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-class extraPropertyFixed<T : Any?>(val name: String? = null, val default: () -> T) {
-	inline operator fun getValue(thisRef: Extra, property: KProperty<*>): T {
-		if (thisRef.extra == null) thisRef.extra = LinkedHashMap()
-		return (thisRef.extra!!.getOrPut(name ?: property.name) { default() } as T)
-	}
 
-	inline operator fun setValue(thisRef: Extra, property: KProperty<*>, value: T): Unit = run {
-		if (thisRef.extra == null) thisRef.extra = LinkedHashMap()
-		thisRef.extra!![name ?: property.name] = value as Any?
+inline fun <reified T : View> Container.findCollision(subject: View): T? = findCollision(subject) { it is T && it != subject } as T?
+
+fun Container.findCollision(subject: View, matcher: (View) -> Boolean): View? {
+	var collides: View? = null
+	this.foreachDescendant {
+		if (matcher(it)) {
+			if (subject.collidesWith(it)) {
+				collides = it
+			}
+		}
 	}
+	return collides
 }
 
-private val Views.componentsInStagePrev by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.componentsInStageCur by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.componentsInStage by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.tempComponents2 by extraPropertyFixed { arrayListOf<Component>() }
+/**
+ * Component with [added] and [removed] methods that are executed
+ * once the view is going to be displayed, and when the view has been removed
+ *
+ * Important NOTE: To use this compoennt you have to call the [Views.registerStageComponent] extension method at the start of the APP.
+ */
+interface StageComponent : Component {
+	fun added(views: Views)
+	fun removed(views: Views)
+}
 
+/**
+ *
+ */
 fun Views.registerStageComponent() {
+	val componentsInStagePrev = linkedSetOf<StageComponent>()
+	val componentsInStageCur = linkedSetOf<StageComponent>()
+	val componentsInStage = linkedSetOf<StageComponent>()
+	val tempComponents: ArrayList<Component> = arrayListOf()
 	onBeforeRender {
 		componentsInStagePrev.clear()
 		componentsInStagePrev += componentsInStageCur
 		componentsInStageCur.clear()
-		stage.forEachComponent<StageComponent>(tempComponents2) {
+		stage.forEachComponent<StageComponent>(tempComponents) {
 			componentsInStageCur += it
-			//println("DEMO: $it -- $componentsInStage")
 			if (it !in componentsInStage) {
 				componentsInStage += it
 				it.added(views)
@@ -131,25 +134,15 @@ fun Views.registerStageComponent() {
 	}
 }
 
-/**
- * Component with [added] and [removed] methods that are executed
- * once the view is going to be displayed, and when the view has been removed
- */
-interface StageComponent : Component {
-	fun added(views: Views)
-	fun removed(views: Views)
-}
-
-class Key2(val views: Views) {
+class KeyV(val views: Views) {
 	operator fun get(key: Key): Boolean = views.keysPressed[key] == true
 }
-
 
 class MouseV(val views: Views) {
 	val left: Boolean get() = pressing[0]
 	val right: Boolean get() = pressing[1] || pressing[2]
-	val x: Int get() = (views.input.mouse.x / views.stage.scaleX).toInt()
-	val y: Int get() = (views.input.mouse.y / views.stage.scaleY).toInt()
+	val x: Int get() = (views.stage.localMouseX(views)).toInt()
+	val y: Int get() = (views.stage.localMouseY(views)).toInt()
 	val pressing = BooleanArray(8)
 	val pressed = BooleanArray(8)
 	val released = BooleanArray(8)
@@ -167,8 +160,8 @@ class AudioV(val views: Views) {
 	}
 }
 
-val Views.keysPressed by extraPropertyFixed { LinkedHashMap<Key, Boolean>() }
-val Views.key by Extra.PropertyThis<Views, Key2> { Key2(this) }
+val Views.keysPressed by Extra.Property { LinkedHashMap<Key, Boolean>() }
+val Views.key by Extra.PropertyThis<Views, KeyV> { KeyV(this) }
 
 val Views.mouseV by Extra.PropertyThis<Views, MouseV> { MouseV(this) }
 val Views.screenV by Extra.PropertyThis<Views, ScreenV> { ScreenV(this) }
@@ -224,4 +217,3 @@ fun <T : Bitmap> BitmapSlice<T>.split(width: Int, height: Int): List<BmpSlice> {
 		}
 	}
 }
-
