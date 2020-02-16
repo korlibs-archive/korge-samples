@@ -11,7 +11,7 @@ import com.soywiz.korma.random.*
 import kotlin.random.*
 
 // Proceso que se encarga del tablero
-class Board(
+open class Board(
 	parent: Container,
 	val imageset: BmpSlice,
 	val imagenes: List<BmpSlice>,
@@ -66,7 +66,7 @@ class Board(
 	}
 
 	// Destructor, aquí se quita el texto cuando se borra el tablero
-	override fun onDestroy() {
+	override protected fun onDestroy() {
 		timeText.removeFromParent()
 	}
 

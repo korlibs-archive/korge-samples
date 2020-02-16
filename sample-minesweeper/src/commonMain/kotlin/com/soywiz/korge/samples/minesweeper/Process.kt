@@ -22,18 +22,12 @@ abstract class Process(parent: Container) : Container() {
 
 	override val stage: Stage get() = super.stage!!
 	val views: Views get() = stage.views
-	val type: KClass<out View> get() = this::class
 	var fps: Double = 60.0
 
 	val key get() = stage.views.key
-
 	val Mouse get() = views.mouseV
 	val Screen get() = views.screenV
 	val audio get() = views.audioV
-
-	var angle: Double
-		get() = rotationDegrees
-		set(value) = run { rotationDegrees = value }
 
 	suspend fun frame() {
 		//delayFrame()
@@ -46,30 +40,19 @@ abstract class Process(parent: Container) : Container() {
 
 	abstract suspend fun main()
 
-	private lateinit var job: Job
-
-	fun destroy() {
-		removeFromParent()
-	}
-
-	open fun onDestroy() {
-	}
-
-	class ChangeActionException(val action: KSuspendFunction0<Unit>) : Exception()
-
-	init {
-		job = views.launchAsap {
-			var action = ::main
-			while (true) {
-				try {
-					action()
-					break
-				} catch (e: ChangeActionException) {
-					action = e.action
-				}
+	private val job: Job = views.launchAsap {
+		var action = ::main
+		while (true) {
+			try {
+				action()
+				break
+			} catch (e: ChangeActionException) {
+				action = e.action
 			}
 		}
+	}
 
+	init {
 		addComponent(object : StageComponent {
 			override val view: View = this@Process
 
@@ -85,11 +68,33 @@ abstract class Process(parent: Container) : Container() {
 		})
 	}
 
-	fun collision(type: KClass<out View>): Boolean {
-		return false
+	fun destroy() {
+		removeFromParent()
 	}
+
+	protected open fun onDestroy() {
+	}
+
+	class ChangeActionException(val action: KSuspendFunction0<Unit>) : Exception()
+
+	inline fun <reified T : View> collision(): T? = views.stage.findCollision<T>(this)
+	fun collision(matcher: (View) -> Boolean): View? = views.stage.findCollision(this, matcher)
 }
 
+
+inline fun <reified T : View> Container.findCollision(subject: View): T? = findCollision(subject) { it is T && it != subject } as T?
+
+fun Container.findCollision(subject: View, matcher: (View) -> Boolean): View? {
+	var collides: View? = null
+	this.foreachDescendant {
+		if (matcher(it)) {
+			if (subject.collidesWith(it)) {
+				collides = it
+			}
+		}
+	}
+	return collides
+}
 
 /**
  * Component with [added] and [removed] methods that are executed
