@@ -5,9 +5,7 @@ import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korev.*
-import com.soywiz.korev.KeysEvents
 import com.soywiz.korge.component.*
-import com.soywiz.korge.input.*
 import com.soywiz.korge.time.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
@@ -92,32 +90,32 @@ abstract class Process(parent: Container) : Container() {
 	}
 }
 
-@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-class extraPropertyFixed<T : Any?>(val name: String? = null, val default: () -> T) {
-	inline operator fun getValue(thisRef: Extra, property: KProperty<*>): T {
-		if (thisRef.extra == null) thisRef.extra = LinkedHashMap()
-		return (thisRef.extra!!.getOrPut(name ?: property.name) { default() } as T)
-	}
 
-	inline operator fun setValue(thisRef: Extra, property: KProperty<*>, value: T): Unit = run {
-		if (thisRef.extra == null) thisRef.extra = LinkedHashMap()
-		thisRef.extra!![name ?: property.name] = value as Any?
-	}
+/**
+ * Component with [added] and [removed] methods that are executed
+ * once the view is going to be displayed, and when the view has been removed
+ *
+ * Important NOTE: To use this compoennt you have to call the [Views.registerStageComponent] extension method at the start of the APP.
+ */
+interface StageComponent : Component {
+	fun added(views: Views)
+	fun removed(views: Views)
 }
 
-private val Views.componentsInStagePrev by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.componentsInStageCur by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.componentsInStage by extraPropertyFixed { linkedSetOf<StageComponent>() }
-private val Views.tempComponents2 by extraPropertyFixed { arrayListOf<Component>() }
-
+/**
+ *
+ */
 fun Views.registerStageComponent() {
+	val componentsInStagePrev = linkedSetOf<StageComponent>()
+	val componentsInStageCur = linkedSetOf<StageComponent>()
+	val componentsInStage = linkedSetOf<StageComponent>()
+	val tempComponents: ArrayList<Component> = arrayListOf()
 	onBeforeRender {
 		componentsInStagePrev.clear()
 		componentsInStagePrev += componentsInStageCur
 		componentsInStageCur.clear()
-		stage.forEachComponent<StageComponent>(tempComponents2) {
+		stage.forEachComponent<StageComponent>(tempComponents) {
 			componentsInStageCur += it
-			//println("DEMO: $it -- $componentsInStage")
 			if (it !in componentsInStage) {
 				componentsInStage += it
 				it.added(views)
@@ -131,19 +129,9 @@ fun Views.registerStageComponent() {
 	}
 }
 
-/**
- * Component with [added] and [removed] methods that are executed
- * once the view is going to be displayed, and when the view has been removed
- */
-interface StageComponent : Component {
-	fun added(views: Views)
-	fun removed(views: Views)
-}
-
-class Key2(val views: Views) {
+class KeyV(val views: Views) {
 	operator fun get(key: Key): Boolean = views.keysPressed[key] == true
 }
-
 
 class MouseV(val views: Views) {
 	val left: Boolean get() = pressing[0]
@@ -167,8 +155,8 @@ class AudioV(val views: Views) {
 	}
 }
 
-val Views.keysPressed by extraPropertyFixed { LinkedHashMap<Key, Boolean>() }
-val Views.key by Extra.PropertyThis<Views, Key2> { Key2(this) }
+val Views.keysPressed by Extra.Property { LinkedHashMap<Key, Boolean>() }
+val Views.key by Extra.PropertyThis<Views, KeyV> { KeyV(this) }
 
 val Views.mouseV by Extra.PropertyThis<Views, MouseV> { MouseV(this) }
 val Views.screenV by Extra.PropertyThis<Views, ScreenV> { ScreenV(this) }
