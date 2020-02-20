@@ -25,67 +25,61 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 	//uiSkin(OtherUISkin()) {
 	defaultUISkin = OtherUISkin()
 	defaultUIFont = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
-	run {
-		uiTextButton(256.0, 32.0) {
-			text = "Disabled Button"
-			position(128, 128)
-			onClick {
-				println("CLICKED!")
-			}
-			disable()
+	uiTextButton(256.0, 32.0) {
+		text = "Disabled Button"
+		position(128, 128)
+		onClick {
+			println("CLICKED!")
 		}
-		uiTextButton(256.0, 32.0) {
-			text = "Enabled Button"
-			position(128, 128 + 32)
-			onClick {
-				println("CLICKED!")
-				launchImmediately {
-					nativeProcess.close()
-				}
-			}
-			enable()
+		disable()
+	}
+	uiTextButton(256.0, 32.0) {
+		text = "Enabled Button"
+		position(128, 128 + 32)
+		onClick {
+			println("CLICKED!")
+			nativeProcess.close()
 		}
-		uiScrollBar(256.0, 32.0, 0.0, 32.0, 64.0) {
-			position(64, 64)
-			onChange {
-				println(it.ratio)
-			}
+		enable()
+	}
+	uiScrollBar(256.0, 32.0, 0.0, 32.0, 64.0) {
+		position(64, 64)
+		onChange {
+			println(it.ratio)
 		}
-		uiScrollBar(32.0, 256.0, 0.0, 16.0, 64.0) {
-			position(64, 128)
-			onChange {
-				println(it.ratio)
-			}
+	}
+	uiScrollBar(32.0, 256.0, 0.0, 16.0, 64.0) {
+		position(64, 128)
+		onChange {
+			println(it.ratio)
 		}
+	}
 
-		uiCheckBox {
-			position(128, 128 + 64)
-		}
+	uiCheckBox {
+		position(128, 128 + 64)
+	}
 
-		uiComboBox(items = listOf("ComboBox", "World", "this", "is", "a", "list", "of", "elements")) {
-			position(128, 128 + 64 + 32)
-		}
+	uiComboBox(items = listOf("ComboBox", "World", "this", "is", "a", "list", "of", "elements")) {
+		position(128, 128 + 64 + 32)
+	}
 
-		uiScrollableArea(config = {
-			position(480, 128)
-		}) {
+	uiScrollableArea(config = {
+		position(480, 128)
+	}) {
 
-			for (n in 0 until 16) {
-				uiTextButton(text = "HELLO $n").position(0, n * 64)
-			}
+		for (n in 0 until 16) {
+			uiTextButton(text = "HELLO $n").position(0, n * 64)
 		}
+	}
 
-		val progress = uiProgressBar {
-			position(64, 32)
-			current = 0.5
-		}
+	val progress = uiProgressBar {
+		position(64, 32)
+		current = 0.5
+	}
 
-		launchImmediately {
-			while (true) {
-				tween(progress::current[1.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-				tween(progress::current[1.0, 0.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-			}
-		}
+	while (true) {
+		tween(progress::current[1.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
+		tween(progress::current[1.0, 0.0], time = 1.seconds, easing = Easing.EASE_IN_OUT)
 	}
 }
 

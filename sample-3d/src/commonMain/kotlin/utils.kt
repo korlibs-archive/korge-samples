@@ -59,9 +59,7 @@ class Button(text: String, handler: suspend () -> Unit) : Container() {
 			out { overButton = false }
 		}
 		onClick {
-			stage?.views?.launchImmediately {
-				if (enabledButton) handler()
-			}
+			if (enabledButton) handler()
 		}
 		updateState()
 	}

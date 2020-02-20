@@ -8,7 +8,6 @@ import com.soywiz.korge.view.solidRect
 import com.soywiz.korge.view.text
 import com.soywiz.korim.color.Colors
 import com.soywiz.korinject.AsyncInjector
-import com.soywiz.korio.async.launchImmediately
 import kotlin.reflect.KClass
 
 suspend fun main() = Korge(Korge.Config(module = MyModule))
@@ -31,9 +30,7 @@ class MyScene1(val myDependency: MyDependency) : Scene() {
 		solidRect(100, 100, Colors.RED) {
 			position(200, 200)
 			onClick {
-				launchImmediately {
-					sceneContainer.changeTo<MyScene2>()
-				}
+				sceneContainer.changeTo<MyScene2>()
 			}
 		}
 	}
@@ -45,9 +42,7 @@ class MyScene2(val myDependency: MyDependency) : Scene() {
 		solidRect(100, 100, Colors.BLUE) {
 			position(200, 200)
 			onClick {
-				launchImmediately {
-					sceneContainer.changeTo<MyScene1>(MyDependency("From MyScene2"))
-				}
+				sceneContainer.changeTo<MyScene1>(MyDependency("From MyScene2"))
 			}
 		}
 	}
