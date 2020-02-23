@@ -333,8 +333,8 @@ class EyeTrackingScene : BaseDbScene() {
 				}
 			}
 
-			// @TODO: Make a CoroutineScope for the Scene
-			val job = launchImmediately {
+			// This job will be automatically destroyed by the SceneContainer
+			launchImmediately {
 				val bendRatio = 0.75
 				val ibendRatio = 1.0 - bendRatio
 				while (true) {
@@ -343,11 +343,6 @@ class EyeTrackingScene : BaseDbScene() {
 					delay(16.milliseconds)
 				}
 			}
-
-			this@EyeTrackingScene.cancellables.addCancellable(Cancellable {
-				job.cancel()
-			})
-
 
 			addUpdater {
 				totalTime += it.milliseconds
