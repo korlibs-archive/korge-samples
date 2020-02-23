@@ -8,10 +8,10 @@ import com.soywiz.korev.*
 import com.soywiz.korge.component.*
 import com.soywiz.korge.time.*
 import com.soywiz.korge.view.*
-import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
+import com.soywiz.korma.geom.*
 import kotlinx.coroutines.*
 import kotlin.reflect.*
 
@@ -96,44 +96,6 @@ fun Container.findCollision(subject: View, matcher: (View) -> Boolean): View? {
 	return collides
 }
 
-/**
- * Component with [added] and [removed] methods that are executed
- * once the view is going to be displayed, and when the view has been removed
- *
- * Important NOTE: To use this compoennt you have to call the [Views.registerStageComponent] extension method at the start of the APP.
- */
-interface StageComponent : Component {
-	fun added(views: Views)
-	fun removed(views: Views)
-}
-
-/**
- *
- */
-fun Views.registerStageComponent() {
-	val componentsInStagePrev = linkedSetOf<StageComponent>()
-	val componentsInStageCur = linkedSetOf<StageComponent>()
-	val componentsInStage = linkedSetOf<StageComponent>()
-	val tempComponents: ArrayList<Component> = arrayListOf()
-	onBeforeRender {
-		componentsInStagePrev.clear()
-		componentsInStagePrev += componentsInStageCur
-		componentsInStageCur.clear()
-		stage.forEachComponent<StageComponent>(tempComponents) {
-			componentsInStageCur += it
-			if (it !in componentsInStage) {
-				componentsInStage += it
-				it.added(views)
-			}
-		}
-		for (it in componentsInStagePrev) {
-			if (it !in componentsInStageCur) {
-				it.removed(views)
-			}
-		}
-	}
-}
-
 class KeyV(val views: Views) {
 	operator fun get(key: Key): Boolean = views.keysPressed[key] == true
 }
@@ -204,16 +166,26 @@ fun Views.registerProcessSystem() {
 suspend fun readImage(path: String) = resourcesVfs[path].readBitmapSlice()
 suspend fun readSound(path: String) = resourcesVfs[path].readNativeSoundOptimized()
 
-// @TODO: Move to KorIM
-fun <T : Bitmap> BitmapSlice<T>.split(width: Int, height: Int): List<BmpSlice> {
-	val self = this
-	val nheight = self.height / height
-	val nwidth = self.width / width
-	return arrayListOf<BmpSlice>().apply {
-		for (y in 0 until nheight) {
-			for (x in 0 until nwidth) {
-				add(self.sliceWithSize(x * width, y * height, width, height))
-			}
+// Remove once in KorGE
+fun <T : View> T.dockedTo2(anchor: Anchor, scaleMode: ScaleMode = ScaleMode.NO_SCALE): T = this.also { DockingComponent2(this, anchor, scaleMode).attach() }
+class DockingComponent2(override val view: View, var anchor: Anchor, var scaleMode: ScaleMode = ScaleMode.NO_SCALE) : ResizeComponent {
+	//private val bounds = Rectangle()
+
+	val initialViewSize = Size(view.width, view.height)
+	private val actualVirtualSize = Size(0, 0)
+	private val targetSize = Size(0, 0)
+
+	override fun resized(views: Views, width: Int, height: Int) {
+		view.position(
+			views.actualVirtualLeft.toDouble() + (views.actualVirtualWidth) * anchor.sx,
+			views.actualVirtualTop.toDouble() + (views.actualVirtualHeight) * anchor.sy
+		)
+		if (scaleMode != ScaleMode.NO_SCALE) {
+			actualVirtualSize.setTo(views.actualVirtualWidth, views.actualVirtualHeight)
+			val size = scaleMode.invoke(initialViewSize, actualVirtualSize, targetSize)
+			view.setSize(size.width, size.height)
 		}
+		view.invalidate()
+		view.parent?.invalidate()
 	}
 }
