@@ -1,6 +1,7 @@
-// Ported from here: https://github.com/soywiz/lunea/tree/master/samples/busca
+import com.soywiz.korge.gradle.*
 
-apply plugin: "korge"
+// Ported from here: https://github.com/soywiz/lunea/tree/master/samples/busca
+apply(plugin = "korge")
 
 korge {
 	entryPoint = "com.soywiz.korge.samples.minesweeper.main"
