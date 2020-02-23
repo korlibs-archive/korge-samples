@@ -1,13 +1,16 @@
 import com.dragonbones.event.*
 import com.dragonbones.util.*
+import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.dragonbones.*
 import com.soywiz.korge.input.*
+import com.soywiz.korge.input.MouseEvents
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
+import com.soywiz.korge.time.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
@@ -42,6 +45,7 @@ suspend fun main(): Unit {
 
 	com.soywiz.korge.Korge(Korge.Config(object : MyModule() {
 		//override val mainScene: KClass<out Scene> = HelloScene::class
+		override val quality: GameWindow.Quality = GameWindow.Quality.QUALITY
 	}, debug = false))
 
 	//Korge {
@@ -261,6 +265,10 @@ class ClassicDragonScene : BaseDbScene() {
 	}
 }
 
+// @TODO: Remove in next KorGE version
+val MouseEvents.exit by WeakPropertyThis<MouseEvents, Signal<MouseEvents>> {
+	Signal()
+}
 
 class EyeTrackingScene : BaseDbScene() {
 	val scale = 0.46
@@ -310,16 +318,39 @@ class EyeTrackingScene : BaseDbScene() {
 			armatureDisplay.animation.play("idle_00")
 
 			val target = Point()
+			val ftarget = Point()
 
 			mouse {
 				moveAnywhere {
-					target.x = (localMouseX(views) - armatureDisplay.x) / this@EyeTrackingScene.scale
-					target.y = (localMouseY(views) - armatureDisplay.y) / this@EyeTrackingScene.scale
+					ftarget.x = (localMouseX(views) - armatureDisplay.x) / this@EyeTrackingScene.scale
+					ftarget.y = (localMouseY(views) - armatureDisplay.y) / this@EyeTrackingScene.scale
+					//println(":" + localMouseXY(views) + ", " + target + " :: ${armatureDisplay.x}, ${armatureDisplay.y} :: ${this@EyeTrackingScene.scale}")
+				}
+				exit {
+					ftarget.x = armatureDisplay.x / this@EyeTrackingScene.scale
+					ftarget.y = (armatureDisplay.y - 650) / this@EyeTrackingScene.scale
+					//println(":onExit:" + " :: $target :: ${armatureDisplay.x}, ${armatureDisplay.y} :: ${this@EyeTrackingScene.scale}")
 				}
 			}
 
-			addUpdatable {
-				totalTime += it
+			// @TODO: Make a CoroutineScope for the Scene
+			val job = launchImmediately {
+				val bendRatio = 0.75
+				val ibendRatio = 1.0 - bendRatio
+				while (true) {
+					target.x = (target.x * bendRatio + ftarget.x * ibendRatio)
+					target.y = (target.y * bendRatio + ftarget.y * ibendRatio)
+					delay(16.milliseconds)
+				}
+			}
+
+			this@EyeTrackingScene.cancellables.addCancellable(Cancellable {
+				job.cancel()
+			})
+
+
+			addUpdater {
+				totalTime += it.milliseconds
 
 				val armature = armatureDisplay.armature
 				val animation = armatureDisplay.animation
