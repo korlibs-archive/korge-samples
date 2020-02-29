@@ -1,0 +1,12 @@
+apply plugin: "korge"
+
+korge {
+	id = "com.soywiz.samplevideo"
+	name = "SampleVideo"
+	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
+	jvmMainClassName = "MainKt"
+}
+
+dependencies {
+	commonMainApi("com.soywiz.korlibs.korvi:korvi:0.0.1")
+}
