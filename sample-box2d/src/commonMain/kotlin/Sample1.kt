@@ -1,5 +1,5 @@
 import com.soywiz.korge.*
-import com.soywiz.korge.admob.*
+//import com.soywiz.korge.admob.*
 import com.soywiz.korge.box2d.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
@@ -15,7 +15,7 @@ import org.jbox2d.collision.shapes.*
 import org.jbox2d.dynamics.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My Awesome Box2D Game!") {
-	val admob = AdmobCreate(testing = true)
+	//val admob = AdmobCreate(testing = true)
 
 	println("STARTED!")
 
@@ -25,7 +25,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 
 	launchImmediately {
 		try {
-			admob.bannerPrepareAndShow(Admob.Config("ca-app-pub-xxx/xxx"))
+			//admob.bannerPrepareAndShow(Admob.Config("ca-app-pub-xxx/xxx"))
 		} catch (e: Throwable) {
 			e.printStackTrace()
 		}

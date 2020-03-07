@@ -9,7 +9,7 @@ korge {
 	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 	jvmMainClassName = "Sample1Kt"
 
-	admob("ca-app-pub-xxxxxxxx~yyyyyy")
+	//admob("ca-app-pub-xxxxxxxx~yyyyyy")
 
 	supportShapeOps()
 	supportTriangulation()
