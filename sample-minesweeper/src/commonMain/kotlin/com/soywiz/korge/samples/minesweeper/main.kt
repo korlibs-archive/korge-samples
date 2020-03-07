@@ -2,6 +2,7 @@ package com.soywiz.korge.samples.minesweeper
 
 import com.soywiz.korev.*
 import com.soywiz.korge.*
+import com.soywiz.korge.component.docking.*
 import com.soywiz.korge.service.process.*
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*
@@ -24,7 +25,7 @@ class MainProcess(parent: Container) : Process(parent) {
 	val lights = arrayListOf<RandomLight>()
 
 	override suspend fun main() {
-		image(readImage("bg.jpg")).dockedTo2(Anchor.TOP_LEFT, ScaleMode.EXACT)
+		image(readImage("bg.jpg")).dockedTo(Anchor.TOP_LEFT, ScaleMode.EXACT)
 		val light = readImage("light.png")
 		val imageset = readImage("buscaminas.png")
 		val imagenes = imageset.split(imageset.height, imageset.height)

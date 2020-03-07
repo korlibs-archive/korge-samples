@@ -37,14 +37,11 @@ class TicTacToeMainScene : Scene() {
 	val board = Board(3, 3)
 	lateinit var game: Game
 
-	override suspend fun init(injector: AsyncInjector) {
-		super.init(injector)
-
-		//mainLibrary = resourcesVfs["main.swf"].readSWF(views)
+	override suspend fun Container.sceneInit() {
 		mainLibrary = resourcesVfs["main.ani"].readAni(views)
 	}
 
-	override suspend fun Container.sceneInit() {
+	override suspend fun Container.sceneMain() {
 
 		sceneView += mainLibrary.createMainTimeLine()
 
@@ -59,30 +56,29 @@ class TicTacToeMainScene : Scene() {
 		//val p2 = InteractivePlayer(board, Chip.CIRCLE)
 
 		game = Game(board, listOf(p1, p2))
-		launchImmediately {
-			while (true) {
-				game.board.reset()
-				val result = game.game()
+		while (true) {
+			game.board.reset()
+			val result = game.game()
 
-				println(result)
+			println(result)
 
-				val results = mainLibrary.createMovieClip("Results")
-				//(results["result"] as AnTextField).format?.face = Html.FontFace.Bitmap(font)
-				when (result) {
-					is Game.Result.DRAW -> results["result"].setText("DRAW")
-					is Game.Result.WIN -> {
-						results["result"].setText("WIN")
-						for (cell in result.cells) cell.highlight(true)
-						for (cell in game.board.cells.toList() - result.cells) cell.lowlight(true)
-					}
+			val results = mainLibrary.createMovieClip("Results")
+			//(results["result"] as AnTextField).format?.face = Html.FontFace.Bitmap(font)
+			when (result) {
+				is Game.Result.DRAW -> results["result"].setText("DRAW")
+				is Game.Result.WIN -> {
+					results["result"].setText("WIN")
+					for (cell in result.cells) cell.highlight(true)
+					for (cell in game.board.cells.toList() - result.cells) cell.lowlight(true)
 				}
-				sceneView += results
-				results["hit"]?.mouse?.onClick?.waitOne()
-				//sceneView -= results
-				results.removeFromParent()
-
 			}
+			sceneView += results
+			results["hit"]?.mouse?.onClick?.waitOne()
+			//sceneView -= results
+			results.removeFromParent()
+
 		}
+
 	}
 }
 

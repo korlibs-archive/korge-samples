@@ -165,27 +165,3 @@ fun Views.registerProcessSystem() {
 
 suspend fun readImage(path: String) = resourcesVfs[path].readBitmapSlice()
 suspend fun readSound(path: String) = resourcesVfs[path].readNativeSoundOptimized()
-
-// Remove once in KorGE
-fun <T : View> T.dockedTo2(anchor: Anchor, scaleMode: ScaleMode = ScaleMode.NO_SCALE): T = this.also { DockingComponent2(this, anchor, scaleMode).attach() }
-class DockingComponent2(override val view: View, var anchor: Anchor, var scaleMode: ScaleMode = ScaleMode.NO_SCALE) : ResizeComponent {
-	//private val bounds = Rectangle()
-
-	val initialViewSize = Size(view.width, view.height)
-	private val actualVirtualSize = Size(0, 0)
-	private val targetSize = Size(0, 0)
-
-	override fun resized(views: Views, width: Int, height: Int) {
-		view.position(
-			views.actualVirtualLeft.toDouble() + (views.actualVirtualWidth) * anchor.sx,
-			views.actualVirtualTop.toDouble() + (views.actualVirtualHeight) * anchor.sy
-		)
-		if (scaleMode != ScaleMode.NO_SCALE) {
-			actualVirtualSize.setTo(views.actualVirtualWidth, views.actualVirtualHeight)
-			val size = scaleMode.invoke(initialViewSize, actualVirtualSize, targetSize)
-			view.setSize(size.width, size.height)
-		}
-		view.invalidate()
-		view.parent?.invalidate()
-	}
-}

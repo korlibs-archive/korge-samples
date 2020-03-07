@@ -25,7 +25,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 	//uiSkin(OtherUISkin()) {
 	defaultUISkin = OtherUISkin()
 	defaultUIFont = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
-	uiTextButton(256.0, 32.0) {
+	textButton(256.0, 32.0) {
 		text = "Disabled Button"
 		position(128, 128)
 		onClick {
@@ -33,7 +33,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		}
 		disable()
 	}
-	uiTextButton(256.0, 32.0) {
+	textButton(256.0, 32.0) {
 		text = "Enabled Button"
 		position(128, 128 + 32)
 		onClick {
@@ -68,7 +68,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 	}) {
 
 		for (n in 0 until 16) {
-			uiTextButton(text = "HELLO $n").position(0, n * 64)
+			textButton(text = "HELLO $n").position(0, n * 64)
 		}
 	}
 
@@ -96,7 +96,7 @@ suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
 
 	DefaultUISkin.copy(
 		normal = ui.sliceWithSize(0, 0, 64, 64),
-		hover = ui.sliceWithSize(64, 0, 64, 64),
+		over = ui.sliceWithSize(64, 0, 64, 64),
 		down = ui.sliceWithSize(127, 0, 64, 64),
 		backColor = DefaultUISkin.backColor.transform(otherColorTransform)
 		//,
