@@ -1,5 +1,0 @@
-apply plugin: "korge"
-
-korge {
-	id = "com.soywiz.samples.particles"
-}

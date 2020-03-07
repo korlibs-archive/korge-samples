@@ -1,4 +1,6 @@
 buildscript {
+	val korgePluginVersion: String by project
+
 	repositories {
 		mavenLocal()
 		maven { url = uri("https://dl.bintray.com/korlibs/korlibs") }

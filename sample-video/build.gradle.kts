@@ -1,4 +1,6 @@
-apply plugin: "korge"
+import com.soywiz.korge.gradle.*
+
+apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.soywiz.samplevideo"
@@ -8,5 +10,5 @@ korge {
 }
 
 dependencies {
-	commonMainApi("com.soywiz.korlibs.korvi:korvi:0.0.1")
+	add("commonMainApi", "com.soywiz.korlibs.korvi:korvi:0.1.1")
 }
