@@ -42,7 +42,8 @@ suspend fun main() = Korge(width = WIDTH, height = HEIGHT, virtualWidth = WIDTH,
 
 			fun bulletFrame() {
 				bullet.advance(+3.0)
-				if (bullet.x < 10 || bullet.y < 10 || bullet.x > WIDTH + 10 || bullet.y > HEIGHT + 10) {
+				val BULLET_SIZE = 14
+				if (bullet.x < -BULLET_SIZE || bullet.y < -BULLET_SIZE || bullet.x > WIDTH + BULLET_SIZE || bullet.y > HEIGHT + BULLET_SIZE) {
 					bullet.removeFromParent()
 				}
 			}
@@ -58,10 +59,6 @@ suspend fun main() = Korge(width = WIDTH, height = HEIGHT, virtualWidth = WIDTH,
 	}
 
 	//image(shipBitmap)
-}
-
-suspend fun waitFrame() {
-
 }
 
 fun View.advance(amount: Double, rot: Angle = (-90).degrees) = this.apply {
