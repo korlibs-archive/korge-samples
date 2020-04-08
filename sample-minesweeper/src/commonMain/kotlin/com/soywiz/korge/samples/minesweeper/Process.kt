@@ -30,8 +30,9 @@ abstract class Process(parent: Container) : Container() {
 	val audio get() = views.audioV
 
 	suspend fun frame() {
-		//delayFrame()
-		delay((1.0 / fps).seconds)
+		delayFrame()
+		//views.stage.delayFrame()
+		//delay((1.0 / fps).seconds)
 	}
 
 	fun action(action: KSuspendFunction0<Unit>) {
