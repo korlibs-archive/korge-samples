@@ -7,6 +7,7 @@ import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korim.vector.*
+import com.soywiz.korim.vector.paint.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korio.lang.*
@@ -86,7 +87,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 			density = 22f
 			friction = 3f
 		}.setView(sgraphics {
-			fillStroke(Context2d.Color(Colors.BLUE), Context2d.Color(Colors.RED), Context2d.StrokeInfo(thickness = 0.3)) {
+			fillStroke(ColorPaint(Colors.BLUE), ColorPaint(Colors.RED), Context2d.StrokeInfo(thickness = 0.3)) {
 				circle(0, 0, 2)
 				//rect(0, 0, 400, 20)
 			}

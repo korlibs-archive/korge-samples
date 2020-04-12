@@ -4,14 +4,20 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.vector.*
+import com.soywiz.korio.async.*
+import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 
 val WIDTH = 640
 val HEIGHT = 480
 
-suspend fun main() = Korge(width = WIDTH, height = HEIGHT, virtualWidth = WIDTH, virtualHeight = HEIGHT) {
+suspend fun main() = Korge(
+	width = WIDTH, height = HEIGHT,
+	virtualWidth = WIDTH, virtualHeight = HEIGHT
+) {
 	val assets = Assets()
+	views.gameWindow.icon = assets.shipBitmap
 
 	solidRect(WIDTH, HEIGHT, Colors["#222"])
 	val ship = image(assets.shipBitmap).center().position(320, 240)
@@ -19,8 +25,23 @@ suspend fun main() = Korge(width = WIDTH, height = HEIGHT, virtualWidth = WIDTH,
 	val pressing = BooleanArray(Key.MAX)
 	fun pressing(key: Key) = pressing[key.ordinal]
 	keys {
-		down { pressing[key.ordinal] = true }
-		up { pressing[key.ordinal] = false }
+		down {
+			//println("KEY_DOWN: $key")
+			pressing[key.ordinal] = true
+		}
+		up {
+			//println("KEY_UP: $key")
+			pressing[key.ordinal] = false
+		}
+		down(Key.ESCAPE) {
+			launch {
+				//views.gameWindow.browse(URL("https://korlibs.soywiz.com/"))
+				val files = views.gameWindow.openFileDialog()
+				println(files)
+				//val result = views.gameWindow.confirm("HELLO!")
+				//println("result: $result")
+			}
+		}
 	}
 
 	var bulletReload = 0
@@ -72,7 +93,7 @@ class Assets {
 	val shipSize = 24
 	val shipBitmap = NativeImage(shipSize, shipSize).context2d {
 		lineWidth = shipSize * 0.05
-		lineCap = Context2d.LineCap.ROUND
+		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
 			moveTo(shipSize * 0.5, 0)
 			lineTo(shipSize, shipSize)
@@ -83,7 +104,7 @@ class Assets {
 	}
 	val bulletBitmap = NativeImage(3, (shipSize * 0.3).toInt()).context2d {
 		lineWidth = 1.0
-		lineCap = Context2d.LineCap.ROUND
+		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
 			moveTo(width / 2, 0)
 			lineToV(height)
