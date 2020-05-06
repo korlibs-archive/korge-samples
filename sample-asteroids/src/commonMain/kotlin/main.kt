@@ -1,3 +1,4 @@
+import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.view.*
@@ -44,25 +45,27 @@ suspend fun main() = Korge(
 		}
 	}
 
-	var bulletReload = 0
-	addUpdater {
-		if (pressing(Key.LEFT)) ship.rotation -= 3.degrees
-		if (pressing(Key.RIGHT)) ship.rotation += 3.degrees
-		if (pressing(Key.UP)) ship.advance(2.0)
-		if (pressing(Key.DOWN)) ship.advance(-1.5)
+	var bulletReload = 0.0
+	addUpdater { time ->
+		val scale = time / 16.milliseconds
+		if (pressing(Key.LEFT)) ship.rotation -= 3.degrees * scale
+		if (pressing(Key.RIGHT)) ship.rotation += 3.degrees * scale
+		if (pressing(Key.UP)) ship.advance(2.0 * scale)
+		if (pressing(Key.DOWN)) ship.advance(-1.5 * scale)
 
-		if (bulletReload > 0) bulletReload--
+		if (bulletReload > 0) bulletReload -= 1 * scale
 
 		if (bulletReload <= 0 && pressing(Key.SPACE)) {
-			bulletReload = 6
+			bulletReload = 6.0
 			val bullet = image(assets.bulletBitmap)
 				.center()
 				.position(ship.x, ship.y)
 				.rotation(ship.rotation)
 				.advance(assets.shipSize * 0.75)
 
-			fun bulletFrame() {
-				bullet.advance(+3.0)
+			fun bulletFrame(time: TimeSpan) {
+				val scale = time / 16.milliseconds
+				bullet.advance(+3.0 * scale)
 				val BULLET_SIZE = 14
 				if (bullet.x < -BULLET_SIZE || bullet.y < -BULLET_SIZE || bullet.x > WIDTH + BULLET_SIZE || bullet.y > HEIGHT + BULLET_SIZE) {
 					bullet.removeFromParent()
@@ -75,7 +78,7 @@ suspend fun main() = Korge(
 			//		bullet.delayFrame()
 			//	}
 			//}
-			bullet.addUpdater { bulletFrame()  }
+			bullet.addUpdater { bulletFrame(it)  }
 		}
 	}
 
