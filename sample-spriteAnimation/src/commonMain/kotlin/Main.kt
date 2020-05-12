@@ -8,89 +8,78 @@ import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(width = 512, height = 512) {
-	val spriteMap = resourcesVfs["character.png"].readBitmap()
+	val spriteMap = resourcesVfs["gfx/character/character.png"].readBitmap()
 	val spriteView = Image(Bitmaps.transparent).apply {
-		position(250, 250)
+		position(250,250)
 		scale(3)
 	}
 
 	val spriteAnimationLeft = SpriteAnimation(
-		spriteView = spriteView,
+		id = "left",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
 		marginTop = 96,
 		marginLeft = 1,
 		columns = 4,
-		lines = 1
+		rows = 1
 	)
 
 	val spriteAnimationRight = SpriteAnimation(
-		spriteView = spriteView,
+		id = "right",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
 		marginTop = 32,
 		marginLeft = 1,
 		columns = 4,
-		lines = 1
+		rows = 1
 	)
 
 	val spriteAnimationUp = SpriteAnimation(
-		spriteView = spriteView,
+		id = "up",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
 		marginTop = 64,
 		marginLeft = 1,
 		columns = 4,
-		lines = 1
+		rows = 1
 	)
 
 	val spriteAnimationDown = SpriteAnimation(
-		spriteView = spriteView,
+		id = "down",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
 		marginTop = 0,
 		marginLeft = 1,
 		columns = 4,
-		lines = 1
+		rows = 1
 	)
 
-	addChild(spriteView)
+	val charachterSprite = Sprite(spriteAnimationLeft, spriteAnimationRight, spriteAnimationUp, spriteAnimationDown).apply {
+		scale(3)
+		xy(100,100)
+	}
+
+	addChild(charachterSprite)
 
 
 	keys {
-		onKeyDown {
-			when (it.key) {
-				Key.LEFT -> {
-					spriteAnimationLeft.nextSprite(); spriteView.x -= 2
-				}
-				Key.RIGHT -> {
-					spriteAnimationRight.nextSprite(); spriteView.x += 2
-				}
-				Key.DOWN -> {
-					spriteAnimationDown.nextSprite(); spriteView.y += 2
-				}
-				Key.UP -> {
-					spriteAnimationUp.nextSprite(); spriteView.y -= 2
-				}
-				Key.L -> {
-					spriteAnimationDown.playLooped()
-				}
-				Key.T -> {
-					spriteAnimationDown.play(5)
-				}
-				Key.D -> {
-					spriteAnimationDown.playForDuration(10.seconds)
-				}
-				Key.S -> {
-					spriteAnimationDown.stop()
-				}
+		onKeyDown{
+			when (it.key){
+				Key.LEFT -> {charachterSprite.playAnimation(id = "left"); charachterSprite.x-=2 }
+				Key.RIGHT ->{ charachterSprite.playAnimation(id ="right"); charachterSprite.x+=2}
+				Key.DOWN -> {charachterSprite.playAnimation(id ="down"); charachterSprite.y+=2}
+				Key.UP -> {charachterSprite.playAnimation(id ="up"); charachterSprite.y-=2}
+				Key.L -> {charachterSprite.playAnimationLooped(id ="up"); charachterSprite.y-=2}
+				Key.T -> {charachterSprite.playAnimation(times = 10, id ="up"); charachterSprite.y-=2}
+				Key.D -> {charachterSprite.playAnimationForDuration(1.seconds, id ="up"); charachterSprite.y-=2}
+				Key.S -> {charachterSprite.stopAnimation()}
 
-				else -> {
-				}
+
+				else -> {}
 			}
 		}
 	}
