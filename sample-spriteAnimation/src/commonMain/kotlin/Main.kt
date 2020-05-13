@@ -9,13 +9,9 @@ import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(width = 512, height = 512) {
 	val spriteMap = resourcesVfs["gfx/character/character.png"].readBitmap()
-	val spriteView = Image(Bitmaps.transparent).apply {
-		position(250,250)
-		scale(3)
-	}
+
 
 	val spriteAnimationLeft = SpriteAnimation(
-		id = "left",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
@@ -26,7 +22,6 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	)
 
 	val spriteAnimationRight = SpriteAnimation(
-		id = "right",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
@@ -37,7 +32,6 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	)
 
 	val spriteAnimationUp = SpriteAnimation(
-		id = "up",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
@@ -48,7 +42,6 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	)
 
 	val spriteAnimationDown = SpriteAnimation(
-		id = "down",
 		spriteMap = spriteMap,
 		spriteWidth = 16,
 		spriteHeight = 32,
@@ -58,25 +51,34 @@ suspend fun main() = Korge(width = 512, height = 512) {
 		rows = 1
 	)
 
-	val charachterSprite = Sprite(spriteAnimationLeft, spriteAnimationRight, spriteAnimationUp, spriteAnimationDown).apply {
+	val player1 = Sprite(spriteAnimationDown).apply {
+		scale(3)
+		xy(100,200)
+	}
+	val player2 = Sprite(spriteAnimationDown).apply {
 		scale(3)
 		xy(100,100)
 	}
 
-	addChild(charachterSprite)
+	addChild(player1)
+	addChild(player2)
 
 
 	keys {
 		onKeyDown{
 			when (it.key){
-				Key.LEFT -> {charachterSprite.playAnimation(id = "left"); charachterSprite.x-=2 }
-				Key.RIGHT ->{ charachterSprite.playAnimation(id ="right"); charachterSprite.x+=2}
-				Key.DOWN -> {charachterSprite.playAnimation(id ="down"); charachterSprite.y+=2}
-				Key.UP -> {charachterSprite.playAnimation(id ="up"); charachterSprite.y-=2}
-				Key.L -> {charachterSprite.playAnimationLooped(id ="up"); charachterSprite.y-=2}
-				Key.T -> {charachterSprite.playAnimation(times = 10, id ="up"); charachterSprite.y-=2}
-				Key.D -> {charachterSprite.playAnimationForDuration(1.seconds, id ="up"); charachterSprite.y-=2}
-				Key.S -> {charachterSprite.stopAnimation()}
+				Key.LEFT -> {player1.playAnimation(spriteAnimationLeft); player1.x-=2 }
+				Key.RIGHT ->{ player1.playAnimation(spriteAnimationRight); player1.x+=2}
+				Key.DOWN -> {player1.playAnimation(spriteAnimationDown); player1.y+=2}
+				Key.UP -> {player1.playAnimation(spriteAnimationUp); player1.y-=2}
+				Key.A -> {player2.playAnimation(spriteAnimationLeft); player2.x-=2 }
+				Key.D ->{ player2.playAnimation(spriteAnimationRight); player2.x+=2}
+				Key.S -> {player2.playAnimation(spriteAnimationDown); player2.y+=2}
+				Key.W -> {player2.playAnimation(spriteAnimationUp); player2.y-=2}
+				Key.L -> {player1.playAnimationLooped(spriteAnimationDown, 100.milliseconds)}
+				Key.T -> {player1.playAnimation(spriteAnimation = spriteAnimationDown, times = 3, spriteDisplayTime = 200.milliseconds)}
+				Key.C -> {player1.playAnimationForDuration(1.seconds, spriteAnimationDown); player1.y-=2}
+				Key.ESCAPE -> {player1.stopAnimation()}
 
 
 				else -> {}
