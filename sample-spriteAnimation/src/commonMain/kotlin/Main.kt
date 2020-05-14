@@ -10,7 +10,6 @@ import com.soywiz.korio.file.std.*
 suspend fun main() = Korge(width = 512, height = 512) {
 	val spriteMap = resourcesVfs["gfx/character/character.png"].readBitmap()
 
-
 	val spriteAnimationLeft = SpriteAnimation(
 		spriteMap = spriteMap,
 		spriteWidth = 16,
