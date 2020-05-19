@@ -7,5 +7,5 @@ import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "SVG") {
 	val svg = SVG(resourcesVfs["tiger.svg"].readString())
-	image(svg.renderToImage(512, 512))
+	image(svg.render())
 }
