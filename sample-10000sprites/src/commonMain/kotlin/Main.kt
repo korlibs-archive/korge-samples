@@ -12,8 +12,8 @@ suspend fun main() = Korge(width = 1600, height = 1200) {
 	val numberOfGreen = 5000
 	val numberOfRed = numberOfGreen
 
-	val redSpriteMap = resourcesVfs["gfx/character/character.png"].readBitmap()
-	val greenSpriteMap = resourcesVfs["gfx/character/character2.png"].readBitmap()
+	val redSpriteMap = resourcesVfs["character.png"].readBitmap()
+	val greenSpriteMap = resourcesVfs["character2.png"].readBitmap()
 
 	val greenAnimations = animations(greenSpriteMap)
 	val redAnimations = animations(redSpriteMap)
