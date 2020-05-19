@@ -12,6 +12,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	text("Add Points by clicking with the mouse")
 	graphics {
 		val graphics = this
+		graphics.useNativeRendering = false
 		position(100, 100)
 
 		val points = arrayListOf<IPoint>()
