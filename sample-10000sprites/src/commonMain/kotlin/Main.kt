@@ -37,11 +37,11 @@ suspend fun main() = Korge(width = 1600, height = 1200) {
 	addUpdater {
 
 		greenSprites.forEachIndexed { index, sprite ->
-			sprite.playAnimationLooped(animations(greenSpriteMap)[index % greenAnimations.size]).apply { walkdirection(sprite, index % greenAnimations.size) }
+			sprite.playAnimationLooped(greenAnimations[index % greenAnimations.size]).apply { walkdirection(sprite, index % greenAnimations.size) }
 		}
 
 		redSprites.forEachIndexed { index, sprite ->
-			sprite.playAnimationLooped(animations(redSpriteMap)[index % redAnimations.size]).apply { walkdirection(sprite, index % redAnimations.size) }
+			sprite.playAnimationLooped(redAnimations[index % redAnimations.size]).apply { walkdirection(sprite, index % redAnimations.size) }
 		}
 
 	}
