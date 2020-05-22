@@ -1,4 +1,5 @@
 import com.soywiz.klock.*
+import com.soywiz.kmem.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.input.*
@@ -15,15 +16,29 @@ suspend fun main() = Korge(width = 512, height = 512) {
 			tiledMapView(tiledMap) {
 			}
 		}
-		this.keys.apply {
-			down { key ->
-				when (key) {
-					Key.RIGHT -> camera.moveBy(-16, 0, 0.25.seconds)
-					Key.LEFT -> camera.moveBy(+16, 0, 0.25.seconds)
-					Key.DOWN -> camera.moveBy(0, -16, 0.25.seconds)
-					Key.UP -> camera.moveBy(0, +16, 0.25.seconds)
-				}
-			}
+		var dx = 0.0
+		var dy = 0.0
+		//this.keys.apply {
+		//	down { key ->
+		//		when (key) {
+		//			Key.RIGHT -> dx -= 1.0
+		//			Key.LEFT -> dx += 1.0
+		//			Key.DOWN -> dy -= 1.0
+		//			Key.UP -> dy += 1.0
+		//		}
+		//	}
+		//}
+		addUpdater {
+			if (views.input.keys[Key.RIGHT]) dx -= 1.0
+			if (views.input.keys[Key.LEFT]) dx += 1.0
+			if (views.input.keys[Key.UP]) dy += 1.0
+			if (views.input.keys[Key.DOWN]) dy -= 1.0
+			dx = dx.clamp(-10.0, +10.0)
+			dy = dy.clamp(-10.0, +10.0)
+			camera.x += dx
+			camera.y += dy
+			dx *= 0.9
+			dy *= 0.9
 		}
 	}
 }
