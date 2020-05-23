@@ -11,8 +11,8 @@ class AtlasTest : ViewsForTesting() {
 	@Test
 	fun test() = viewsTest {
 		atlasMain()
-		assertEquals(3, stage.children.size)
-		assertEquals(Size(68, 204), (stage.children.first() as Image).texture.bmp.size)
+		assertEquals(3, stage.numChildren)
+		assertEquals(Size(68, 204), (stage[0] as Image).texture.bmp.size)
 	}
 
 	@Test
