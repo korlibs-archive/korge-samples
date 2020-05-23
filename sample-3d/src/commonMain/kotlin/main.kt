@@ -8,6 +8,7 @@ import com.soywiz.korge.view.*
 import com.soywiz.korge3d.*
 import com.soywiz.korge3d.animation.*
 import com.soywiz.korge3d.format.*
+import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korinject.*
