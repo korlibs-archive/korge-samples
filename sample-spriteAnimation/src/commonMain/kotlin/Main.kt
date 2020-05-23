@@ -62,26 +62,41 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	addChild(player1)
 	addChild(player2)
 
-
-	keys {
-		onKeyDown{
-			when (it.key){
-				Key.LEFT -> {player1.playAnimation(spriteAnimationLeft); player1.x-=2 }
-				Key.RIGHT ->{ player1.playAnimation(spriteAnimationRight); player1.x+=2}
-				Key.DOWN -> {player1.playAnimation(spriteAnimationDown); player1.y+=2}
-				Key.UP -> {player1.playAnimation(spriteAnimationUp); player1.y-=2}
-				Key.A -> {player2.playAnimation(spriteAnimationLeft); player2.x-=2 }
-				Key.D ->{ player2.playAnimation(spriteAnimationRight); player2.x+=2}
-				Key.S -> {player2.playAnimation(spriteAnimationDown); player2.y+=2}
-				Key.W -> {player2.playAnimation(spriteAnimationUp); player2.y-=2}
-				Key.L -> {player1.playAnimationLooped(spriteAnimationDown, 100.milliseconds)}
-				Key.T -> {player1.playAnimation(spriteAnimation = spriteAnimationDown, times = 3, spriteDisplayTime = 200.milliseconds)}
-				Key.C -> {player1.playAnimationForDuration(1.seconds, spriteAnimationDown); player1.y-=2}
-				Key.ESCAPE -> {player1.stopAnimation()}
-
-
-				else -> {}
-			}
-		}
+	addUpdater { time ->
+		val scale = 16.milliseconds / time
+		val disp = 2 * scale
+		val keys = views.input.keys
+		if (keys[Key.LEFT]) {player1.playAnimation(spriteAnimationLeft); player1.x-=disp }
+		if (keys[Key.RIGHT]) { player1.playAnimation(spriteAnimationRight); player1.x+=disp}
+		if (keys[Key.DOWN]) {player1.playAnimation(spriteAnimationDown); player1.y+=disp}
+		if (keys[Key.UP]) {player1.playAnimation(spriteAnimationUp); player1.y-=disp}
+		if (keys[Key.A]) {player2.playAnimation(spriteAnimationLeft); player2.x-=disp }
+		if (keys[Key.D]) { player2.playAnimation(spriteAnimationRight); player2.x+=disp}
+		if (keys[Key.S]) {player2.playAnimation(spriteAnimationDown); player2.y+=disp}
+		if (keys[Key.W]) {player2.playAnimation(spriteAnimationUp); player2.y-=disp}
+		if (keys[Key.L]) {player1.playAnimationLooped(spriteAnimationDown, 100.milliseconds)}
+		if (keys[Key.T]) {player1.playAnimation(spriteAnimation = spriteAnimationDown, times = 3, spriteDisplayTime = 200.milliseconds)}
+		if (keys[Key.C]) {player1.playAnimationForDuration(1.seconds, spriteAnimationDown); player1.y-=2}
+		if (keys[Key.ESCAPE]) {player1.stopAnimation()}
 	}
+
+	//keys {
+	//	onKeyDown{
+	//		when (it.key){
+	//			Key.LEFT -> {player1.playAnimation(spriteAnimationLeft); player1.x-=2 }
+	//			Key.RIGHT ->{ player1.playAnimation(spriteAnimationRight); player1.x+=2}
+	//			Key.DOWN -> {player1.playAnimation(spriteAnimationDown); player1.y+=2}
+	//			Key.UP -> {player1.playAnimation(spriteAnimationUp); player1.y-=2}
+	//			Key.A -> {player2.playAnimation(spriteAnimationLeft); player2.x-=2 }
+	//			Key.D ->{ player2.playAnimation(spriteAnimationRight); player2.x+=2}
+	//			Key.S -> {player2.playAnimation(spriteAnimationDown); player2.y+=2}
+	//			Key.W -> {player2.playAnimation(spriteAnimationUp); player2.y-=2}
+	//			Key.L -> {player1.playAnimationLooped(spriteAnimationDown, 100.milliseconds)}
+	//			Key.T -> {player1.playAnimation(spriteAnimation = spriteAnimationDown, times = 3, spriteDisplayTime = 200.milliseconds)}
+	//			Key.C -> {player1.playAnimationForDuration(1.seconds, spriteAnimationDown); player1.y-=2}
+	//			Key.ESCAPE -> {player1.stopAnimation()}
+	//			else -> {}
+	//		}
+	//	}
+	//}
 }
