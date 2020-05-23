@@ -14,6 +14,7 @@ suspend fun main() = Korge {
 	val keysDownText = textLine("Keys:Down")
 	val keysUpText = textLine("Keys:Up")
 	val mouseEvText = textLine("Mouse1")
+	val mouseMoveText = textLine("MouseMove")
 	val mouseDownText = textLine("MouseDown")
 	val mouseUpText = textLine("MouseUp")
 	val mouseClickText = textLine("MouseClick")
@@ -44,6 +45,7 @@ suspend fun main() = Korge {
 	}
 
 	mouse {
+		onMove { mouseMoveText.text = "Mouse:Move:${nowUnix()}:$it" }
 		onDown { mouseDownText.text = "Mouse:Down:${nowUnix()}:$it" }
 		onUp { mouseUpText.text = "Mouse:Up:${nowUnix()}:$it" }
 		onClick { mouseClickText.text = "Mouse:Click:${nowUnix()}:$it" }
