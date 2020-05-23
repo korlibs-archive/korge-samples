@@ -13,7 +13,7 @@ suspend fun main() = Korge(bgcolor = Colors["#333"]) {
 	text("Hello World 2!", textSize = 32.0, font = font1) {
 		val text = this
 		fun center() {
-			position(views.virtualWidth / 2 - width / 2, views.virtualHeight / 2)
+			position(views.virtualWidth / 2 - width.toInt() / 2, views.virtualHeight / 2)
 		}
 		//filter = Convolute3Filter(Convolute3Filter.KERNEL_GAUSSIAN_BLUR)
 		center()
