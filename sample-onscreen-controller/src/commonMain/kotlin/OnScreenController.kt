@@ -1,5 +1,6 @@
 import com.soywiz.kmem.*
 import com.soywiz.korev.*
+import com.soywiz.korge.component.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
@@ -40,40 +41,43 @@ fun Container.addTouchGamepad(width: Double = 320.0, height: Double = 224.0, rad
 	var dragging = false
 	val start = Point(0, 0)
 
-	view.addEventListener<MouseEvent> {
-		val px = view.globalMatrixInv.transformX(it.x, it.y)
-		val py = view.globalMatrixInv.transformY(it.x, it.y)
+	view.addComponent(object : MouseComponent {
+		override val view: View = view
 
-		when (it.type) {
-			MouseEvent.Type.DOWN -> {
+		override fun onMouseEvent(views: Views, it: MouseEvent) {
+			val px = view.globalMatrixInv.transformX(it.x.toDouble(), it.y.toDouble())
+			val py = view.globalMatrixInv.transformY(it.x.toDouble(), it.y.toDouble())
 
-				if (px >= width / 2) return@addEventListener
-				start.x = px
-				start.y = py
-				ball.alpha = 0.3
-				dragging = true
-			}
-			MouseEvent.Type.DRAG -> {
-				if (dragging) {
-					val deltaX = px - start.x
-					val deltaY = py - start.y
-					val length = hypot(deltaX, deltaY)
-					val maxLength = radius * 0.3
-					val lengthClamped = length.clamp(0.0, maxLength)
-					val angle = Angle.between(start.x, start.y, px, py)
-					ball.position(cos(angle) * lengthClamped, sin(angle) * lengthClamped)
-					val lengthNormalized = lengthClamped / maxLength
-					onStick(cos(angle) * lengthNormalized, sin(angle) * lengthNormalized)
+			when (it.type) {
+				MouseEvent.Type.DOWN -> {
+					if (px >= width / 2) return@onMouseEvent
+					start.x = px
+					start.y = py
+					ball.alpha = 0.3
+					dragging = true
 				}
+				MouseEvent.Type.DRAG -> {
+					if (dragging) {
+						val deltaX = px - start.x
+						val deltaY = py - start.y
+						val length = hypot(deltaX, deltaY)
+						val maxLength = radius * 0.3
+						val lengthClamped = length.clamp(0.0, maxLength)
+						val angle = Angle.between(start.x, start.y, px, py)
+						ball.position(cos(angle) * lengthClamped, sin(angle) * lengthClamped)
+						val lengthNormalized = lengthClamped / maxLength
+						onStick(cos(angle) * lengthNormalized, sin(angle) * lengthNormalized)
+					}
+				}
+				MouseEvent.Type.UP -> {
+					ball.position(0, 0)
+					ball.alpha = 0.2
+					dragging = false
+					onStick(0.0, 0.0)
+				}
+				else -> Unit
 			}
-			MouseEvent.Type.UP -> {
-				ball.position(0, 0)
-				ball.alpha = 0.2
-				dragging = false
-				onStick(0.0, 0.0)
-			}
-			else -> Unit
 		}
-	}
+	})
 }
 
