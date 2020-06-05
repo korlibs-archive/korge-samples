@@ -1,48 +1,50 @@
+import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
-import com.soywiz.korim.vector.*
-import com.soywiz.korio.async.*
-import com.soywiz.korio.net.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
+import com.soywiz.korma.random.*
+import kotlin.random.*
 
 val WIDTH = 640
 val HEIGHT = 480
+
+val SHIP_SIZE = 24
+val BULLET_SIZE = 14
+val Stage.assets by Extra.PropertyThis<Stage, Assets> { Assets(views, SHIP_SIZE) }
 
 suspend fun main() = Korge(
 	width = WIDTH, height = HEIGHT,
 	virtualWidth = WIDTH, virtualHeight = HEIGHT
 ) {
-	val assets = Assets()
 	views.gameWindow.icon = assets.shipBitmap
 
 	solidRect(WIDTH, HEIGHT, Colors["#222"])
 	val ship = image(assets.shipBitmap).center().position(320, 240)
 
-	val pressing = BooleanArray(Key.MAX)
-	fun pressing(key: Key) = pressing[key.ordinal]
-	keys {
-		down {
-			//println("KEY_DOWN: $key")
-			pressing[key.ordinal] = true
+	fun pressing(key: Key) = views.input.keys[key]
+
+	spawnAsteroid(WIDTH - 20.0, 20.0)
+
+	ship.onCollision {
+		if (it is Asteroid) {
+			//ship.removeFromParent()
+			println("GAME OVER!")
 		}
-		up {
-			//println("KEY_UP: $key")
-			pressing[key.ordinal] = false
-		}
-		down(Key.ESCAPE) {
-			launch {
-				//views.gameWindow.browse(URL("https://korlibs.soywiz.com/"))
-				val files = views.gameWindow.openFileDialog()
-				println(files)
-				//val result = views.gameWindow.confirm("HELLO!")
-				//println("result: $result")
-			}
-		}
+	}
+
+	val random = Random(0)
+	for (n in 0 until 15) {
+		val asteroid = spawnAsteroid(0.0, 0.0)
+		do {
+			asteroid.x = random[0.0, WIDTH.toDouble()]
+			asteroid.y = random[0.0, HEIGHT.toDouble()]
+			asteroid.angle = random[0.0, 360.0].degrees
+		} while (asteroid.collidesWith(ship) || ship.distanceTo(asteroid) < 100.0)
 	}
 
 	var bulletReload = 0.0
@@ -56,17 +58,23 @@ suspend fun main() = Korge(
 		if (bulletReload > 0) bulletReload -= 1 * scale
 
 		if (bulletReload <= 0 && pressing(Key.SPACE)) {
-			bulletReload = 6.0
+			bulletReload = 20.0
 			val bullet = image(assets.bulletBitmap)
 				.center()
 				.position(ship.x, ship.y)
 				.rotation(ship.rotation)
 				.advance(assets.shipSize * 0.75)
 
+			bullet.onCollision {
+				if (it is Asteroid) {
+					bullet.removeFromParent()
+					it.divide()
+				}
+			}
+
 			fun bulletFrame(time: TimeSpan) {
 				val scale = time / 16.milliseconds
 				bullet.advance(+3.0 * scale)
-				val BULLET_SIZE = 14
 				if (bullet.x < -BULLET_SIZE || bullet.y < -BULLET_SIZE || bullet.x > WIDTH + BULLET_SIZE || bullet.y > HEIGHT + BULLET_SIZE) {
 					bullet.removeFromParent()
 				}
@@ -85,6 +93,49 @@ suspend fun main() = Korge(
 	//image(shipBitmap)
 }
 
+class Asteroid(val assets: Assets, val asteroidSize: Int = 3) : Image(assets.asteroidBitmap) {
+	var angle = 30.degrees
+	init {
+		anchor(.5, .5)
+		scale = asteroidSize.toDouble() / 3.0
+		name = "asteroid"
+		speed = 0.6
+		addUpdater { time ->
+			val scale = time / 16.milliseconds
+			val dx = angle.cosine * scale
+			val dy = angle.sine * scale
+			x += dx
+			y += dy
+			if (y < 0 && dy < 0) angle += 45.degrees
+			if (x < 0 && dx < 0) angle += 45.degrees
+			if (x > WIDTH && dx > 0) angle += 45.degrees
+			if (y > HEIGHT && dy > 0) angle += 45.degrees
+			rotationDegrees += scale
+		}
+	}
+
+	fun divide() {
+		if (asteroidSize > 1) {
+			Asteroid(assets, asteroidSize - 1).xy(x, y).addTo(parent!!).also {
+				it.angle = this.angle + 45.degrees
+				it.speed = this.speed * 1.5
+			}
+			Asteroid(assets, asteroidSize - 1).xy(x, y).addTo(parent!!).also {
+				it.angle = this.angle - 45.degrees
+				it.speed = this.speed * 1.5
+			}
+		}
+		removeFromParent()
+	}
+}
+
+fun Stage.spawnAsteroid(x: Double, y: Double): Asteroid {
+	return Asteroid(assets).addTo(this).xy(x, y)
+	//solidRect(10.0, 20.0, Colors.RED).xy(20, 20)
+}
+
+fun View.distanceTo(other: View) = Point.distance(x, y, other.x, other.y)
+
 fun View.advance(amount: Double, rot: Angle = (-90).degrees) = this.apply {
 	x += (this.rotation + rot).cosine * amount
 	y += (this.rotation + rot).sine * amount
@@ -92,16 +143,17 @@ fun View.advance(amount: Double, rot: Angle = (-90).degrees) = this.apply {
 
 inline fun View.advance(amount: Number, rot: Angle = (-90).degrees) = advance(amount.toDouble(), rot)
 
-class Assets {
-	val shipSize = 24
+class Assets(val views: Views, val shipSize: Int = 24) {
+	val asteroidSize = shipSize * 2
 	val shipBitmap = NativeImage(shipSize, shipSize).context2d {
 		lineWidth = shipSize * 0.05
 		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
-			moveTo(shipSize * 0.5, 0)
-			lineTo(shipSize, shipSize)
-			lineTo(shipSize * 0.5, shipSize * 0.8)
-			lineTo(0, shipSize)
+			scale(shipSize)
+			moveTo(0.5, 0.0)
+			lineTo(1.0, 1.0)
+			lineTo(0.5, 0.8)
+			lineTo(0.0, 1.0)
 			close()
 		}
 	}
@@ -111,6 +163,20 @@ class Assets {
 		stroke(Colors.WHITE) {
 			moveTo(width / 2, 0)
 			lineToV(height)
+		}
+	}
+	val asteroidBitmap = NativeImage(asteroidSize, asteroidSize).context2d {
+		lineWidth = asteroidSize * 0.05
+		lineCap = LineCap.ROUND
+		stroke(Colors.WHITE) {
+			scale(asteroidSize)
+			moveTo(0.0, 0.5)
+			lineTo(0.2, 0.0)
+			lineTo(0.7, 0.0)
+			lineTo(1.0, 0.5)
+			lineTo(0.7, 1.0)
+			lineTo(0.3, 1.0)
+			close()
 		}
 	}
 }
