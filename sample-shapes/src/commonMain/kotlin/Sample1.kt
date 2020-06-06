@@ -11,14 +11,11 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 }
 
 fun Stage.setupCircle() {
-	val circle = Circle(radius = 32.0)
-	addChild(circle)
-	launch {
-		while (true) {
-			circle.x++
-			circle.y++
-			circle.radius++
-			delay(16.milliseconds)
-		}
+	val circle = circle(radius = 32.0)
+
+	circle.addUpdater {
+		circle.x++
+		circle.y++
+		circle.radius++
 	}
 }
