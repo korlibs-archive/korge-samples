@@ -10,3 +10,4 @@ game.storage
 *.iml
 *.log
 .DS_Store
+/sample-pong/build/

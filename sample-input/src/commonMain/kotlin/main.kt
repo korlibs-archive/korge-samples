@@ -25,14 +25,14 @@ suspend fun main() = Korge {
 	val gamepadUpdateText = textLine("GamepadUpdateEv")
 	val gamepadUpdate2Text = textLine("GamepadUpdate2Ev")
 
-	//stage.addEventListener<KeyEvent> { keysEvText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<MouseEvent> { mouseEvText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<ReshapeEvent> { resizeText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<GamePadUpdateEvent> {
-	//	gamepadUpdateText.text = "${nowUnix()}:$it"
-	//	gamepadUpdate2Text.text = "" + it.gamepads.lastOrNull { it.connected }?.rawButtonsPressed
-	//}
+	stage.addEventListener<KeyEvent> { keysEvText.text = "${nowUnix()}:$it" }
+	stage.addEventListener<MouseEvent> { mouseEvText.text = "${nowUnix()}:$it" }
+	stage.addEventListener<ReshapeEvent> { resizeText.text = "${nowUnix()}:$it" }
+	stage.addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowUnix()}:$it" }
+	stage.addEventListener<GamePadUpdateEvent> {
+		gamepadUpdateText.text = "${nowUnix()}:$it"
+		gamepadUpdate2Text.text = "" + it.gamepads.lastOrNull { it.connected }?.rawButtonsPressed
+	}
 
 	gamepad {
 		button.invoke { gamepadButtonText.text = "$it" }
