@@ -30,7 +30,7 @@ suspend fun main() = Korge(
 
 	spawnAsteroid(WIDTH - 20.0, 20.0)
 
-	ship.onCollision(kind = CollisionKind.SHAPE) {
+	ship.onCollision {
 		if (it is Asteroid) {
 			//ship.removeFromParent()
 			println("GAME OVER!")
@@ -44,7 +44,7 @@ suspend fun main() = Korge(
 			asteroid.x = random[0.0, WIDTH.toDouble()]
 			asteroid.y = random[0.0, HEIGHT.toDouble()]
 			asteroid.angle = random[0.0, 360.0].degrees
-		} while (ship.distanceTo(asteroid) < 100.0)
+		} while (asteroid.collidesWith(ship) || ship.distanceTo(asteroid) < 100.0)
 	}
 
 	var bulletReload = 0.0
@@ -65,7 +65,7 @@ suspend fun main() = Korge(
 				.rotation(ship.rotation)
 				.advance(assets.shipSize * 0.75)
 
-			bullet.onCollision(kind = CollisionKind.SHAPE) {
+			bullet.onCollision {
 				if (it is Asteroid) {
 					bullet.removeFromParent()
 					it.divide()
@@ -104,13 +104,13 @@ class Asteroid(val assets: Assets, val asteroidSize: Int = 3) : Image(assets.ast
 			val scale = time / 16.milliseconds
 			val dx = angle.cosine * scale
 			val dy = angle.sine * scale
-			//x += dx
-			//y += dy
+			x += dx
+			y += dy
 			if (y < 0 && dy < 0) angle += 45.degrees
 			if (x < 0 && dx < 0) angle += 45.degrees
 			if (x > WIDTH && dx > 0) angle += 45.degrees
 			if (y > HEIGHT && dy > 0) angle += 45.degrees
-			//rotationDegrees += scale
+			rotationDegrees += scale
 		}
 	}
 
