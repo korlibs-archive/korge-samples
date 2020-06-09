@@ -8,18 +8,18 @@ import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge {
 	val atlas = resourcesVfs["lips.atlas.json"].readAtlas(views)
-	val lips = image(atlas["lisa-A.png"].texture)
-	val lips2 = image(atlas["lisa-A.png"].texture).position(400, 0)
+	val lips = image(atlas["lisa-A.png"])
+	val lips2 = image(atlas["lisa-A.png"]).position(400, 0)
 	addEventListener<LipSyncEvent> {
 		println(it)
 		if (it.name == "lisa") {
-			lips2.texture = atlas["lisa-${it.lip}.png"].texture
+			lips2.texture = atlas["lisa-${it.lip}.png"]
 		}
 	}
 	launchImmediately {
 		fun handler(it: LipSyncEvent) {
 			views.dispatch(it)
-			lips.texture = atlas["lisa-${it.lip}.png"].texture
+			lips.texture = atlas["lisa-${it.lip}.png"]
 		}
 
 		resourcesVfs["001.voice.wav"].readVoice().play("lisa") { handler(it) }

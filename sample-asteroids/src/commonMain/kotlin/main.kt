@@ -1,5 +1,7 @@
 import com.soywiz.kds.*
 import com.soywiz.klock.*
+import com.soywiz.klock.hr.hrMicroseconds
+import com.soywiz.klock.hr.hrMilliseconds
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.view.*
@@ -48,8 +50,8 @@ suspend fun main() = Korge(
 	}
 
 	var bulletReload = 0.0
-	addUpdater { time ->
-		val scale = time / 16.milliseconds
+	addHrUpdater { time ->
+		val scale = time / 16.hrMilliseconds
 		if (pressing(Key.LEFT)) ship.rotation -= 3.degrees * scale
 		if (pressing(Key.RIGHT)) ship.rotation += 3.degrees * scale
 		if (pressing(Key.UP)) ship.advance(2.0 * scale)
@@ -100,17 +102,17 @@ class Asteroid(val assets: Assets, val asteroidSize: Int = 3) : Image(assets.ast
 		scale = asteroidSize.toDouble() / 3.0
 		name = "asteroid"
 		speed = 0.6
-		addUpdater { time ->
-			val scale = time / 16.milliseconds
+		addHrUpdater { time ->
+			val scale = time / 16.hrMilliseconds
 			val dx = angle.cosine * scale
 			val dy = angle.sine * scale
 			x += dx
 			y += dy
+			rotationDegrees += scale
 			if (y < 0 && dy < 0) angle += 45.degrees
 			if (x < 0 && dx < 0) angle += 45.degrees
 			if (x > WIDTH && dx > 0) angle += 45.degrees
 			if (y > HEIGHT && dy > 0) angle += 45.degrees
-			rotationDegrees += scale
 		}
 	}
 
@@ -146,7 +148,7 @@ inline fun View.advance(amount: Number, rot: Angle = (-90).degrees) = advance(am
 class Assets(val views: Views, val shipSize: Int = 24) {
 	val asteroidSize = shipSize * 2
 	val shipBitmap = NativeImage(shipSize, shipSize).context2d {
-		lineWidth = shipSize * 0.05
+		lineWidth = 0.05
 		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
 			scale(shipSize)
@@ -165,8 +167,8 @@ class Assets(val views: Views, val shipSize: Int = 24) {
 			lineToV(height)
 		}
 	}
-	val asteroidBitmap = NativeImage(asteroidSize, asteroidSize).context2d {
-		lineWidth = asteroidSize * 0.05
+	val asteroidBitmap = Bitmap32(asteroidSize, asteroidSize).context2d { // Let's use software vector rendering here, for testing purposes
+		lineWidth = 0.05
 		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
 			scale(asteroidSize)

@@ -11,7 +11,7 @@ suspend fun main() = Korge(width = 640, height = 480, virtualWidth = 320, virtua
 
 suspend fun Stage.atlasMain() {
 	val logos = resourcesVfs["logos.atlas.json"].readAtlas(views)
-	image(logos["korau.png"].texture).position(0, 0)
-	image(logos["korim.png"].texture).position(64, 32)
-	image(logos["korge.png"].texture).position(128, 64)
+	image(logos["korau.png"]).position(0, 0)
+	image(logos["korim.png"]).position(64, 32)
+	image(logos["korge.png"]).position(128, 64)
 }
