@@ -32,7 +32,7 @@ suspend fun main() = Korge(
 
 	spawnAsteroid(WIDTH - 20.0, 20.0)
 
-	ship.onCollision(kind = CollisionKind.SHAPE) {
+	ship.onCollision {
 		if (it is Asteroid) {
 			//ship.removeFromParent()
 			println("GAME OVER!")
@@ -46,7 +46,7 @@ suspend fun main() = Korge(
 			asteroid.x = random[0.0, WIDTH.toDouble()]
 			asteroid.y = random[0.0, HEIGHT.toDouble()]
 			asteroid.angle = random[0.0, 360.0].degrees
-		} while (ship.distanceTo(asteroid) < 100.0)
+		} while (asteroid.collidesWith(ship) || ship.distanceTo(asteroid) < 100.0)
 	}
 
 	var bulletReload = 0.0
@@ -67,7 +67,7 @@ suspend fun main() = Korge(
 				.rotation(ship.rotation)
 				.advance(assets.shipSize * 0.75)
 
-			bullet.onCollision(kind = CollisionKind.SHAPE) {
+			bullet.onCollision {
 				if (it is Asteroid) {
 					bullet.removeFromParent()
 					it.divide()
