@@ -18,10 +18,10 @@ class AtlasTest : ViewsForTesting() {
 	@Test
 	fun testAtlas() = suspendTest {
 		val atlas = resourcesVfs["logos.atlas.json"].readAtlas(views)
-		assertEquals(3, atlas.textures.size)
-		assertEquals(Size(64, 64), atlas.textures["korau.png"]!!.texture.size)
-		assertEquals(Size(64, 64), atlas.textures["korge.png"]!!.texture.size)
-		assertEquals(Size(64, 64), atlas.textures["korim.png"]!!.texture.size)
+		assertEquals(3, atlas.entries.size)
+		assertEquals(Size(64, 64), atlas["korau.png"].size)
+		assertEquals(Size(64, 64), atlas["korge.png"].size)
+		assertEquals(Size(64, 64), atlas["korim.png"].size)
 	}
 
 	private val BmpSlice.size get() = Size(width, height)
