@@ -1,4 +1,5 @@
 import com.soywiz.klock.*
+import com.soywiz.klock.hr.hrMilliseconds
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.input.*
@@ -10,6 +11,7 @@ import com.soywiz.korio.file.std.*
 suspend fun main() = Korge(width = 1600, height = 1200) {
 
 	val numberOfGreen = 5000
+	//val numberOfGreen = 20000
 	val numberOfRed = numberOfGreen
 
 	val redSpriteMap = resourcesVfs["character.png"].readBitmap()
@@ -34,14 +36,15 @@ suspend fun main() = Korge(width = 1600, height = 1200) {
 		addChild(it)
 	}
 
-	addUpdater {
+	addHrUpdater {
+		val scale = if (it == 0.hrMilliseconds) 0.0 else (it / 16.666666.hrMilliseconds)
 
 		greenSprites.forEachIndexed { index, sprite ->
-			sprite.playAnimationLooped(greenAnimations[index % greenAnimations.size]).apply { walkdirection(sprite, index % greenAnimations.size) }
+			sprite.playAnimationLooped(greenAnimations[index % greenAnimations.size]).apply { walkdirection(sprite, index % greenAnimations.size, scale) }
 		}
 
 		redSprites.forEachIndexed { index, sprite ->
-			sprite.playAnimationLooped(redAnimations[index % redAnimations.size]).apply { walkdirection(sprite, index % redAnimations.size) }
+			sprite.playAnimationLooped(redAnimations[index % redAnimations.size]).apply { walkdirection(sprite, index % redAnimations.size, scale) }
 		}
 
 	}
@@ -53,9 +56,9 @@ fun animations(spriteMap: Bitmap)  = arrayOf(
 	SpriteAnimation(spriteMap,16,32,64,1,4,1), // up
 	SpriteAnimation(spriteMap,16,32,0,1,4,1)) // down
 
-fun walkdirection(sprite : Sprite, indexOfAnimation : Int) {
+fun walkdirection(sprite : Sprite, indexOfAnimation : Int, scale: Double = 1.0) {
 	sprite.apply {
-		val delta = 2
+		val delta = 2 * scale
 		when (indexOfAnimation) {
 			0 -> x-=delta
 			1 -> x+=delta
