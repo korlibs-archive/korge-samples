@@ -9,7 +9,7 @@ suspend fun main() = Korge(Korge.Config(module = MyModule))
 
 object MyModule : Module() {
 	// define the opening scene
-	override val mainScene: KClass<out Scene> = MenuScene::class
+	override val mainScene = MenuScene::class
 
 	// define the game configs
 	override val title: String = "My Test Game"

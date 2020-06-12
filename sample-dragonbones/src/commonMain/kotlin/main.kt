@@ -106,7 +106,7 @@ class HelloScene : Scene() {
 
 open class MyModule : Module() {
 	override val title: String = "KorGE - DragonBones"
-	override val mainScene: KClass<out Scene> = MyScene::class
+	override val mainScene = MyScene::class
 	//override val quality: LightQuality = LightQuality.QUALITY
 	//override val quality: LightQuality = LightQuality.PERFORMANCE
 	//override val quality: LightQuality = LightQuality.AUTO
