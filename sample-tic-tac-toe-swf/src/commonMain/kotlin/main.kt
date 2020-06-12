@@ -22,9 +22,8 @@ object TicTacToeModule : Module() {
 	override val icon: String = "icon.png"
 	override val size: SizeInt = SizeInt(640, 480)
 
-	override suspend fun init(injector: AsyncInjector) {
-		injector.mapPrototype { TicTacToeMainScene() }
-		val views = injector.get<Views>()
+	override suspend fun AsyncInjector.configure() {
+		mapPrototype { TicTacToeMainScene() }
 		//Fonts.fonts.registerFont("Times New Roman", Fonts.defaultFont)
 		Fonts.fonts.registerFont("Times New Roman", resourcesVfs["fonts/font1.fnt"].readBitmapFont())
 	}

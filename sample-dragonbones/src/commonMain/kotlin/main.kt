@@ -112,15 +112,14 @@ open class MyModule : Module() {
 	//override val quality: LightQuality = LightQuality.AUTO
 	override val quality: GameWindow.Quality = GameWindow.Quality.QUALITY
 
-	override suspend fun init(injector: AsyncInjector) {
+	override suspend fun AsyncInjector.configure() {
 		println("init[0]")
-		injector
-			.mapPrototype { HelloScene() }
-			.mapPrototype { MyScene() }
-			.mapPrototype { ClassicDragonScene() }
-			.mapPrototype { EyeTrackingScene() }
-			.mapPrototype { HelloWorldScene() }
-			.mapPrototype { SkinChangingScene() }
+		mapPrototype { HelloScene() }
+		mapPrototype { MyScene() }
+		mapPrototype { ClassicDragonScene() }
+		mapPrototype { EyeTrackingScene() }
+		mapPrototype { HelloWorldScene() }
+		mapPrototype { SkinChangingScene() }
 		println("init[1]")
 	}
 

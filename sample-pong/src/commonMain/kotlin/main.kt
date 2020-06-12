@@ -17,7 +17,7 @@ object MyModule : Module() {
 	override val size: SizeInt = SizeInt(800, 600)
 
 	// add the scenes to the module
-	override suspend fun init(injector: AsyncInjector): Unit = injector.run {
+	override suspend fun AsyncInjector.configure() {
 		mapPrototype { MenuScene() }
 		mapPrototype { PlayScene() }
 	}
