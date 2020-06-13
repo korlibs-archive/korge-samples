@@ -49,11 +49,20 @@ class KorviView(val views: Views, val video: KorviVideo) : Image(Bitmaps.transpa
 		}
 	}
 
+	private var bmp = Bitmap32(1, 1)
+
 	init {
 		var n = 0
 		video.onVideoFrame {
 			//println("VIDEO FRAME! : ${it.position.timeSpan},  ${it.duration.timeSpan}")
-			bitmap = it.data.slice()
+			if (bmp.width < it.data.width || bmp.height < it.data.height) {
+				bmp = Bitmap32(it.data.width, it.data.height)
+				bitmap = bmp.slice()
+			}
+
+			bmp.lock {
+				it.data.copy(0, 0, bmp, 0, 0, it.data.width, it.data.height)
+			}
 			n++
 			//it.data.writeTo(tempVfs["image$n.png"], PNG)
 			//delayFrame()
