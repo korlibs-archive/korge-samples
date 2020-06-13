@@ -10,5 +10,5 @@ korge {
 }
 
 dependencies {
-	add("commonMainApi", "com.soywiz.korlibs.korvi:korvi:0.2.0")
+	add("commonMainApi", "com.soywiz.korlibs.korvi:korvi:0.2.1")
 }

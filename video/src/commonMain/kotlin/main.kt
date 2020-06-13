@@ -52,20 +52,26 @@ class KorviView(val views: Views, val video: KorviVideo) : Image(Bitmaps.transpa
 	private var bmp = Bitmap32(1, 1)
 
 	init {
-		var n = 0
 		video.onVideoFrame {
 			//println("VIDEO FRAME! : ${it.position.timeSpan},  ${it.duration.timeSpan}")
-			if (bmp.width < it.data.width || bmp.height < it.data.height) {
-				bmp = Bitmap32(it.data.width, it.data.height)
-				bitmap = bmp.slice()
-			}
+			if (OS.isJs) {
+			//if (false) {
+				bitmap = it.data.slice()
+				//println(it.data)
+			} else {
+				val itData = it.data.toBMP32IfRequired()
+				//println("itData: $itData: ${it.data.width}, ${it.data.height}")
+				if (bmp.width != itData.width || bmp.height != itData.height) {
+					bmp = Bitmap32(itData.width, itData.height)
+					bitmap = bmp.slice()
+				}
 
-			bmp.lock {
-				it.data.copy(0, 0, bmp, 0, 0, it.data.width, it.data.height)
+				if (!itData.data.ints.contentEquals(bmp.data.ints)) {
+					bmp.lock {
+						arraycopy(itData.data, 0, bmp.data, 0, bmp.area)
+					}
+				}
 			}
-			n++
-			//it.data.writeTo(tempVfs["image$n.png"], PNG)
-			//delayFrame()
 		}
 		video.onComplete {
 			views.launchImmediately {
