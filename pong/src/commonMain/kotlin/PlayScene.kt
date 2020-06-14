@@ -31,9 +31,9 @@ class PlayScene() : Scene() {
         var playState = GameStates.Starting
 
         /* Initialize the starting game state values */
-        val paddlePosYAtStart = views.actualVirtualHeight / 2 - 50.0
-        val ballPosXAtStart = views.actualVirtualWidth / 2 - 10.0
-        val ballPosYAtStart = views.actualVirtualHeight / 2 + 10.0
+        val paddlePosYAtStart = views.virtualHeight / 2 - 50.0
+        val ballPosXAtStart = views.virtualWidth / 2 - 10.0
+        val ballPosYAtStart = views.virtualWidth / 2 + 10.0
         val ballSpeedAtStart = 200.0
 
         /* Initialize the variables to be used to define the paddle and ball size */
@@ -84,7 +84,7 @@ class PlayScene() : Scene() {
 
         // A simple flavour text informing that a goal was scored
         scoredYellText = text("SCORED!!!\n\n") {
-            position(views.actualVirtualWidth / 2 - 100, views.actualVirtualHeight / 2 - 20)
+            position(views.virtualWidth / 2 - 100, views.virtualHeight / 2 - 20)
             addUpdater {
                 // this is only visible when the game is in Scored state
                 visible = (playState == GameStates.Scored)
@@ -94,14 +94,14 @@ class PlayScene() : Scene() {
         // text to show the score of the player on the Left side
         scoreLeftText = text("0") {
 //            textSize = 24.0
-            position(views.actualVirtualWidth / 4, views.actualVirtualHeight / 2)
+            position(views.virtualWidth / 4, views.virtualHeight / 2)
             addUpdater {
                 text = scorePlayerLeft.toString()
             }
         }
         // text to show the score of the player on the Right side
         scoreRightText = text("0") {
-            position(views.actualVirtualWidth * 3 / 4, views.actualVirtualHeight / 2)
+            position(views.virtualWidth * 3 / 4, views.virtualHeight / 2)
             addUpdater {
                 text = scorePlayerRight.toString()
             }
@@ -116,7 +116,7 @@ class PlayScene() : Scene() {
                 if (keys[Key.W] && y > 0) {
                     y -= paddleMoveSpeed
                 }
-                if (keys[Key.S] && y < views.actualVirtualHeight - paddleHeight) {
+                if (keys[Key.S] && y < views.virtualHeight - paddleHeight) {
                     y += paddleMoveSpeed
                 }
             }
@@ -124,14 +124,14 @@ class PlayScene() : Scene() {
 
         // the right paddle
         paddleRight = solidRect(paddleWidth, paddleHeight, Colors.BLUE) {
-            position(views.actualVirtualWidth - paddleDistanceFromWall - paddleWidth, paddlePosYAtStart)
+            position(views.virtualWidth - paddleDistanceFromWall - paddleWidth, paddlePosYAtStart)
             addUpdater {
                 // move the paddle up or down as long as it doesn't leaves the bounds of the game window
                 val keys = views.input.keys
                 if (keys[Key.UP] && y > 0) {
                     y -= paddleMoveSpeed
                 }
-                if (keys[Key.DOWN] && y < views.actualVirtualHeight - paddleHeight) {
+                if (keys[Key.DOWN] && y < views.virtualHeight - paddleHeight) {
                     y += paddleMoveSpeed
                 }
             }
@@ -171,7 +171,7 @@ class PlayScene() : Scene() {
                     }
 
                     // if ball hits the walls, flip its direction and increase speed
-                    if (y < 0 || y > views.actualVirtualHeight - 20) {
+                    if (y < 0 || y > views.virtualHeight - 20) {
                         spd += 10
                         ang *= -1
                     }
@@ -184,7 +184,7 @@ class PlayScene() : Scene() {
                         // Update the score
                         scorePlayerRight++
                         scoredYellText.text = "Right SCORED!!!"
-                    } else if (x > views.actualVirtualWidth) {
+                    } else if (x > views.virtualWidth) {
                         /* Reset the Ball */
                         resetRound()
 
