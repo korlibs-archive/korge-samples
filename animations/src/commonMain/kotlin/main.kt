@@ -1,6 +1,5 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korge.animate.*
@@ -27,14 +26,14 @@ suspend fun main() = Korge(width = 512, height = 512, virtualWidth = 512, virtua
 					wait()
 					parallel {
 						//rect1.moveTo(0, 150)
-						rect1.moveToWithSpeed(512 - 100, 0)
-						rect2.moveToWithSpeed(0, 512 - 100 - 100)
+						rect1.moveToWithSpeed(512.0 - 100, 0.0)
+						rect2.moveToWithSpeed(0.0, 512.0 - 100 - 100)
 						//rect1.moveTo(0, height - 100)
 					}
 					parallel {
 						//rect1.moveTo(0, 150)
-						rect1.moveTo(512 - 100, 512 - 100)
-						rect2.moveTo(512 - 100, 512 - 100)
+						rect1.moveTo(512.0 - 100, 512.0 - 100)
+						rect2.moveTo(512.0 - 100, 512.0 - 100)
 						//rect1.moveTo(0, height - 100)
 					}
 					parallel(time = 1.seconds) {

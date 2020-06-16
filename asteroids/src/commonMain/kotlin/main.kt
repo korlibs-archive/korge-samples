@@ -1,7 +1,6 @@
 import com.soywiz.kds.*
 import com.soywiz.klock.*
-import com.soywiz.klock.hr.hrMicroseconds
-import com.soywiz.klock.hr.hrMilliseconds
+import com.soywiz.klock.hr.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.view.*
@@ -88,7 +87,7 @@ suspend fun main() = Korge(
 			//		bullet.delayFrame()
 			//	}
 			//}
-			bullet.addUpdater { bulletFrame(it)  }
+			bullet.addUpdater { bulletFrame(it) }
 		}
 	}
 
@@ -97,6 +96,7 @@ suspend fun main() = Korge(
 
 class Asteroid(val assets: Assets, val asteroidSize: Int = 3) : Image(assets.asteroidBitmap) {
 	var angle = 30.degrees
+
 	init {
 		anchor(.5, .5)
 		scale = asteroidSize.toDouble() / 3.0
@@ -143,8 +143,6 @@ fun View.advance(amount: Double, rot: Angle = (-90).degrees) = this.apply {
 	y += (this.rotation + rot).sine * amount
 }
 
-inline fun View.advance(amount: Number, rot: Angle = (-90).degrees) = advance(amount.toDouble(), rot)
-
 class Assets(val views: Views, val shipSize: Int = 24) {
 	val asteroidSize = shipSize * 2
 	val shipBitmap = NativeImage(shipSize, shipSize).context2d {
@@ -163,8 +161,8 @@ class Assets(val views: Views, val shipSize: Int = 24) {
 		lineWidth = 1.0
 		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
-			moveTo(width / 2, 0)
-			lineToV(height)
+			moveTo(width / 2.0, 0.0)
+			lineToV(height.toDouble())
 		}
 	}
 	val asteroidBitmap = Bitmap32(asteroidSize, asteroidSize).context2d { // Let's use software vector rendering here, for testing purposes

@@ -20,7 +20,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 
 	println("STARTED!")
 
-	addUpdatable {
+	addUpdater {
 		//println("FRAME!")
 	}
 
@@ -36,25 +36,25 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 	solidRect(300, 200, Colors.DARKCYAN)
 	sgraphics {
 		fill(Colors.DARKCYAN) {
-			rect(-1, -1, 3, 2)
+			rect(-1.0, -1.0, 3.0, 2.0)
 		}
 		fill(Colors.AQUAMARINE) {
-			circle(0, 0, 1)
+			circle(0.0, 0.0, 1.0)
 		}
 		fill(Colors.AQUAMARINE) {
-			circle(1, 0, 1)
+			circle(1.0, 0.0, 1.0)
 		}
 		position(100, 100)
-	}.scale(100, 100).interactive()
+	}.scale(100.0, 100.0).interactive()
 	worldView {
-		position(400, 400).scale(20)
+		position(400, 400).scale(20.0)
 
 		createBody {
 			setPosition(0, -10)
 		}.fixture {
 			shape = BoxShape(100, 20)
 			density = 0f
-		}.setViewWithContainer(solidRect(100, 20, Colors.RED).position(-50, -10).interactive())
+		}.setView(solidRect(100, 20, Colors.RED).position(-50, -10).interactive())
 
 		// Dynamic Body
 		createBody {
@@ -64,7 +64,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 			shape = BoxShape(2f, 2f)
 			density = 0.5f
 			friction = 0.2f
-		}.setView(solidRect(2f, 2f, Colors.GREEN).anchor(.5, .5).interactive())
+		}.setView(solidRect(2.0, 2.0, Colors.GREEN).anchor(.5, .5).interactive())
 
 		createBody {
 			type = BodyType.DYNAMIC
@@ -88,11 +88,11 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 			friction = 3f
 		}.setView(sgraphics {
 			fillStroke(ColorPaint(Colors.BLUE), ColorPaint(Colors.RED), Context2d.StrokeInfo(thickness = 0.3)) {
-				circle(0, 0, 2)
+				circle(0.0, 0.0, 2.0)
 				//rect(0, 0, 400, 20)
 			}
 			fill(Colors.DARKCYAN) {
-				circle(1, 1, 0.2)
+				circle(1.0, 1.0, 0.2)
 			}
 			hitTestUsingShapes = true
 		}.interactive())
@@ -100,7 +100,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 	image(resourcesVfs["korge.png"].readBitmap())
 }
 
-fun <T : View> T.interactive(): T = this.apply {
+fun <T : View> T.interactive(): T = apply {
 	alpha = 0.5
 	onOver { alpha = 1.0 }
 	onOut { alpha = 0.5 }

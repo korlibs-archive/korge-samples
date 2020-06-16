@@ -7,7 +7,7 @@ import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge {
-	val atlas = resourcesVfs["lips.atlas.json"].readAtlas(views)
+	val atlas = resourcesVfs["lips.atlas.json"].readAtlas()
 	val lips = image(atlas["lisa-A.png"])
 	val lips2 = image(atlas["lisa-A.png"]).position(400, 0)
 	addEventListener<LipSyncEvent> {
