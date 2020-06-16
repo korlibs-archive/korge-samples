@@ -6,14 +6,14 @@ import com.soywiz.korge.view.*
 
 suspend fun main() = Korge {
 	var line = 0
-	fun textLine(text: String) = text(text).position(0, line++ * 16).apply { this.filtering = false }
-	fun nowUnix() = DateTime.now().unixMillisLong
+	fun textLine(text: String) = text(text).position(2, line++ * 20 + 5).apply { filtering = false }
+	fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
 	textLine("Events :")
-	val keysEvText = textLine("KeysEv")
+	val keysEvText = textLine("Keys")
 	val keysDownText = textLine("Keys:Down")
 	val keysUpText = textLine("Keys:Up")
-	val mouseEvText = textLine("Mouse1")
+	val mouseEvText = textLine("Mouse")
 	val mouseMoveText = textLine("MouseMove")
 	val mouseDownText = textLine("MouseDown")
 	val mouseUpText = textLine("MouseUp")
@@ -25,12 +25,12 @@ suspend fun main() = Korge {
 	val gamepadUpdateText = textLine("GamepadUpdateEv")
 	val gamepadUpdate2Text = textLine("GamepadUpdate2Ev")
 
-	//stage.addEventListener<KeyEvent> { keysEvText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<MouseEvent> { mouseEvText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<ReshapeEvent> { resizeText.text = "${nowUnix()}:$it" }
-	//stage.addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowUnix()}:$it" }
+	//stage.addEventListener<KeyEvent> { keysEvText.text = "${nowTime()}:$it" }
+	//stage.addEventListener<MouseEvent> { mouseEvText.text = "${nowTime()}:$it" }
+	stage.addEventListener<ReshapeEvent> { resizeText.text = "Resize ${nowTime()} $it" }
+	//stage.addEventListener<GamePadConnectionEvent> { gamepadConnectedText.text = "${nowTime()}:$it" }
 	//stage.addEventListener<GamePadUpdateEvent> {
-	//	gamepadUpdateText.text = "${nowUnix()}:$it"
+	//	gamepadUpdateText.text = "${nowTime()}:$it"
 	//	gamepadUpdate2Text.text = "" + it.gamepads.lastOrNull { it.connected }?.rawButtonsPressed
 	//}
 
@@ -40,14 +40,14 @@ suspend fun main() = Korge {
 	}
 
 	keys {
-		onKeyDown { keysDownText.text = "Key:Down:${nowUnix()}:${it.key}" }
-		onKeyUp { keysUpText.text = "Key:Up:${nowUnix()}:${it.key}" }
+		onKeyDown { keysDownText.text = "Key:Down ${nowTime()} ${it.key}" }
+		onKeyUp { keysUpText.text = "Key:Up ${nowTime()} ${it.key}" }
 	}
 
 	mouse {
-		onMove { mouseMoveText.text = "Mouse:Move:${nowUnix()}:$it" }
-		onDown { mouseDownText.text = "Mouse:Down:${nowUnix()}:$it" }
-		onUp { mouseUpText.text = "Mouse:Up:${nowUnix()}:$it" }
-		onClick { mouseClickText.text = "Mouse:Click:${nowUnix()}:$it" }
+		onMove { mouseMoveText.text = "Mouse:Move ${nowTime()} $it" }
+		onDown { mouseDownText.text = "Mouse:Down ${nowTime()} $it" }
+		onUp { mouseUpText.text = "Mouse:Up ${nowTime()} $it" }
+		onClick { mouseClickText.text = "Mouse:Click ${nowTime()} $it" }
 	}
 }
