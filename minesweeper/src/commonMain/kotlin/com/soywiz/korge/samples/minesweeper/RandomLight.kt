@@ -22,18 +22,17 @@ class RandomLight(
 
 	init {
 		image(light, 0.5, 0.5).apply {
-			this.blendMode = BlendMode.ADD
+			blendMode = BlendMode.ADD
 		}
 	}
 
 	override suspend fun main() {
-		sx    = random[-w2, w2]
-		sy    = random[-h2, h2]
-		inca  = random[0.0001, 0.03]
-		incs  = random[0.5, 2.0]
-		excx  = random[0.7, 1.3]
-		excy  = random[0.7, 1.3]
-		alpha = random[0.4, 0.7]
+		sx = random[-w2, w2]
+		sy = random[-h2, h2]
+		inca = random[0.0001, 0.03]
+		incs = random[0.5, 2.0]
+		excx = random[0.7, 1.3]
+		excy = random[0.7, 1.3]
 		alpha = 0.1
 
 		while (true) {
@@ -42,8 +41,8 @@ class RandomLight(
 			y = h2 - sin(rotationDegrees) * h2 * excy + sy
 			scale = 1 + (cos(rotationDegrees) / 6) * incs
 
-			// Comprueba si una esfera de luz ha chocado con otra
-			// El sistema de colisión por defecto es inner circle
+			// Check if a light sphere collided with another one
+			// The default collision system is inner circle
 			if (this.collision<RandomLight>() != null) {
 				alpha = (alpha + 0.01).coerceIn(0.1, 0.8)
 			} else {
@@ -52,16 +51,5 @@ class RandomLight(
 
 			frame()
 		}
-	}
-
-	suspend fun fadeout() {
-		while (alpha > 0) {
-			alpha -= 0.1
-			frame()
-		}
-	}
-
-	fun draw() {
-		//graph.draw(__x, __y, alpha, 0, size, alpha, alpha, alpha, GL_ONE, GL_ONE);
 	}
 }
