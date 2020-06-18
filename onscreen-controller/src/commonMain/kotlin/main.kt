@@ -1,16 +1,12 @@
-import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.particle.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
-import com.soywiz.korio.async.*
-import com.soywiz.korio.file.std.*
 import com.soywiz.korio.util.*
 
 suspend fun main() = Korge(bgcolor = Colors.DARKBLUE) {
-	val text1 = text("-").position(0, 0).also { it.filtering = false }
+	val text1 = text("-").position(5, 5).apply { filtering = false }
 	val buttonTexts = (0 until 2).map {
-		text("-").position(0, 15 * (it + 1)).also { it.filtering = false }
+		text("-").position(5, 20 * (it + 1) + 5).apply { filtering = false }
 	}
 
 	addTouchGamepad(
