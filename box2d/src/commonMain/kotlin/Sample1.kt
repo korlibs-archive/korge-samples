@@ -33,19 +33,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "My
 	}
 
 	views.clearColor = Colors.DARKGREEN
-	solidRect(300, 200, Colors.DARKCYAN)
-	sgraphics {
-		fill(Colors.DARKCYAN) {
-			rect(-1.0, -1.0, 3.0, 2.0)
-		}
-		fill(Colors.AQUAMARINE) {
-			circle(0.0, 0.0, 1.0)
-		}
-		fill(Colors.AQUAMARINE) {
-			circle(1.0, 0.0, 1.0)
-		}
-		position(100, 100)
-	}.scale(100.0, 100.0).interactive()
+
 	worldView {
 		position(400, 400).scale(20.0)
 
