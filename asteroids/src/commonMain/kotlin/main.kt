@@ -21,11 +21,12 @@ val Stage.assets by Extra.PropertyThis<Stage, Assets> { Assets(views, SHIP_SIZE)
 
 suspend fun main() = Korge(
 	width = WIDTH, height = HEIGHT,
-	virtualWidth = WIDTH, virtualHeight = HEIGHT
+	virtualWidth = WIDTH, virtualHeight = HEIGHT,
+	bgcolor = Colors["#222"],
+	clipBorders = false
 ) {
 	views.gameWindow.icon = assets.shipBitmap
 
-	solidRect(WIDTH, HEIGHT, Colors["#222"])
 	val ship = image(assets.shipBitmap).center().position(320, 240)
 
 	fun pressing(key: Key) = views.input.keys[key]
