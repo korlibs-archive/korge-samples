@@ -1,30 +1,26 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
+import com.soywiz.korge.font.*
 import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
-import com.soywiz.korge.ui.*
-import com.soywiz.korge.render.*
-import com.soywiz.korge.scene.*
+import com.soywiz.korge.service.process.*
 import com.soywiz.korge.tween.*
+import com.soywiz.korge.ui.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
-import com.soywiz.korim.font.*
 import com.soywiz.korim.format.*
-import com.soywiz.korio.async.*
-import com.soywiz.korio.file.*
 import com.soywiz.korio.file.std.*
-import com.soywiz.korio.net.*
 import com.soywiz.korio.util.*
 import com.soywiz.korma.interpolation.*
 
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
 	val nativeProcess = NativeProcess(views)
 
-	//uiSkin(OtherUISkin()) {
 	defaultUISkin = OtherUISkin()
 	defaultUIFont = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
+
 	textButton(256.0, 32.0) {
 		text = "Disabled Button"
 		position(128, 128)
@@ -42,6 +38,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		}
 		enable()
 	}
+
 	uiScrollBar(256.0, 32.0, 0.0, 32.0, 64.0) {
 		position(64, 64)
 		onChange {
@@ -66,7 +63,6 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 	uiScrollableArea(config = {
 		position(480, 128)
 	}) {
-
 		for (n in 0 until 16) {
 			textButton(text = "HELLO $n").position(0, n * 64)
 		}
@@ -104,19 +100,3 @@ suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
 		//font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
 	)
 }
-
-private suspend fun VfsFile.readBitmapFontWithMipmaps(imageFormat: ImageFormat = RegisteredImageFormats, mipmaps: Boolean = true): BitmapFont =
-	readBitmapFont(imageFormat).also { it.atlas.mipmaps(mipmaps) }
-
-
-private class NativeProcess(views: Views) : NativeProcessBase(views) {
-}
-
-private open class NativeProcessBase(val views: Views) {
-	open suspend fun alert(message: String) = views.gameWindow.alert(message)
-	open suspend fun confirm(message: String): Boolean = views.gameWindow.confirm(message)
-	open suspend fun openFileDialog(filter: String? = null, write: Boolean = false, multi: Boolean = false) = views.gameWindow.openFileDialog(filter, write, multi)
-	open suspend fun browse(url: URL) = views.gameWindow.browse(url)
-	open suspend fun close() = views.gameWindow.close()
-}
-
