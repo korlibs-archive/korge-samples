@@ -9,13 +9,13 @@ import com.soywiz.korma.triangle.triangulate.*
 
 suspend fun main() = Korge(width = 512, height = 512) {
 	val stage = this
-	text("Add Points by clicking with the mouse")
+	text("Add Points by clicking with the mouse", 14.0).position(5.0, 5.0)
 	graphics {
 		val graphics = this
 		graphics.useNativeRendering = false
 		position(100, 100)
 
-		val points = arrayListOf<IPoint>()
+		val points = arrayListOf<Point>()
 
 		var additionalPoint: Point? = null
 
@@ -56,7 +56,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 			for (n in 0 until edges.size - 1) {
 				val e0 = Point(edges[n])
 				val e1 = Point(edges[n + 1])
-				var last = n == edges.size - 2
+				val last = n == edges.size - 2
 				stroke(if (last) Colors.RED else Colors.BLUE, Context2d.StrokeInfo(thickness = 2.0)) {
 					line(e0, e1)
 				}
@@ -64,13 +64,13 @@ suspend fun main() = Korge(width = 512, height = 512) {
 		}
 
 		stage.mouse {
-			onClick { e ->
+			onClick {
 				points.add(graphics.localMouseXY(views))
 				repaint(finished = true)
 				//println("CLICK")
 			}
 
-			onMove { e ->
+			onMove {
 				additionalPoint = graphics.localMouseXY(views)
 				repaint(finished = false)
 			}

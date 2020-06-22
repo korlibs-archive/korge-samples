@@ -9,19 +9,22 @@ import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(bgcolor = Colors["#333"]) {
 	val font1 = resourcesVfs["font1.fnt"].readBitmapFont()
-	text("Hello World!", textSize = 128.0, font = font1)
+	val text1 = text("Hello World!", textSize = 96.0, font = font1)
+	val text2 = text("Hello World!", textSize = 96.0, font = font1) {
+		filtering = false
+		alignTopToBottomOf(text1)
+	}
+	val text3 = text("Hello World!", textSize = 96.0, font = font1) {
+		filter = Convolute3Filter(Convolute3Filter.KERNEL_GAUSSIAN_BLUR)
+		alignTopToBottomOf(text2)
+	}
 	text("Hello World 2!", textSize = 32.0, font = font1) {
 		val text = this
-		fun center() {
-			position(views.virtualWidth / 2 - width.toInt() / 2, views.virtualHeight / 2)
-		}
-		//filter = Convolute3Filter(Convolute3Filter.KERNEL_GAUSSIAN_BLUR)
-		center()
 		launchImmediately {
 			var n = 0
 			while (true) {
 				text.text = "Hello World! ${n++}"
-				center()
+				centerOn(root)
 				delay(1.milliseconds)
 			}
 		}

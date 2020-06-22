@@ -1,7 +1,6 @@
 package com.soywiz.korge.samples.minesweeper
 
 import com.soywiz.kds.*
-import com.soywiz.klock.*
 import com.soywiz.kmem.*
 import com.soywiz.korau.sound.*
 import com.soywiz.korev.*
@@ -11,7 +10,6 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
-import com.soywiz.korma.geom.*
 import kotlinx.coroutines.*
 import kotlin.reflect.*
 
@@ -25,14 +23,11 @@ abstract class Process(parent: Container) : Container() {
 	var fps: Double = 60.0
 
 	val key get() = stage.views.key
-	val Mouse get() = views.mouseV
-	val Screen get() = views.screenV
+	val mouse get() = views.mouseV
 	val audio get() = views.audioV
 
 	suspend fun frame() {
 		delayFrame()
-		//views.stage.delayFrame()
-		//delay((1.0 / fps).seconds)
 	}
 
 	fun action(action: KSuspendFunction0<Unit>) {
@@ -78,23 +73,7 @@ abstract class Process(parent: Container) : Container() {
 
 	class ChangeActionException(val action: KSuspendFunction0<Unit>) : Exception()
 
-	inline fun <reified T : View> collision(): T? = views.stage.findCollision<T>(this)
-	fun collision(matcher: (View) -> Boolean): View? = views.stage.findCollision(this, matcher)
-}
-
-
-inline fun <reified T : View> Container.findCollision(subject: View): T? = findCollision(subject) { it is T && it != subject } as T?
-
-fun Container.findCollision(subject: View, matcher: (View) -> Boolean): View? {
-	var collides: View? = null
-	this.foreachDescendant {
-		if (matcher(it)) {
-			if (subject.collidesWith(it)) {
-				collides = it
-			}
-		}
-	}
-	return collides
+	inline fun <reified T : View> collision(): T? = views.stage.findCollision(this)
 }
 
 class KeyV(val views: Views) {
@@ -113,13 +92,10 @@ class MouseV(val views: Views) {
 	val _released = BooleanArray(8)
 }
 
-class ScreenV(val views: Views) {
-	val width: Double get() = views.virtualWidth.toDouble()
-	val height: Double get() = views.virtualHeight.toDouble()
-}
-
 class AudioV(val views: Views) {
 	fun play(sound: NativeSound, repeat: Int = 0) {
+		val times = (1 + repeat).playbackTimes
+		sound.play(times)
 	}
 }
 
@@ -127,7 +103,6 @@ val Views.keysPressed by Extra.Property { LinkedHashMap<Key, Boolean>() }
 val Views.key by Extra.PropertyThis<Views, KeyV> { KeyV(this) }
 
 val Views.mouseV by Extra.PropertyThis<Views, MouseV> { MouseV(this) }
-val Views.screenV by Extra.PropertyThis<Views, ScreenV> { ScreenV(this) }
 val Views.audioV by Extra.PropertyThis<Views, AudioV> { AudioV(this) }
 
 fun Views.registerProcessSystem() {
@@ -165,4 +140,4 @@ fun Views.registerProcessSystem() {
 }
 
 suspend fun readImage(path: String) = resourcesVfs[path].readBitmapSlice()
-suspend fun readSound(path: String) = resourcesVfs[path].readNativeSoundOptimized()
+suspend fun readSound(path: String) = resourcesVfs[path].readSound()

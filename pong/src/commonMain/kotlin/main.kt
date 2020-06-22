@@ -1,9 +1,7 @@
-import com.soywiz.korge.Korge
-import com.soywiz.korge.scene.Module
-import com.soywiz.korge.scene.Scene
-import com.soywiz.korinject.AsyncInjector
-import com.soywiz.korma.geom.SizeInt
-import kotlin.reflect.KClass
+import com.soywiz.korge.*
+import com.soywiz.korge.scene.*
+import com.soywiz.korinject.*
+import com.soywiz.korma.geom.*
 
 suspend fun main() = Korge(Korge.Config(module = MyModule))
 

@@ -9,7 +9,6 @@ import com.soywiz.korma.interpolation.*
 import kotlin.coroutines.*
 
 var Board.Cell.view by Extra.Property<View?> { null }
-val Board.Cell.vview: View get() = this.view!!
 val Board.Cell.onPress by Extra.Property { Signal<Unit>() }
 
 fun Board.Cell.set(type: Chip) {

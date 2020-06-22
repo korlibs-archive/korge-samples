@@ -1,13 +1,15 @@
+import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.atlas.*
+import com.soywiz.korge.input.*
 import com.soywiz.korge.lipsync.*
 import com.soywiz.korge.view.*
 import com.soywiz.korio.async.*
 import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge {
-	val atlas = resourcesVfs["lips.atlas.json"].readAtlas(views)
+	val atlas = resourcesVfs["lips.atlas.json"].readAtlas()
 	val lips = image(atlas["lisa-A.png"])
 	val lips2 = image(atlas["lisa-A.png"]).position(400, 0)
 	addEventListener<LipSyncEvent> {
@@ -16,10 +18,12 @@ suspend fun main() = Korge {
 			lips2.texture = atlas["lisa-${it.lip}.png"]
 		}
 	}
-	launchImmediately {
-		fun handler(it: LipSyncEvent) {
-			views.dispatch(it)
-			lips.texture = atlas["lisa-${it.lip}.png"]
+	var playing = true
+	fun play() = launchImmediately {
+		fun handler(event: LipSyncEvent) {
+			views.dispatch(event)
+			lips.texture = atlas["lisa-${event.lip}.png"]
+			playing = event.time > 0.milliseconds
 		}
 
 		resourcesVfs["001.voice.wav"].readVoice().play("lisa") { handler(it) }
@@ -28,4 +32,9 @@ suspend fun main() = Korge {
 		//resourcesVfs["004.voice.wav"].readVoice().play("lisa") { handler(it) }
 		//resourcesVfs["simple.voice.mp3"].readVoice().play("lisa") { handler(it) }
 	}
+
+	onClick {
+		if (!playing) play()
+	}
+	play()
 }

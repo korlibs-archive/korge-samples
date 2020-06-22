@@ -1,7 +1,6 @@
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.*
 import com.soywiz.korge.animate.serialization.*
-import com.soywiz.korge.ext.swf.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
@@ -72,12 +71,10 @@ class TicTacToeMainScene : Scene() {
 				}
 			}
 			sceneView += results
-			results["hit"]?.mouse?.onClick?.waitOne()
+			results["hit"]?.mouse?.click?.waitOne()
 			//sceneView -= results
 			results.removeFromParent()
-
 		}
-
 	}
 }
 
@@ -134,6 +131,5 @@ class InteractivePlayer(val board: Board, override val chip: Chip) : Player {
 	}
 
 	override suspend fun move(): PointInt = clicked.waitOne()
-
 }
 

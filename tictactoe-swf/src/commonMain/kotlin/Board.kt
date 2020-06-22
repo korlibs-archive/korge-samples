@@ -4,7 +4,7 @@ import com.soywiz.korma.geom.*
 enum class Chip { EMPTY, CROSS, CIRCLE }
 
 class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = width) {
-	class Cell(val x: Int, val y: Int) : Extra by Extra.Mixin() {
+	class Cell(x: Int, y: Int) : Extra by Extra.Mixin() {
 		val pos = PointInt(x, y)
 		var value = Chip.EMPTY
 	}
@@ -19,7 +19,7 @@ class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = wid
 		return (0 until size).map { cells[x + dx * it, y + dy * it] }
 	}
 
-	val lines = kotlin.collections.ArrayList<List<Cell>>()
+	val lines = ArrayList<List<Cell>>()
 
 	init {
 		fun addLine(line: List<Cell>?) {
@@ -48,15 +48,13 @@ class Board(val width: Int = 3, val height: Int = width, val lineSize: Int = wid
 
 	val winnerLine: List<Cell>?
 		get() {
-			val out = kotlin.collections.ArrayList<Cell>()
+			val out = ArrayList<Cell>()
 			for (line in lines) if (line.chipLine != null) out += line
 			return if (out.isEmpty()) null else out.toSet().toList()
 		}
 
 	val winner: Chip?
-		get() {
-			return winnerLine?.firstOrNull()?.value
-		}
+		get() = winnerLine?.firstOrNull()?.value
 }
 
 fun Board(str: String): Board {
