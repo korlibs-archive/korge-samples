@@ -8,7 +8,7 @@ import com.soywiz.korio.async.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 
-suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "KorGE Shapes!") {
+suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "KorGE Shapes") {
 	setupCircle()
 	setupRects()
 
@@ -17,10 +17,10 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ko
 		fill(Colors.DARKCYAN) {
 			rect(-1.0, -1.0, 3.0, 2.0)
 		}
-		fill(Colors.AQUAMARINE) {
+		fill(Colors.AQUAMARINE, 0.5) {
 			circle(0.0, 0.0, 1.0)
 		}
-		fill(Colors.AQUAMARINE) {
+		fill(Colors.AQUAMARINE, 0.5) {
 			circle(1.0, 0.0, 1.0)
 		}
 		position(100, 100)
