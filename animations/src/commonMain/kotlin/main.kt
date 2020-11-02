@@ -23,7 +23,7 @@ suspend fun main() = Korge(width = 512, height = 512, virtualWidth = 512, virtua
 			animate(completeOnCancel = true) {
 			//animate {
 				sequence(time = 1.seconds, speed = 256.0) {
-					wait()
+					wait(0.25.seconds)
 					parallel {
 						//rect1.moveTo(0, 150)
 						rect1.moveToWithSpeed(512.0 - 100, 0.0)

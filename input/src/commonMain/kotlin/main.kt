@@ -2,11 +2,12 @@ import com.soywiz.klock.*
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.input.*
+import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 
 suspend fun main() = Korge {
 	var line = 0
-	fun textLine(text: String) = text(text).position(2, line++ * 20 + 5).apply { filtering = false }
+	fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5).apply { smoothing = false }
 	fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
 	textLine("Events :")
@@ -40,8 +41,8 @@ suspend fun main() = Korge {
 	}
 
 	keys {
-		onKeyDown { keysDownText.text = "Key:Down ${nowTime()} ${it.key}" }
-		onKeyUp { keysUpText.text = "Key:Up ${nowTime()} ${it.key}" }
+		down { keysDownText.text = "Key:Down ${nowTime()} ${it.key}" }
+		up { keysUpText.text = "Key:Up ${nowTime()} ${it.key}" }
 	}
 
 	mouse {

@@ -14,14 +14,14 @@ class MenuScene() : Scene() {
 			position(views.virtualWidth / 2 - 128, views.virtualHeight / 2 - 128)
 		}
 
-		var playButton = textButton(256.0, 32.0) {
+		var playButton = uiTextButton(256.0, 32.0) {
 			text = "Play"
 			position(views.virtualWidth / 2 - 128, views.virtualHeight / 2 - 64)
 			onClick {
 				sceneContainer.changeTo<PlayScene>()
 			}
 		}
-		var exitButton = textButton(256.0, 32.0) {
+		var exitButton = uiTextButton(256.0, 32.0) {
 			text = "Exit"
 			position(views.virtualWidth / 2 - 128, views.virtualHeight / 2)
 			onClick {

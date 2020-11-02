@@ -2,21 +2,29 @@ import com.soywiz.korge.*
 import com.soywiz.korge.annotations.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
+import com.soywiz.korim.bitmap.effect.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.font.*
-import com.soywiz.korim.vector.paint.*
+import com.soywiz.korim.paint.*
+import com.soywiz.korim.text.*
 import com.soywiz.korma.geom.*
 
 @OptIn(KorgeExperimental::class)
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, width = 512, height = 160, title = "Korge's Text2!", bgcolor = Colors["#112"]) {
 	val font = BitmapFont(
 		DefaultTtfFont, 64.0,
-		paint = LinearGradientPaint(0, 0, 0, 50).add(0.0, Colors.CADETBLUE).add(1.0, Colors.PURPLE)
+		paint = LinearGradientPaint(0, 0, 0, 50).add(0.0, Colors.CADETBLUE).add(1.0, Colors.PURPLE),
+		effect = BitmapEffect(
+			dropShadowX = 2,
+			dropShadowY = 2,
+			dropShadowRadius = 2,
+			dropShadowColor = Colors["#5f005f"]
+		)
 	)
 
 	var offset = 0.degrees
 	addUpdater { offset += 10.degrees }
-	text2("Hello World!", font = font, renderer = CreateStringTextRenderer { text, n, c, c1, g, advance ->
+	text("Hello World!", font = font, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer { text, n, c, c1, g, advance ->
 		transform.identity()
 		val sin = sin(offset + (n * 360 / text.length).degrees)
 		transform.rotate(15.degrees)

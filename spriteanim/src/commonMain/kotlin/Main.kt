@@ -62,7 +62,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	addChild(player2)
 
 	addUpdater { time ->
-		val scale = 16.milliseconds / time
+		val scale = time / 16.milliseconds
 		val disp = 2 * scale
 		val keys = views.input.keys
 		if (keys[Key.LEFT]) { player1.playAnimation(spriteAnimationLeft); player1.x-=disp }

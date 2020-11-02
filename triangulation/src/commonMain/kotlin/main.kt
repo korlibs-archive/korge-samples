@@ -64,7 +64,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 		}
 
 		stage.mouse {
-			onClick {
+			onUp {
 				points.add(graphics.localMouseXY(views))
 				repaint(finished = true)
 				//println("CLICK")

@@ -6,6 +6,7 @@ import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.camera.*
 import com.soywiz.korge.view.camera.Camera
+import com.soywiz.korge.view.tween.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
 import com.soywiz.korma.geom.*
@@ -15,9 +16,9 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ca
 
 	onClick { speed = abs(speed - 1.0) }
 
-	val cam = Camera(0.0, 0.0, 400.0, 400.0)
+	val cam = CameraOld(0.0, 0.0, 400.0, 400.0)
 	val cam2 = cam.copy()
-	val container = cameraContainer(400.0, 400.0, decoration = { solidRect(width, height, Colors.PINK) }) {
+	val container = cameraContainerOld(400.0, 400.0, decoration = { solidRect(width, height, Colors.PINK) }) {
 		solidRect(400.0, 400.0, Colors.YELLOW)
 		solidRect(350.0, 350.0, Colors.YELLOWGREEN)
 		solidRect(300.0, 300.0, Colors.GREENYELLOW)
@@ -26,7 +27,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ca
 	}
 	container.camera = cam
 
-	val container2 = cameraContainer(800.0, 800.0, decoration = { position(500.0, 0.0); solidRect(width, height, Colors.PINK) }) {
+	val container2 = cameraContainerOld(800.0, 800.0, decoration = { position(500.0, 0.0); solidRect(width, height, Colors.PINK) }) {
 		//TODO: implement container that copies content view of another container
 	}
 	container2.camera.zoom = 0.5

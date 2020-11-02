@@ -16,7 +16,7 @@ suspend fun main() = Korge {
 			end
 		end
 		a = 10
-		res = 1 + 2 + a + max(20, 30)
+		res = 1 + 2 + a + max(20, 29)
 		print(res)
 		b = {}
 		b[1] = 10

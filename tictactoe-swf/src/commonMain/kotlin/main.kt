@@ -24,7 +24,7 @@ object TicTacToeModule : Module() {
 	override suspend fun AsyncInjector.configure() {
 		mapPrototype { TicTacToeMainScene() }
 		//Fonts.fonts.registerFont("Times New Roman", Fonts.defaultFont)
-		Fonts.fonts.registerFont("Times New Roman", resourcesVfs["fonts/font1.fnt"].readBitmapFont())
+		//Fonts.fonts.registerFont("Times New Roman", resourcesVfs["fonts/font1.fnt"].readBitmapFont())
 	}
 }
 
@@ -36,7 +36,7 @@ class TicTacToeMainScene : Scene() {
 	lateinit var game: Game
 
 	override suspend fun Container.sceneInit() {
-		mainLibrary = resourcesVfs["main.ani"].readAni(views)
+		mainLibrary = resourcesVfs["main.ani"].readAni(AnLibrary.Context(views))
 	}
 
 	override suspend fun Container.sceneMain() {
@@ -71,7 +71,7 @@ class TicTacToeMainScene : Scene() {
 				}
 			}
 			sceneView += results
-			results["hit"]?.mouse?.click?.waitOne()
+			results["hit"]?.firstOrNull?.mouse?.click?.waitOne()
 			//sceneView -= results
 			results.removeFromParent()
 		}

@@ -11,7 +11,7 @@ suspend fun main() = Korge(bgcolor = Colors["#333"]) {
 	val font1 = resourcesVfs["font1.fnt"].readBitmapFont()
 	val text1 = text("Hello World!", textSize = 96.0, font = font1)
 	val text2 = text("Hello World!", textSize = 96.0, font = font1) {
-		filtering = false
+		smoothing = false
 		alignTopToBottomOf(text1)
 	}
 	val text3 = text("Hello World!", textSize = 96.0, font = font1) {

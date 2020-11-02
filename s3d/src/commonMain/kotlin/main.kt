@@ -68,21 +68,21 @@ class CratesScene : Scene() {
 
 			light().position(0, 0, -3)
 
-			val cube1 = box().material(crateMaterial)
-			val cube2 = box().position(0, 2, 0).scale(1, 2, 1).rotation(0.degrees, 0.degrees, 45.degrees).material(crateMaterial)
-			val cube3 = box().position(-5, 0, 0).material(crateMaterial)
-			val cube4 = box().position(+5, 0, 0).material(crateMaterial)
-			val cube5 = box().position(0, -5, 0).material(crateMaterial)
-			val cube6 = box().position(0, +5, 0).material(crateMaterial)
-			val cube7 = box().position(0, 0, -5).material(crateMaterial)
-			val cube8 = box().position(0, 0, +5).material(crateMaterial)
+			val cube1 = cube().material(crateMaterial)
+			val cube2 = cube().position(0, 2, 0).scale(1, 2, 1).rotation(0.degrees, 0.degrees, 45.degrees).material(crateMaterial)
+			val cube3 = cube().position(-5, 0, 0).material(crateMaterial)
+			val cube4 = cube().position(+5, 0, 0).material(crateMaterial)
+			val cube5 = cube().position(0, -5, 0).material(crateMaterial)
+			val cube6 = cube().position(0, +5, 0).material(crateMaterial)
+			val cube7 = cube().position(0, 0, -5).material(crateMaterial)
+			val cube8 = cube().position(0, 0, +5).material(crateMaterial)
 
 			var tick = 0
-			addUpdatable {
+			addUpdater {
 				val angle = (tick / 4.0).degrees
 				camera.positionLookingAt(
 					cos(angle * 2) * 4, cos(angle * 3) * 4, -sin(angle) * 4, // Orbiting camera
-					0, 1, 0
+					0.0, 1.0, 0.0
 				)
 				tick++
 			}
@@ -122,11 +122,11 @@ class MonkeyScene : Scene() {
 			val view = mesh(model.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
 
 			var tick = 0
-			addUpdatable {
+			addUpdater {
 				val angle = (tick / 1.0).degrees
 				camera.positionLookingAt(
 					cos(angle * 1) * 4, 0.0, -sin(angle * 1) * 4, // Orbiting camera
-					0, 0, 0
+					0.0, 0.0, 0.0
 				)
 				tick++
 			}
@@ -149,7 +149,7 @@ class SkinningScene : Scene() {
 			val cameras = mainSceneView.findByType<Camera3D>()
 
 			val animator = Animator3D(library.animationDefs.values, mainSceneView)
-			addUpdatable { animator.update(it) }
+			addUpdater { animator.update(it) }
 			val model = mainSceneView.findByType<ViewWithMesh3D>().first()
 				//.rotation(-90.degrees, 90.degrees, 0.degrees)
 
@@ -159,7 +159,7 @@ class SkinningScene : Scene() {
 			camera = camera1.clone()
 
 			this += mainSceneView
-			addUpdatable {
+			addUpdater {
 				//val mainSceneView = mainSceneView
 				//println(mainSceneView)
 

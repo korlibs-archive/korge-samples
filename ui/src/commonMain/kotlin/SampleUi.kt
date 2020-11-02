@@ -10,6 +10,7 @@ import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.font.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korio.util.*
@@ -19,9 +20,9 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 	val nativeProcess = NativeProcess(views)
 
 	defaultUISkin = OtherUISkin()
-	defaultUIFont = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
+	defaultUIFont = resourcesVfs["uifont.fnt"].readBitmapFont()
 
-	textButton(256.0, 32.0) {
+	uiTextButton(256.0, 32.0) {
 		text = "Disabled Button"
 		position(128, 128)
 		onClick {
@@ -29,7 +30,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		}
 		disable()
 	}
-	textButton(256.0, 32.0) {
+	uiTextButton(256.0, 32.0) {
 		text = "Enabled Button"
 		position(128, 128 + 32)
 		onClick {
@@ -64,7 +65,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		position(480, 128)
 	}) {
 		for (n in 0 until 16) {
-			textButton(text = "HELLO $n").position(0, n * 64)
+			uiTextButton(text = "HELLO $n").position(0, n * 64)
 		}
 	}
 

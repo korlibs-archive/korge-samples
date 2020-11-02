@@ -8,9 +8,4 @@ korge {
 	description = "A sample using Camera in KorGE"
 	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 	jvmMainClassName = "SampleKt"
-
-	supportShapeOps()
-	supportTriangulation()
-	supportDragonbones()
-	supportBox2d()
 }
