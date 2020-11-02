@@ -59,7 +59,7 @@ suspend fun main() = Korge(
 
 		if (bulletReload > 0) bulletReload -= 1 * scale
 
-		if (bulletReload <= 0 && pressing(Key.SPACE)) {
+		if (bulletReload <= 0 && pressing(Key.LEFT_CONTROL)) {
 			bulletReload = 20.0
 			val bullet = image(assets.bulletBitmap)
 				.center()
@@ -166,7 +166,7 @@ class Assets(val views: Views, val shipSize: Int = 24) {
 			lineToV(height.toDouble())
 		}
 	}
-	val asteroidBitmap = Bitmap32(asteroidSize, asteroidSize).context2d { // Let's use software vector rendering here, for testing purposes
+	val asteroidBitmap = NativeImage(asteroidSize, asteroidSize).context2d { // Let's use software vector rendering here, for testing purposes
 		lineWidth = 0.05
 		lineCap = LineCap.ROUND
 		stroke(Colors.WHITE) {
