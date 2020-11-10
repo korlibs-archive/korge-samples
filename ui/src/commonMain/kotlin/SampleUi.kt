@@ -1,6 +1,5 @@
 import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.font.*
 import com.soywiz.korge.html.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.service.process.*
