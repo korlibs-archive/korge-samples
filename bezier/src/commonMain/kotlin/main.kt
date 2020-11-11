@@ -8,6 +8,9 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.bezier.*
 import com.soywiz.korma.geom.vector.*
 
+val USE_NATIVE_RENDERING = true
+//val USE_NATIVE_RENDERING = false
+
 suspend fun main() = Korge(bgcolor = Colors["#111"], width = 300, height = 300) {
     val p0 = Point(109, 135)
     val p1 = Point(25, 190)
@@ -15,8 +18,7 @@ suspend fun main() = Korge(bgcolor = Colors["#111"], width = 300, height = 300) 
     val p3 = Point(234, 49)
 
     val graphics = sgraphics {
-        useNativeRendering = true
-        //useNativeRendering = false
+        useNativeRendering = USE_NATIVE_RENDERING
     }
 
     fun updateGraphics() {
@@ -53,8 +55,12 @@ fun Container.createPointController(point: Point, color: Paint, onMove: () -> Un
     lateinit var circle: View
     lateinit var text: Text
     val anchorView = container {
-        circle = circle(6.0, fill = color, stroke = Colors.DARKGRAY, strokeThickness = 2.0).centered
-        text = text("", 10.0).position(10.0, 6.0)
+        circle = circle(6.0, fill = color, stroke = Colors.DARKGRAY, strokeThickness = 2.0).apply {
+			useNativeRendering = USE_NATIVE_RENDERING
+		}.centered
+        text = text("", 10.0).position(10.0, 6.0).apply {
+			useNativeRendering = USE_NATIVE_RENDERING
+		}
     }.position(point)
 
     fun updateText() {
