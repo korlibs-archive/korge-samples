@@ -295,12 +295,15 @@ class EyeTrackingScene : BaseDbScene() {
 				"shizuku"
 			)
 			println("EyeTrackingScene[2]")
+			// https://github.com/korlibs/korge-next/issues/74
+			// https://youtrack.jetbrains.com/issue/KT-43361
+			val tex00 = tex00Deferred.await()
+			val tex01 = tex01Deferred.await()
+			val tex02 = tex02Deferred.await()
+			val tex03 = tex03Deferred.await()
 			factory.updateTextureAtlases(
 				arrayOf(
-					tex00Deferred.await(),
-					tex01Deferred.await(),
-					tex02Deferred.await(),
-					tex03Deferred.await()
+					tex00, tex01, tex02, tex03
 				), "shizuku"
 			)
 			println("EyeTrackingScene[3]")
