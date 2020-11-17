@@ -83,7 +83,7 @@ suspend fun main() = Korge(width = 448, height = 384, bgcolor = Colors["#2b2b2b"
                                     is Action.Finish -> {
                                         for (pos in action.win.positions) {
                                             val view = views[pos.column, pos.row]
-                                            tween({ view::colorAdd[ColorAdd(255, 255, 255, 0).rgba] }, time = this.time)
+                                            tween({ view::colorAdd[ColorAdd(255, 255, 255, 0)] }, time = this.time)
                                         }
                                     }
                                 }
