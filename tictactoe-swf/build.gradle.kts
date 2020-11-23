@@ -10,4 +10,6 @@ korge {
 
 	//dependencyMulti("com.soywiz:korge-swf:$korgeVersion")
 	supportSwf()
+
+	targetDefault()
 }

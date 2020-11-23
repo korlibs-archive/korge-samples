@@ -4,4 +4,5 @@ apply plugin: KorgeGradlePlugin
 
 korge {
 	id = "com.soywiz.samples.input"
+	targetDefault()
 }

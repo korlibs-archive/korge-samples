@@ -4,4 +4,5 @@ apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.example.example"
+	targetDefault()
 }

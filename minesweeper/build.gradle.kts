@@ -7,4 +7,5 @@ korge {
 	entryPoint = "com.soywiz.korge.samples.minesweeper.main"
 	jvmMainClassName = "com.soywiz.korge.samples.minesweeper.MainKt"
 	id = "com.soywiz.samples.minesweeper"
+	targetDefault()
 }

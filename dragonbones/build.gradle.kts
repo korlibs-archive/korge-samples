@@ -10,4 +10,6 @@ korge {
 	description = "KorGE sample using DragonBones plugin"
 	orientation = Orientation.LANDSCAPE
 	icon = file("src/commonMain/resources/icon.png")
+
+	targetDefault()
 }

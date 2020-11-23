@@ -4,4 +4,6 @@ apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.soywiz.samples.tiledbackground"
+
+	targetDefault()
 }

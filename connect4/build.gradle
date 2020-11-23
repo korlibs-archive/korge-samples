@@ -2,4 +2,5 @@ apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
 
 korge {
 	id = "com.soywiz.sample.connect4"
+	targetDefault()
 }

@@ -7,6 +7,8 @@ korge {
 	name = "SampleVideo"
 	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 	jvmMainClassName = "MainKt"
+
+	targetDefault()
 }
 
 dependencies {

@@ -5,4 +5,6 @@ apply<KorgeGradlePlugin>()
 korge {
 	id = "com.soywiz.samples.triangulation"
 	supportShape()
+
+	targetDefault()
 }

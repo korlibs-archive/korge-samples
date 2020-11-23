@@ -8,4 +8,6 @@ korge {
 	description = "A sample using Korge and the gradle plugin"
 	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 	jvmMainClassName = "SampleUiKt"
+
+	targetDefault()
 }

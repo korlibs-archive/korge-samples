@@ -3,5 +3,5 @@ import com.soywiz.korge.gradle.*
 apply plugin: KorgeGradlePlugin
 
 korge {
-
+	targetDefault()
 }
