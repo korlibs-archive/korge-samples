@@ -296,7 +296,7 @@ class KuyoBoardView(
                                         tween(kuyo::scaleY[0.1], time = 0.1.seconds, easing = Easing.EASE_OUT_QUAD)
                                     }
                                     sequence {
-                                        hide(time = 0.15.seconds, easing = destroyEasing)
+                                        kuyo.hide(time = 0.15.seconds, easing = destroyEasing)
                                         //kuyo.delay(time = 0.2)
                                     }
                                 }
