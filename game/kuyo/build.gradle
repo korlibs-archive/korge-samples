@@ -1,0 +1,6 @@
+apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
+
+korge {
+	id = "org.korge.samples.kuyo"
+	targetDefault()
+}
