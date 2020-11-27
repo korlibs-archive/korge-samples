@@ -1,8 +1,8 @@
-package org.korge.sample.kuyo
+package org.korge.sample.kuyo.model
 
 import com.soywiz.kds.*
 import com.soywiz.korma.geom.*
-import org.korge.sample.kuyo.KuyoBoard.Companion.EMPTY
+import org.korge.sample.kuyo.model.KuyoBoard.Companion.EMPTY
 
 data class KuyoItem(val pos: PointInt, val color: Int)
 

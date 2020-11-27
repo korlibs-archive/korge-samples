@@ -1,4 +1,6 @@
-package org.korge.sample.kuyo
+package org.korge.sample.kuyo.util
+
+import com.soywiz.kds.iterators.*
 
 /*
 import com.soywiz.korge.view.*
@@ -39,3 +41,11 @@ suspend fun JobQueue.await() = suspendCoroutine<Unit> { c ->
     queue { c.resume(Unit) }
 }
 */
+
+inline fun <T, R> List<T>.firstNotNullOrNull(block: (T) -> R?): R? {
+	this.fastForEach {
+		val result = block(it)
+		if (result != null) return result
+	}
+	return null
+}

@@ -1,12 +1,12 @@
 package org.korge.sample.kuyo
 
-/*
 import com.soywiz.korge.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.format.*
 import com.soywiz.korinject.*
 import com.soywiz.korma.geom.*
+import org.korge.sample.kuyo.model.*
 import kotlin.jvm.*
 import kotlin.reflect.*
 
@@ -16,18 +16,19 @@ object Kuyo {
     //    height = (720 * 0.7).toInt(),
     //    title = "Kuyo!"
     //)
-//
-    @JvmStatic
-    suspend fun main(args: Array<String>) {
-        Korge(Korge.Config(object : Module() {
-            override val mainScene: KClass<out Scene> = KuyoScene::class
+
+	@JvmStatic
+	suspend fun main(args: Array<String>) {
+	    Korge(Korge.Config(object : Module() {
+	        override val mainScene: KClass<out Scene> = KuyoScene::class
+			override val size: SizeInt = SizeInt(896, 504)
 
 			override suspend fun AsyncInjector.configure() {
 				mapPrototype { KuyoScene() }
 			}
-        }))
-    }
-//
+	    }))
+	}
+
     //object MainMenu {
     //    @JvmStatic
     //    fun main(args: Array<String>) {
@@ -80,4 +81,3 @@ class TestPuyoScene : Scene() {
         }
     }
 }
-*/

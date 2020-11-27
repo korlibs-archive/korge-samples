@@ -1,9 +1,9 @@
 package org.korge.sample.kuyo
 
-/*
 import com.soywiz.kds.*
 import com.soywiz.klock.*
 import com.soywiz.korev.*
+import com.soywiz.korge.animate.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.input.keys
 import com.soywiz.korge.input.mouse
@@ -11,6 +11,7 @@ import com.soywiz.korge.scene.*
 import com.soywiz.korge.time.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.tween.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.format.*
@@ -22,6 +23,8 @@ import com.soywiz.korma.interpolation.*
 import com.soywiz.korma.random.*
 import kotlinx.coroutines.*
 import org.korge.sample.kuyo.*
+import org.korge.sample.kuyo.model.*
+import org.korge.sample.kuyo.util.*
 import kotlin.coroutines.*
 import kotlin.random.*
 
@@ -43,83 +46,30 @@ class KuyoScene(val seed: Long = Random.nextLong()) : Scene() {
                 }
             }
         }
-        board = KuyoBoardView(0, KuyoBoard(), tiles, font1, rand = rand1).position(64, 64).addTo(containerRoot)
+        board = KuyoBoardView(0, KuyoBoard(), tiles, font1, rand = rand1, coroutineContext).position(64, 64).addTo(containerRoot)
         //KuyoBoardView(1, KuyoBoard(), tiles, font1, rand = rand2).also { it.position(640, 64); root += it }
     }
 }
 
-class KuyoTiles(val tex: BitmapSlice<Bitmap>) {
-    val tiles = Array2(16, 16) { tex }
-
-    //val tile = tex.sliceSize(0, 0, 32, 32)
-    //val tile = arrayListOf<SceneTexture>()
-    init {
-        for (y in 0 until 16) {
-            for (x in 0 until 16) {
-                tiles[x, y] = tex.sliceWithSize(x * 32, y * 32, 32, 32)
-            }
-        }
-    }
-
-    fun getTex(
-        color: Int,
-        up: Boolean = false,
-        left: Boolean = false,
-        right: Boolean = false,
-        down: Boolean = false
-    ): BmpSlice {
-        if (color <= 0) return tiles[5, 15]
-        val combinable = true
-        //val combinable = false
-        var offset = 0
-        if (combinable) {
-            offset += if (down) 1 else 0
-            offset += if (up) 2 else 0
-            offset += if (right) 4 else 0
-            offset += if (left) 8 else 0
-        }
-        return tiles[offset, color - 1]
-    }
-
-    fun getDestroyTex(color: Int): BmpSlice {
-        return when (color) {
-            1 -> tiles[0, 12]
-            2 -> tiles[0, 13]
-            3 -> tiles[2, 12]
-            4 -> tiles[2, 13]
-            5 -> tiles[4, 12]
-            else -> tiles[5, 15]
-        }
-    }
-
-    fun getHintTex(color: Int): BmpSlice {
-        return tiles[5 + color - 1, 11]
-    }
-
-    val default = getTex(1)
-    val colors = listOf(tiles[0, 0]) + (0 until 5).map { getTex(it + 1) }
-    val empty = getTex(0)
-}
-
 val DEFAULT_EASING = Easing.LINEAR
 
-class KuyoDropView(val board: KuyoBoardView, private var model: KuyoDrop, val coroutineScope: CoroutineScope) : Container() {
+class KuyoDropView(val board: KuyoBoardView, private var model: KuyoDrop, val coroutineContext: CoroutineContext) : Container() {
     val dropModel get() = model
     val boardModel get() = board.model
     val views = (0 until 4).map { ViewKuyo(PointInt(0, 0), 0, board).also { addChild(it) } }
     val queue get() = board.queue
 
     fun rotateRight() {
-        set(model.rotateOrHold(+1, board.model), time = 0.1)
+        set(model.rotateOrHold(+1, board.model), time = 0.1.seconds)
     }
 
     fun rotateLeft() {
-        set(model.rotateOrHold(-1, board.model), time = 0.1)
+        set(model.rotateOrHold(-1, board.model), time = 0.1.seconds)
     }
 
     fun moveBy(delta: PointInt, easing: Easing = DEFAULT_EASING): Boolean {
         val newModel = model.tryMove(delta, board.model) ?: return false
-        set(newModel, time = if (delta.x == 0) 0.05 else 0.1, easing = easing)
+        set(newModel, time = if (delta.x == 0) 0.05.seconds else 0.1.seconds, easing = easing)
         return true
     }
 
@@ -137,19 +87,19 @@ class KuyoDropView(val board: KuyoBoardView, private var model: KuyoDrop, val co
         board.setHints(boardModel.place(model).dst.gravity().transforms.map { it.cdst })
     }
 
-    fun set(newDrop: KuyoDrop, time: Double = 0.1, easing: Easing = DEFAULT_EASING) {
+    fun set(newDrop: KuyoDrop, time: TimeSpan = 0.1.seconds, easing: Easing = DEFAULT_EASING) {
         queue.discard {
             model = newDrop
 
             setHints()
 
-            coroutineScope.launchImmediately {
-                parallel {
+			launchImmediately(coroutineContext) {
+                animateParallel {
                     for ((index, item) in newDrop.transformedItems.withIndex()) {
                         val view = views[index]
                         view.set(item.color)
                         sequence {
-                            view.moveTo(item.pos, time = time, easing = easing)
+                            view.moveTo(this, item.pos, time = time, easing = easing)
                         }
                     }
                 }
@@ -233,7 +183,7 @@ class KuyoDropView(val board: KuyoBoardView, private var model: KuyoDrop, val co
                 rotateLeft()
             }
         }
-        downTimer = timer(1.0.seconds) {
+        downTimer = timers.timeout(1.0.seconds) {
             moveDownOrPlace()
         }
     }
@@ -246,20 +196,23 @@ class KuyoBoardView(
 	var model: KuyoBoard,
 	val tiles: KuyoTiles,
 	val font: BitmapFont,
-	val rand: Random = Random
+	val rand: Random = Random,
+	val coroutineContext: CoroutineContext
 ) : Container() {
     val mwidth get() = model.width
     val mheight get() = model.height
     val queue = JobQueue()
     val hints = container()
-    val kuyos = Array2<ViewKuyo?>(model.width, model.height) {
-        //ViewKuyo(IPoint(x, y), 0, this@KuyoBoardView).apply { this@KuyoBoardView.addChild(this) }
-        null
-    }
+	//val kuyos = Array2<ViewKuyo?>(model.width, model.height) { index ->
+	//	//ViewKuyo(IPoint(x, y), 0, this@KuyoBoardView).apply { this@KuyoBoardView.addChild(this) }
+	//	null as ViewKuyo?
+	//}
 
-    fun generateRandShape() = KuyoShape2(rand[1..NCOLORS], rand[1..NCOLORS])
+	val kuyos = Array2<ViewKuyo?>(model.width, model.height, arrayOfNulls(model.width * model.height))
 
-    val dropping = KuyoDropView(this, KuyoDrop(PointInt(2, 0), generateRandShape())).apply {
+	fun generateRandShape() = KuyoShape2(rand[1..NCOLORS], rand[1..NCOLORS])
+
+    val dropping = KuyoDropView(this, KuyoDrop(PointInt(2, 0), generateRandShape()), coroutineContext).apply {
         this@KuyoBoardView.addChild(this)
     }
 
@@ -286,7 +239,7 @@ class KuyoBoardView(
             it.position(16, 96)
         }
         text.show(time = 0.3.seconds, easing = Easing.EASE_IN_OUT_QUAD)
-        parallel {
+		animateParallel {
             sequence { text.moveBy(0.0, -64.0, time = 0.3.seconds) }
             sequence { text.hide(time = 0.3.seconds) }
         }
@@ -309,7 +262,7 @@ class KuyoBoardView(
         model = step.dst
         //println(model.toBoardString())
 
-        parallel {
+		animateParallel {
             for (transform in step.transforms) {
                 //println("TRANSFORM : $transform")
                 when (transform) {
@@ -317,9 +270,8 @@ class KuyoBoardView(
                         val item = transform.item
                         //println("PLACED: $item")
                         sequence {
-                            kuyos[item.pos] =
-                                ViewKuyo(item.pos, item.color, this@KuyoBoardView).addTo(this@KuyoBoardView)
-                                    .alpha(1.0)
+							kuyos[item.pos] =
+								ViewKuyo(item.pos, item.color, this@KuyoBoardView).addTo(this@KuyoBoardView).also { alpha = 1.0 }
                         }
                     }
                     is KuyoTransform.Move -> {
@@ -327,28 +279,28 @@ class KuyoBoardView(
                         kuyos[transform.src] = null
                         kuyos[transform.dst] = kuyo
                         sequence {
-                            kuyo?.moveTo(transform.dst, time = 0.3, easing = Easing.EASE_IN_QUAD)
+							kuyo?.moveTo(this, transform.dst, time = 0.3.seconds, easing = Easing.EASE_IN_QUAD)
                         }
                     }
                     is KuyoTransform.Explode -> {
                         for (item in transform.items) {
                             val kuyo = kuyos[item] ?: continue
                             sequence {
-                                kuyo.delay(0.1.seconds)
-                                kuyo.bitmap = tiles.getDestroyTex(kuyo.color)
-                                kuyo.tween(kuyo::scale[1.5], time = 0.3.seconds, easing = Easing.EASE_IN_QUAD)
+                                wait(0.1.seconds)
+								block { kuyo.bitmap = tiles.getDestroyTex(kuyo.color) }
+								tween(kuyo::scale[1.5], time = 0.3.seconds, easing = Easing.EASE_IN_QUAD)
                                 val destroyEasing = Easing.EASE_OUT_QUAD
                                 parallel {
                                     sequence {
-                                        kuyo.tween(kuyo::scale[0.5], time = 0.1.seconds, easing = destroyEasing)
-                                        kuyo.tween(kuyo::scaleY[0.1], time = 0.1.seconds, easing = Easing.EASE_OUT_QUAD)
+                                        tween(kuyo::scale[0.5], time = 0.1.seconds, easing = destroyEasing)
+                                        tween(kuyo::scaleY[0.1], time = 0.1.seconds, easing = Easing.EASE_OUT_QUAD)
                                     }
                                     sequence {
-                                        kuyo.hide(time = 0.15.seconds, easing = destroyEasing)
+                                        hide(time = 0.15.seconds, easing = destroyEasing)
                                         //kuyo.delay(time = 0.2)
                                     }
                                 }
-                                kuyo.removeFromParent()
+								block { kuyo.removeFromParent() }
                             }
                         }
                     }
@@ -362,7 +314,7 @@ class KuyoBoardView(
     }
 }
 
-class ViewKuyo(var ipos: PointInt, var color: Int, val board: KuyoBoardView) : Image(board.tiles.empty) {
+class ViewKuyo(var ipos: PointInt, var color: Int, val board: KuyoBoardView) : BaseImage(board.tiles.empty) {
     val tiles get() = board.tiles
 
     init {
@@ -378,10 +330,12 @@ class ViewKuyo(var ipos: PointInt, var color: Int, val board: KuyoBoardView) : I
 
     fun getRPos(pos: PointInt) = (pos * PointInt(32, 32)) + PointInt(16, 16)
 
-    suspend fun moveTo(npos: PointInt, time: Double = 0.1, easing: Easing = DEFAULT_EASING) {
+    fun moveTo(animator: Animator, npos: PointInt, time: TimeSpan = 0.1.seconds, easing: Easing = DEFAULT_EASING) {
         ipos = npos
         val screenPos = getRPos(npos)
-        moveTo(screenPos.x.toDouble(), screenPos.y.toDouble(), time = time.seconds, easing = easing)
+		animator.apply {
+			this@ViewKuyo.moveTo(screenPos.x.toDouble(), screenPos.y.toDouble(), time = time, easing = easing)
+		}
     }
 
     fun moveToImmediate(npos: PointInt) {
@@ -400,64 +354,3 @@ class ViewKuyo(var ipos: PointInt, var color: Int, val board: KuyoBoardView) : I
         }
     }
 }
-
-class JobQueue(val context: CoroutineContext = EmptyCoroutineContext) {
-    private val tasks = arrayListOf<suspend () -> Unit>()
-    var running = false; private set
-    private var currentJob: Job? = null
-    val size: Int get() = tasks.size + (if (running) 1 else 0)
-
-    private suspend fun run() {
-        running = true
-        try {
-
-            while (true) {
-                val task = synchronized(tasks) { if (tasks.isNotEmpty()) tasks.removeAt(0) else null } ?: break
-                val job = launch { task() }
-                currentJob = job
-                job.join()
-                currentJob = null
-            }
-        } catch (e: Throwable) {
-            println(e)
-        } finally {
-            currentJob = null
-            running = false
-        }
-    }
-
-    /**
-     * Discards all the queued but non running tasks
-     */
-    fun discard(): JobQueue {
-        synchronized(tasks) { tasks.clear() }
-        return this
-    }
-
-    /**
-     * Discards all the queued tasks and cancels the running one, sending a complete signal.
-     * If complete=true, a tween for example will be set directly to the end step
-     * If complete=false, a tween for example will stop to the current step
-     */
-    fun cancel(complete: Boolean = false): JobQueue {
-        currentJob?.cancel(CancelException(complete))
-        return this
-    }
-
-    fun cancelComplete() = cancel(true)
-
-    fun queue(callback: suspend () -> Unit) {
-        synchronized(tasks) { tasks += callback }
-        if (!running) launch { run() }
-    }
-
-    fun discard(callback: suspend () -> Unit) {
-        discard()
-        queue(callback)
-    }
-
-    operator fun invoke(callback: suspend () -> Unit) = queue(callback)
-}
-
-open class CancelException(val complete: Boolean = false) : RuntimeException()
-*/

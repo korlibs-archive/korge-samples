@@ -1,7 +1,7 @@
 package mmo.minigames.kuyo
 
 import com.soywiz.korma.geom.*
-import org.korge.sample.kuyo.*
+import org.korge.sample.kuyo.model.*
 import kotlin.test.*
 
 class KuyoModelTest {
