@@ -24,7 +24,8 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, width = 512
 
 	var offset = 0.degrees
 	addUpdater { offset += 10.degrees }
-	text("Hello World!", font = font, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer { text, n, c, c1, g, advance ->
+	var version = 0
+	text("Hello World!", font = font, textSize = 64.0, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer({ version++ }) { text, n, c, c1, g, advance ->
 		transform.identity()
 		val sin = sin(offset + (n * 360 / text.length).degrees)
 		transform.rotate(15.degrees)
