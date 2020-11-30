@@ -1,0 +1,7 @@
+apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
+
+korge {
+	id = "com.example.bundle"
+	targetDefault()
+    bundle("https://github.com/korlibs/korge-free-assets.git::space-shooter-redux::531e1bd6a588358266f1815daa143bd057ed6841##b31b6f1e1f4b96209ec22dc422fa95b2e77173736a093db0aeeb7ee50a937e16")
+}
