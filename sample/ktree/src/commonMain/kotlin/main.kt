@@ -6,4 +6,5 @@ import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(bgcolor = Colors["#172335"]) {
 	addChild(resourcesVfs["scene.ktree"].readKTree(views()))
+	this["small"].alpha(0.1)
 }
