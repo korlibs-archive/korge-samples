@@ -1,0 +1,8 @@
+import com.soywiz.korge.gradle.*
+
+apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
+
+korge {
+	id = "com.soywiz.samples.ktree"
+	targetDefault()
+}
