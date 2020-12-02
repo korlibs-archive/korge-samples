@@ -1,0 +1,5 @@
+<ktree width="1280.0" height="720.0" gridWidth="20" gridHeight="20">
+	<image name="circle" width="64.0" height="64.0" sourceFile="circle.png"/>
+	<image name="cross" width="64.0" height="64.0" sourceFile="cross.png"/>
+	<solidrect name="highlight" colorMul="#ffe39543" alpha="0.2" width="64.0" height="64.0"/>
+</ktree>

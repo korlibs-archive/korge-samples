@@ -1,0 +1,10 @@
+<ktree width="640.0" height="480.0" gridWidth="20" gridHeight="20">
+	<treeviewref name="row0" x="220.0" y="140.0" sourceFile="row.ktree"/>
+	<treeviewref name="row1" x="220.0" y="220.0" sourceFile="row.ktree"/>
+	<treeviewref name="row2" x="220.0" y="300.0" sourceFile="row.ktree"/>
+	<solidrect x="290.0" y="134.99999999999997" width="5.0" height="235.0"/>
+	<solidrect x="370.0" y="134.99999999999997" width="5.0" height="235.0"/>
+	<solidrect x="214.99999999999991" y="210.0" width="235.0" height="5.0"/>
+	<solidrect x="214.99999999999994" y="290.0" width="235.0" height="5.0"/>
+	<text name="gameresult" x="340.0" y="100.0" text="CROSS wins" fontSize="64.0" verticalAlign="MIDDLE" horizontalAlign="CENTER"/>
+</ktree>

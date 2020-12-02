@@ -1,0 +1,5 @@
+<ktree width="640.0" height="480.0" gridWidth="20" gridHeight="20">
+	<treeviewref name="cell0" sourceFile="cell.ktree"/>
+	<treeviewref name="cell1" x="80.0" sourceFile="cell.ktree"/>
+	<treeviewref name="cell2" x="160.0" sourceFile="cell.ktree"/>
+</ktree>
