@@ -67,7 +67,7 @@ class InGameScene(
 
 
 	fun Container.setResultText(text: String) {
-		val gameResultView = stage["gameresult"]
+		val gameResultView = this["gameresult"]
 		(gameResultView.firstOrNull as? Text?)?.text = text
 	}
 
