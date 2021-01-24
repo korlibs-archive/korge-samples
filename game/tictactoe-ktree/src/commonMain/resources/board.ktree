@@ -6,5 +6,5 @@
 	<solidrect x="370.0" y="134.99999999999997" width="5.0" height="235.0"/>
 	<solidrect x="214.99999999999991" y="210.0" width="235.0" height="5.0"/>
 	<solidrect x="214.99999999999994" y="290.0" width="235.0" height="5.0"/>
-	<text name="gameresult" x="340.0" y="100.0" text="CROSS wins" fontSize="64.0" verticalAlign="MIDDLE" horizontalAlign="CENTER"/>
+	<text name="gameresult" x="340.0" y="100.0" text="CROSS wins" textSize="16.0" verticalAlign="MIDDLE" horizontalAlign="CENTER"/>
 </ktree>
