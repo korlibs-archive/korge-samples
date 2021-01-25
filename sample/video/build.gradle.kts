@@ -11,6 +11,10 @@ korge {
 	targetDefault()
 }
 
+repositories {
+	maven { url = uri("http://dl.bintray.com/korlibs/korlibs/") }
+}
+
 dependencies {
-	add("commonMainApi", "com.soywiz.korlibs.korvi:korvi:2.0.0-rc2")
+	add("commonMainApi", "com.soywiz.korlibs.korvi:korvi:2.0.5")
 }
