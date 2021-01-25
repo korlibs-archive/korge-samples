@@ -2,7 +2,7 @@ apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
 
 korge {
 	dependencies {
-		add("commonMainApi", "com.soywiz.korlibs.korge:korge-spine:${korgeVersion}")
+		add("commonMainApi", "com.soywiz.korlibs.korge2:korge-spine:${korgeVersion}")
 	}
 
 	id = "com.soywiz.korlibs.korge.samples.dragonbones"
