@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        applicationId "com.korge.korgeviewexample"
+        applicationId "org.korge.korgeviewexample"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1

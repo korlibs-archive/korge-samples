@@ -1,4 +1,4 @@
-package com.korge.androidviewexample
+package org.korge.korgeviewexample
 
 import com.soywiz.korge.scene.Module
 import com.soywiz.korge.scene.Scene

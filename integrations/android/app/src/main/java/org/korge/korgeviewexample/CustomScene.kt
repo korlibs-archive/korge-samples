@@ -1,4 +1,4 @@
-package com.korge.androidviewexample
+package org.korge.korgeviewexample
 
 import com.soywiz.klock.seconds
 import com.soywiz.korge.animate.animate

@@ -1,9 +1,8 @@
-package com.korge.korgeviewexample
+package org.korge.korgeviewexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.korge.androidviewexample.CustomModule
-import com.korge.korgeviewexample.databinding.ActivityMainBinding
+import org.korge.korgeviewexample.databinding.ActivityMainBinding
 import com.soywiz.korge.android.KorgeAndroidView
 
 class MainActivity : AppCompatActivity() {
