@@ -1,4 +1,5 @@
 import com.soywiz.korge.*
+import com.soywiz.korge.component.docking.*
 import com.soywiz.korge.component.length.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
@@ -10,15 +11,14 @@ suspend fun main() {
     Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"], clipBorders = false, scaleAnchor = Anchor.TOP_LEFT) {
 	//Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"], clipBorders = false, scaleAnchor = Anchor.TOP_LEFT, scaleMode = ScaleMode.NO_SCALE) {
 	//Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
-		solidRect(512, 512, Colors.DARKOLIVEGREEN).lengths {
-			//width = 100.vw
-			//height = 100.vh
-		}
+		solidRect(512, 512, Colors.DARKOLIVEGREEN)
 		solidRect(512, 512, Colors.DARKRED).lengths {
-			x = 1.cm
-			y = 1.cm
-			width = max(100.vw - (1.cm * 2), 0.5.cm)
-			height = max(100.vh - (1.cm * 2), 0.5.cm)
+			val horizonalMargin = 1.cm
+			val verticalMargin = 1.cm
+			x = horizonalMargin
+			y = verticalMargin
+			width = max(100.vw - (horizonalMargin * 2), 0.5.cm)
+			height = max(100.vh - (verticalMargin * 2), 0.5.cm)
 		}
         solidRect(0, 0, Colors.RED).centered.lengths {
         	x = 50.vw
