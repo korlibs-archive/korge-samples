@@ -1,3 +1,4 @@
+import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.annotations.*
 import com.soywiz.korge.view.*
@@ -23,7 +24,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, width = 512
 	)
 
 	var offset = 0.degrees
-	addUpdater { offset += 10.degrees }
+	addFixedUpdater(60.timesPerSecond) { offset += 10.degrees }
 	var version = 0
 	text("Hello World!", font = font, textSize = 64.0, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer({ version++ }) { text, n, c, c1, g, advance ->
 		transform.identity()
