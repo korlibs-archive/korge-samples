@@ -46,9 +46,9 @@ suspend fun main() = Korge {
 	}
 
 	mouse {
-		onMove { mouseMoveText.text = "Mouse:Move ${nowTime()} $it" }
-		onDown { mouseDownText.text = "Mouse:Down ${nowTime()} $it" }
-		onUp { mouseUpText.text = "Mouse:Up ${nowTime()} $it" }
-		onClick { mouseClickText.text = "Mouse:Click ${nowTime()} $it" }
+		onMove { mouseMoveText.text = "Mouse:Move ${nowTime()} ${it.lastEvent}" }
+		onDown { mouseDownText.text = "Mouse:Down ${nowTime()} ${it.lastEvent}" }
+		onUp { mouseUpText.text = "Mouse:Up ${nowTime()} ${it.lastEvent}" }
+		onClick { mouseClickText.text = "Mouse:Click ${nowTime()} ${it.lastEvent}" }
 	}
 }
