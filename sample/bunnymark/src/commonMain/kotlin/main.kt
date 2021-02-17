@@ -32,7 +32,9 @@ class Bunny(tex: BmpSlice) : FastSprite(tex) {
 // bunnymark ported from PIXI.js
 // https://www.goodboydigital.com/pixijs/bunnymark/
 // https://www.goodboydigital.com/pixijs/bunnymark/js/bunnyBenchMark.js
-suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"]) {
+suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"], batchMaxQuads = com.soywiz.korge.render.BatchBuilder2D.MAX_BATCH_QUADS) {
+//suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"], batchMaxQuads = com.soywiz.korge.render.BatchBuilder2D.MAX_BATCH_QUADS, debug = true) {
+//suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"], debug = true) {
     val wabbitTexture = resourcesVfs["bunnys.png"].readBitmap()
 
     val bunny1 = wabbitTexture.sliceWithSize(2, 47, 26, 37)
@@ -42,6 +44,9 @@ suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"
     val bunny5 = wabbitTexture.sliceWithSize(2, 2, 26, 37)
 
     val startBunnyCount = 2
+	//val startBunnyCount = 400_003
+	//val startBunnyCount = 200_000
+	//val startBunnyCount = 250_000
     //val startBunnyCount = 1_000_000
     //val startBunnyCount = 200_000
     val bunnyTextures = listOf(bunny1, bunny2, bunny3, bunny4, bunny5)
