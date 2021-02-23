@@ -21,9 +21,14 @@ fileTree(rootProject.projectDir) {
 	include("**"+"/build.gradle.kts")
 	include("**"+"/build.gradle")
 	exclude("**"+"/build/**")
+	exclude("**"+"/integrations/**")
+	exclude("**"+"/.idea/**")
+	exclude("**"+"/.gradle/**")
+	exclude("**"+"/.github/**")
 }.forEach {
 	if (it.parentFile != null && !it.path.contains("korge-bundles")) {
 		def sample = moduleName(it.parentFile)
+		//println(sample)
 		include(":$sample")
 	}
 	//project(":$sample").projectDir = File(relativePath(it.parent))
