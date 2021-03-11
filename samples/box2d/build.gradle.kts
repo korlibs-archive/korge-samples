@@ -11,7 +11,7 @@ korge {
 
 	//admob("ca-app-pub-xxxxxxxx~yyyyyy")
 
-	bundle("https://github.com/korlibs/korge-bundles.git::korge-box2d::4ac7fcee689e1b541849cedd1e017016128624b9##d15f5b28abbc2f58ba375d7204a6db2e90342978d02e675cd29249d0cade8f9f")
+	bundle("https://github.com/korlibs/korge-bundles.git::korge-box2d::73daf015ca725cc2717fa74213bc870e770ee2cd##fb2e67184e3374a53ba3ab43c28bbe78eeca070a76c3df4f565df169bbede60b")
 
 	targetDefault()
 }
