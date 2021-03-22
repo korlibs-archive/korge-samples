@@ -29,7 +29,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 							view.y < targetY -> view.y += 2
 							view.y > targetY -> view.y -= 2
 						}
-						delayFrame()
+						frame()
 					}
 				}
 			}
