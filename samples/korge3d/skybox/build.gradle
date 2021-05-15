@@ -1,8 +1,0 @@
-import com.soywiz.korge.gradle.*
-
-apply plugin: KorgeGradlePlugin
-
-korge {
-	id = "com.soywiz.samples.input"
-	targetDefault()
-}

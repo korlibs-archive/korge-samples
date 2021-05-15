@@ -171,7 +171,7 @@ class MyScene : MyBaseScene() {
 }
 
 class Button(text: String, handler: suspend () -> Unit) : Container() {
-	val textField = Text(text, textSize = 32.0).apply { smoothing = false }
+	val textField = TextOld(text, textSize = 32.0).apply { filtering = false }
 	private val bounds = textField.textBounds
 	val g = Graphics().apply {
 		fill(Colors.DARKGREY, 0.7) {
@@ -218,10 +218,10 @@ class Button(text: String, handler: suspend () -> Unit) : Container() {
 class HelloWorldScene : BaseDbScene() {
 	val SCALE = 1.6
 	override suspend fun Container.sceneInit() {
-		val skeDeferred = asyncImmediately { Json.parse(resourcesVfs["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
+		val skeDeferred = asyncImmediately { Json.parse(res["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
 		//val skeDeferred = asyncImmediately { MemBufferWrap(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.dbbin"].readBytes()) }
-		val texDeferred = asyncImmediately { resourcesVfs["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
-		val imgDeferred = asyncImmediately { resourcesVfs["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmap().mipmaps() }
+		val texDeferred = asyncImmediately { res["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
+		val imgDeferred = asyncImmediately { res["mecha_1002_101d_show/mecha_1002_101d_show_tex.png"].readBitmap().mipmaps() }
 
 		val data = factory.parseDragonBonesData(skeDeferred.await())
 		val atlas = factory.parseTextureAtlasData(Json.parse(texDeferred.await())!!, imgDeferred.await())
@@ -242,9 +242,9 @@ class ClassicDragonScene : BaseDbScene() {
 	override suspend fun Container.sceneInit() {
 		//val scale = 0.3
 		val scale = 0.8
-		val ske = asyncImmediately { resourcesVfs["Dragon/Dragon_ske.json"].readString() }
-		val tex = asyncImmediately { resourcesVfs["Dragon/Dragon_tex.json"].readString() }
-		val img = asyncImmediately { resourcesVfs["Dragon/Dragon_tex.png"].readBitmap() }
+		val ske = asyncImmediately { res["Dragon/Dragon_ske.json"].readString() }
+		val tex = asyncImmediately { res["Dragon/Dragon_tex.json"].readString() }
+		val img = asyncImmediately { res["Dragon/Dragon_tex.png"].readBitmap() }
 
 		val data = factory.parseDragonBonesData(Json.parse(ske.await())!!)
 
@@ -282,11 +282,11 @@ class EyeTrackingScene : BaseDbScene() {
 				"PARAM_BREATH"
 			)
 
-			val skeDeferred = asyncImmediately { resourcesVfs["shizuku/shizuku_ske.json"].readString() }
-			val tex00Deferred = asyncImmediately { resourcesVfs["shizuku/shizuku.1024/texture_00.png"].readBitmap().mipmaps() }
-			val tex01Deferred = asyncImmediately { resourcesVfs["shizuku/shizuku.1024/texture_01.png"].readBitmap().mipmaps() }
-			val tex02Deferred = asyncImmediately { resourcesVfs["shizuku/shizuku.1024/texture_02.png"].readBitmap().mipmaps() }
-			val tex03Deferred = asyncImmediately { resourcesVfs["shizuku/shizuku.1024/texture_03.png"].readBitmap().mipmaps() }
+			val skeDeferred = asyncImmediately { res["shizuku/shizuku_ske.json"].readString() }
+			val tex00Deferred = asyncImmediately { res["shizuku/shizuku.1024/texture_00.png"].readBitmap().mipmaps() }
+			val tex01Deferred = asyncImmediately { res["shizuku/shizuku.1024/texture_01.png"].readBitmap().mipmaps() }
+			val tex02Deferred = asyncImmediately { res["shizuku/shizuku.1024/texture_02.png"].readBitmap().mipmaps() }
+			val tex03Deferred = asyncImmediately { res["shizuku/shizuku.1024/texture_03.png"].readBitmap().mipmaps() }
 
 			println("EyeTrackingScene[1]")
 
@@ -295,15 +295,12 @@ class EyeTrackingScene : BaseDbScene() {
 				"shizuku"
 			)
 			println("EyeTrackingScene[2]")
-			// https://github.com/korlibs/korge-next/issues/74
-			// https://youtrack.jetbrains.com/issue/KT-43361
-			val tex00 = tex00Deferred.await()
-			val tex01 = tex01Deferred.await()
-			val tex02 = tex02Deferred.await()
-			val tex03 = tex03Deferred.await()
 			factory.updateTextureAtlases(
 				arrayOf(
-					tex00, tex01, tex02, tex03
+					tex00Deferred.await(),
+					tex01Deferred.await(),
+					tex02Deferred.await(),
+					tex03Deferred.await()
 				), "shizuku"
 			)
 			println("EyeTrackingScene[3]")
@@ -428,13 +425,13 @@ class SkinChangingScene : BaseDbScene() {
 
 		deferreds += asyncImmediately {
 			factory.parseDragonBonesData(
-				Json.parse(resourcesVfs["you_xin/body/body_ske.json"].readString())!!
+				Json.parse(res["you_xin/body/body_ske.json"].readString())!!
 			)
 		}
 		deferreds += asyncImmediately {
 			val atlas = factory.parseTextureAtlasData(
-				Json.parse(resourcesVfs["you_xin/body/body_tex.json"].readString())!!,
-				resourcesVfs["you_xin/body/body_tex.png"].readBitmap().mipmaps()
+				Json.parse(res["you_xin/body/body_tex.json"].readString())!!,
+				res["you_xin/body/body_tex.png"].readBitmap().mipmaps()
 			)
 		}
 
@@ -447,10 +444,10 @@ class SkinChangingScene : BaseDbScene() {
 				val textureAtlasPath = path + "_tex.png"
 				//
 				deferreds += asyncImmediately {
-					factory.parseDragonBonesData(Json.parse(resourcesVfs[dragonBonesJSONPath].readString())!!)
+					factory.parseDragonBonesData(Json.parse(res[dragonBonesJSONPath].readString())!!)
 					factory.parseTextureAtlasData(
-						Json.parse(resourcesVfs[textureAtlasJSONPath].readString())!!,
-						resourcesVfs[textureAtlasPath].readBitmap().mipmaps()
+						Json.parse(res[textureAtlasJSONPath].readString())!!,
+						res[textureAtlasPath].readBitmap().mipmaps()
 					)
 				}
 			}
@@ -510,6 +507,6 @@ class SkinChangingScene : BaseDbScene() {
 }
 
 abstract class BaseDbScene : MyBaseScene() {
-	val resourcesVfs get() = com.soywiz.korio.file.std.resourcesVfs
+	val res get() = resourcesVfs
 	val factory = KorgeDbFactory()
 }

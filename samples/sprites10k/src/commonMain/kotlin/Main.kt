@@ -1,11 +1,12 @@
-import com.soywiz.klock.*
+import com.soywiz.klock.milliseconds
 import com.soywiz.korge.*
+import com.soywiz.korge.render.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
 
-suspend fun main() = Korge(width = 1600, height = 1200, batchMaxQuads = com.soywiz.korge.render.BatchBuilder2D.MAX_BATCH_QUADS) {
+suspend fun main() = Korge(width = 1600, height = 1200, batchMaxQuads = BatchBuilder2D.MAX_BATCH_QUADS) {
 
 	val numberOfGreen = 5000
 	//val numberOfGreen = 20000
@@ -33,7 +34,7 @@ suspend fun main() = Korge(width = 1600, height = 1200, batchMaxQuads = com.soyw
 	}
 
 	addUpdater {
-		val scale = if (it == 0.milliseconds) 0.0 else (it / 16.666666.milliseconds)
+		val scale = if (it == 0.0.milliseconds) 0.0 else (it / 16.666666.milliseconds)
 
 		greenSprites.forEachIndexed { index, sprite ->
 			sprite.walkDirection(index % greenAnimations.size, scale)

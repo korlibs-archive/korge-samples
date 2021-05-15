@@ -2,7 +2,6 @@ import com.soywiz.kds.*
 import com.soywiz.kds.iterators.*
 import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.render.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
@@ -123,7 +122,7 @@ class MonkeyScene : Scene() {
 			val view = mesh(model.mesh).rotation(-90.degrees, 0.degrees, 0.degrees)
 
 			var tick = 0
-			addUpdater {
+            addUpdater {
 				val angle = (tick / 1.0).degrees
 				camera.positionLookingAt(
 					cos(angle * 1) * 4, 0.0, -sin(angle * 1) * 4, // Orbiting camera
@@ -150,7 +149,7 @@ class SkinningScene : Scene() {
 			val cameras = mainSceneView.findByType<Camera3D>()
 
 			val animators = library.animationDefs.values.map { Animator3D(it, mainSceneView) }
-			addUpdater { animators.fastForEach { animator -> animator.update(it) } }
+            addUpdater { animators.fastForEach { animator -> animator.update(it) } }
 			val model = mainSceneView.findByType<ViewWithMesh3D>().first()
 				//.rotation(-90.degrees, 90.degrees, 0.degrees)
 
@@ -160,7 +159,7 @@ class SkinningScene : Scene() {
 			camera = camera1.clone()
 
 			this += mainSceneView
-			addUpdater {
+            addUpdater {
 				//val mainSceneView = mainSceneView
 				//println(mainSceneView)
 

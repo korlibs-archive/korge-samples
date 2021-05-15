@@ -5,7 +5,6 @@ import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge3d.*
 import com.soywiz.korim.color.*
-import com.soywiz.korio.async.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 

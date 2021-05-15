@@ -1,4 +1,6 @@
-apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
+import com.soywiz.korge.gradle.*
+
+apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.soywiz.samples.bezier"

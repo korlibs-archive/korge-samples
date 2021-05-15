@@ -1,7 +1,8 @@
 import com.soywiz.korge.gradle.*
 
-apply plugin: KorgeGradlePlugin
+apply<KorgeGradlePlugin>()
 
 korge {
+	id = "com.soywiz.samples.flag"
 	targetDefault()
 }

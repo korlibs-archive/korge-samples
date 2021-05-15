@@ -8,7 +8,7 @@ import com.soywiz.korio.async.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 
-suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "KorGE Shapes") {
+suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "KorGE Shapes!") {
 	setupCircle()
 	setupRects()
 
@@ -17,10 +17,10 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ko
 		fill(Colors.DARKCYAN) {
 			rect(-1.0, -1.0, 3.0, 2.0)
 		}
-		fill(Colors.AQUAMARINE, 0.5) {
+		fill(Colors.AQUAMARINE) {
 			circle(0.0, 0.0, 1.0)
 		}
-		fill(Colors.AQUAMARINE, 0.5) {
+		fill(Colors.AQUAMARINE) {
 			circle(1.0, 0.0, 1.0)
 		}
 		position(100, 100)
@@ -52,7 +52,7 @@ fun Stage.setupCircle() {
 
 fun Stage.setupRects() {
 	val rect1 = roundRect(80.0, 100.0, 5.0, fill = Colors.GREEN).position(820, 128)
-	val rect2 = roundRect(80.0, 100.0, 5.0, fill = Colors.GREEN).position(1020, 128).anchor(0.5, 0.5)
+	val rect2 = roundRect(80.0, 100.0, 5.0, fill = Colors.GREEN, stroke = Colors.RED, strokeThickness = 4.0).position(1020, 128).anchor(0.5, 0.5)
 	addFixedUpdater(60.timesPerSecond) {
 		rect1.rotation += 1.degrees
 		rect2.rotation += 1.degrees
