@@ -23,7 +23,7 @@ import kotlin.random.Random
 
 class Bunny(tex: BmpSlice) : FastSprite(tex) {
     // Temporal placeholder until FastSpriteContainer supports rotation
-    var rotationRadiansf: Float = 0f
+    //override var rotationRadiansf: Float = 0f
     var speedXf: Float = 0f
     var speedYf: Float = 0f
     var spinf: Float = 0f
@@ -72,7 +72,7 @@ suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"
             bunny.anchorXf = .5f
             bunny.anchorYf = 1f
             //bunny.alpha = 0.3 + Math.random() * 0.7;
-            bunny.scalef = 0.5f + random.nextFloat() * 0.5f
+            bunny.scale(0.5f + random.nextFloat() * 0.5f)
             bunny.rotationRadiansf = (random.nextFloat() - 0.5f)
             //bunny.rotation = Math.random() - 0.5;
             //var random = random.nextInt(0, container.numChildren-2);

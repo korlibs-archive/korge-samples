@@ -16,6 +16,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 			view.position(random[0, 512], random[0, 512])
 
 			frameBlock(60.timesPerSecond) {
+			//view.frameBlock(60.timesPerSecond) {
 				while (true) {
 					val targetX = random[0, 512].toDouble()
 					val targetY = random[0, 512].toDouble()

@@ -18,10 +18,12 @@ import com.soywiz.korma.interpolation.*
 suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI") {
 	val nativeProcess = NativeProcess(views)
 
-	defaultUISkin = OtherUISkin()
-	defaultUIFont = resourcesVfs["uifont.fnt"].readBitmapFont()
+	//uiSkin =
+	//uiSkin = OtherUISkin().also {
+	//	it.textFont = resourcesVfs["uifont.fnt"].readBitmapFont()
+	//}
 
-	uiTextButton(256.0, 32.0) {
+	uiButton(256.0, 32.0) {
 		text = "Disabled Button"
 		position(128, 128)
 		onClick {
@@ -29,7 +31,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		}
 		disable()
 	}
-	uiTextButton(256.0, 32.0) {
+	uiButton(256.0, 32.0) {
 		text = "Enabled Button"
 		position(128, 128 + 32)
 		onClick {
@@ -90,13 +92,10 @@ suspend fun OtherUISkin(): UISkin = OtherUISkinOnce {
 	//val ui = resourcesVfs["korge-ui.png"].readNativeImage().toBMP32().withColorTransform(otherColorTransform)
 	val ui = resourcesVfs["korge-ui.png"].readNativeImage()
 
-	DefaultUISkin.copy(
-		normal = ui.sliceWithSize(0, 0, 64, 64),
-		over = ui.sliceWithSize(64, 0, 64, 64),
-		down = ui.sliceWithSize(127, 0, 64, 64),
-		backColor = DefaultUISkin.backColor.transform(otherColorTransform)
-		//,
-		//font = Html.FontFace.Bitmap(getDebugBmpFontOnce())
-		//font = Html.FontFace.Bitmap(resourcesVfs["uifont.fnt"].readBitmapFontWithMipmaps())
-	)
+	UISkin {
+		buttonNormal = ui.sliceWithSize(0, 0, 64, 64).asNinePatchSimpleRatio(0.25, 0.25, 0.75, 0.75)
+		buttonOver = ui.sliceWithSize(64, 0, 64, 64).asNinePatchSimpleRatio(0.25, 0.25, 0.75, 0.75)
+		buttonDown = ui.sliceWithSize(127, 0, 64, 64).asNinePatchSimpleRatio(0.25, 0.25, 0.75, 0.75)
+		buttonBackColor = buttonBackColor.transform(otherColorTransform)
+	}
 }

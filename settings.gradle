@@ -1,5 +1,3 @@
-enableFeaturePreview("GRADLE_METADATA")
-
 /*
 for (file in rootDir.listFiles()) {
 	if (file.isDirectory() && file.name.startsWith("") && (new File(file, "build.gradle").exists() || new File(file, "build.gradle.kts").exists())) {
