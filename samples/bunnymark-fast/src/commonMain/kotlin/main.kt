@@ -1,5 +1,7 @@
 import com.soywiz.klock.milliseconds
-import com.soywiz.kmem.*
+import com.soywiz.kmem.FBuffer
+import com.soywiz.kmem.get
+import com.soywiz.kmem.set
 import com.soywiz.korge.Korge
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.render.BatchBuilder2D
@@ -57,27 +59,34 @@ suspend fun main() = Korge(width = 800, height = 800, batchMaxQuads = BatchBuild
     val bunny4 = wabbitTexture.sliceWithSize(2, 164, 26, 37)
     val bunny5 = wabbitTexture.sliceWithSize(2, 2, 26, 37)
 
-    val startBunnyCount = 2
-    //val startBunnyCount = 1_000_000
-    // val startBunnyCount = 200_000
-    val bunnyTextures = listOf(bunny1, bunny2, bunny3, bunny4, bunny5)
-    var currentTexture = bunny1
+	val startBunnyCount = 2
+	//val startBunnyCount = 1_000_000
+	// val startBunnyCount = 200_000
+	val bunnyTextures = listOf(bunny1, bunny2, bunny3, bunny4, bunny5)
+	var currentTexture = bunny1
 
-    val bunnys = BunnyContainer(800_000)
-    addChild(bunnys.createView(wabbitTexture))
+	val bunnys = BunnyContainer(800_000)
+	addChild(bunnys.createView(wabbitTexture))
 
-    val font = DefaultTtfFont.toBitmapFont(fontSize = 16.0, effect = BitmapEffect(dropShadowX = 1, dropShadowY = 1, dropShadowRadius = 1))
-    val bunnyCountText = text("", font = font, textSize = 16.0, alignment = com.soywiz.korim.text.TextAlignment.TOP_LEFT).position(16.0, 16.0)
+	val font = DefaultTtfFont.toBitmapFont(
+		fontSize = 64.0,
+		effect = BitmapEffect(dropShadowX = 1, dropShadowY = 1, dropShadowRadius = 1)
+	)
+	val bunnyCountText =
+		text("", font = font, textSize = 64.0, alignment = com.soywiz.korim.text.TextAlignment.TOP_LEFT).position(
+			16.0,
+			16.0
+		)
 
 
-    val random = Random(0)
+	val random = Random(0)
 
-    fun addBunny(count: Int = 1) {
-        for (n in 0 until kotlin.math.min(count, bunnys.available)) {
-            bunnys.apply {
-                val bunny = alloc()
-                bunny.speedXf = random.nextFloat() * 1
-                bunny.speedYf = (random.nextFloat() * 1) - 5
+	fun addBunny(count: Int = 1) {
+		for (n in 0 until kotlin.math.min(count, bunnys.available)) {
+			bunnys.apply {
+				val bunny = alloc()
+				bunny.speedXf = random.nextFloat() * 1
+				bunny.speedYf = (random.nextFloat() * 1) - 5
                 bunny.setAnchor(.5f, 1f)
                 //bunny.width = 10f
                 //bunny.height = 20f
@@ -87,7 +96,7 @@ suspend fun main() = Korge(width = 800, height = 800, batchMaxQuads = BatchBuild
                 bunny.radiansf = (random.nextFloat() - 0.5f)
             }
         }
-        bunnyCountText.text = "(WIP) KorGE Bunnymark. Bunnies: ${bunnys.size}"
+		bunnyCountText.text = "Bunnies: ${bunnys.size}"
     }
 
     addBunny(startBunnyCount)
