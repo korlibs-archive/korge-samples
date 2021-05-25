@@ -1,5 +1,4 @@
 import com.soywiz.kds.FastArrayList
-import com.soywiz.kds.iterators.fastForEach
 import com.soywiz.korge.Korge
 import com.soywiz.korge.input.mouse
 import com.soywiz.korge.render.BatchBuilder2D
@@ -12,7 +11,6 @@ import com.soywiz.korge.view.text
 import com.soywiz.korim.bitmap.BmpSlice
 import com.soywiz.korim.bitmap.effect.BitmapEffect
 import com.soywiz.korim.bitmap.sliceWithSize
-import com.soywiz.korim.color.Colors
 import com.soywiz.korim.font.DefaultTtfFont
 import com.soywiz.korim.font.toBitmapFont
 import com.soywiz.korim.format.readBitmap
@@ -27,17 +25,17 @@ class Bunny(tex: BmpSlice) : FastSprite(tex) {
 // bunnymark ported from PIXI.js
 // https://www.goodboydigital.com/pixijs/bunnymark/
 // https://www.goodboydigital.com/pixijs/bunnymark/js/bunnyBenchMark.js
-suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"], batchMaxQuads = BatchBuilder2D.MAX_BATCH_QUADS) {
+suspend fun main() = Korge(width = 800, height = 800, batchMaxQuads = BatchBuilder2D.MAX_BATCH_QUADS) {
 //suspend fun main() = Korge(width = 800, height = 600, bgcolor = Colors["#2b2b9b"]) {
-    val wabbitTexture = resourcesVfs["bunnys.png"].readBitmap()
+	val wabbitTexture = resourcesVfs["bunnys.png"].readBitmap()
 
-    val bunny1 = wabbitTexture.sliceWithSize(2, 47, 26, 37)
-    val bunny2 = wabbitTexture.sliceWithSize(2, 86, 26, 37)
-    val bunny3 = wabbitTexture.sliceWithSize(2, 125, 26, 37)
-    val bunny4 = wabbitTexture.sliceWithSize(2, 164, 26, 37)
-    val bunny5 = wabbitTexture.sliceWithSize(2, 2, 26, 37)
+	val bunny1 = wabbitTexture.sliceWithSize(2, 47, 26, 37)
+	val bunny2 = wabbitTexture.sliceWithSize(2, 86, 26, 37)
+	val bunny3 = wabbitTexture.sliceWithSize(2, 125, 26, 37)
+	val bunny4 = wabbitTexture.sliceWithSize(2, 164, 26, 37)
+	val bunny5 = wabbitTexture.sliceWithSize(2, 2, 26, 37)
 
-    val startBunnyCount = 2
+	val startBunnyCount = 2
     //val startBunnyCount = 1_000_000
    // val startBunnyCount = 200_000
     val bunnyTextures = listOf(bunny1, bunny2, bunny3, bunny4, bunny5)
