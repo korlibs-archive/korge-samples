@@ -53,14 +53,8 @@ class Board(
 		}
 
 		//The board is centered on the screen
-		//x = screen.width / 2 - width / 2
-		//y = screen.height / 2 - (height - 10 - FONT_HEIGHT) / 2
-
-        //x = views.virtualWidthDouble / 2 - width / 2
-        //y = views.virtualHeightDouble / 2 - (height - 10 - FONT_HEIGHT) / 2
-
-		centerOnStage()
-		y += FONT_HEIGHT / 2
+        x = views.virtualWidthDouble / 2 - (width / 2)
+        y = views.virtualHeightDouble / 2 - (height - 10 - FONT_HEIGHT) / 2
 
 		// Restart board
 		restart()
