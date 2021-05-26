@@ -1,55 +1,64 @@
 import com.soywiz.klock.milliseconds
-import com.soywiz.korge.*
-import com.soywiz.korge.render.*
+import com.soywiz.korge.Korge
+import com.soywiz.korge.render.BatchBuilder2D
 import com.soywiz.korge.view.*
-import com.soywiz.korim.bitmap.*
-import com.soywiz.korim.format.*
-import com.soywiz.korio.file.std.*
+import com.soywiz.korim.bitmap.Bitmap
+import com.soywiz.korim.bitmap.effect.BitmapEffect
+import com.soywiz.korim.font.DefaultTtfFont
+import com.soywiz.korim.font.toBitmapFont
+import com.soywiz.korim.format.readBitmap
+import com.soywiz.korim.text.TextAlignment.Companion.TOP_LEFT
+import com.soywiz.korio.file.std.resourcesVfs
 
-suspend fun main() = Korge(width = 1600, height = 1200, batchMaxQuads = BatchBuilder2D.MAX_BATCH_QUADS) {
+const val numberOfSprites = 10_000
 
-	val numberOfGreen = 5000
-	//val numberOfGreen = 20000
-	val numberOfRed = numberOfGreen
+const val spriteHeight = 32
+const val spriteWidth = 16
+const val height = 1200
+const val width = 1600
 
-	val redSpriteMap = resourcesVfs["character.png"].readBitmap()
-	val greenSpriteMap = resourcesVfs["character2.png"].readBitmap()
+suspend fun main() = Korge(width = width, height = height, batchMaxQuads = BatchBuilder2D.MAX_BATCH_QUADS) {
 
-	val greenAnimations = animations(greenSpriteMap)
-	val redAnimations = animations(redSpriteMap)
+	val spriteMap = resourcesVfs["character.png"].readBitmap()
+	val animations = animations(spriteMap)
 
-	val greenSprites = Array(numberOfGreen) {
-		sprite(greenAnimations[it % greenAnimations.size]).xy((10..1590).random(), (10..1190).random()).scale(2.0)
+	val sprites = Array(numberOfSprites) {
+		sprite(animations[it % animations.size]).xy(randomX(), randomY()).scale(2.0)
 	}
 
-	val redSprites = Array(numberOfRed) {
-		sprite(redAnimations[it % redAnimations.size]).xy((10..1590).random(), (10..1190).random()).scale(2.0)
+	sprites.forEachIndexed { index, sprite ->
+		sprite.playAnimationLooped(animations[index % animations.size])
 	}
 
-	greenSprites.forEachIndexed { index, sprite ->
-		sprite.playAnimationLooped(greenAnimations[index % greenAnimations.size])
-	}
-	redSprites.forEachIndexed { index, sprite ->
-		sprite.playAnimationLooped(redAnimations[index % redAnimations.size])
-	}
+	val font = DefaultTtfFont.toBitmapFont(
+		fontSize = 96.0,
+		effect = BitmapEffect(dropShadowX = 2, dropShadowY = 2, dropShadowRadius = 1)
+	)
+	text("Player: $numberOfSprites", font = font, textSize = 96.0, alignment = TOP_LEFT).position(16.0, 16.0)
 
 	addUpdater {
 		val scale = if (it == 0.0.milliseconds) 0.0 else (it / 16.666666.milliseconds)
 
-		greenSprites.forEachIndexed { index, sprite ->
-			sprite.walkDirection(index % greenAnimations.size, scale)
-		}
-		redSprites.forEachIndexed { index, sprite ->
-			sprite.walkDirection(index % redAnimations.size, scale)
+		sprites.forEachIndexed { index, sprite ->
+			sprite.walkDirection(index % animations.size, scale)
 		}
 	}
 }
 
+fun randomX() = (spriteWidth..(width - spriteWidth)).random()
+fun randomY() = (spriteHeight..(height - spriteHeight)).random()
+
 fun animations(spriteMap: Bitmap) = arrayOf(
-	SpriteAnimation(spriteMap, 16, 32, 96, 1, 4, 1), // left
-	SpriteAnimation(spriteMap, 16, 32, 32, 1, 4, 1), // right
-	SpriteAnimation(spriteMap, 16, 32, 64, 1, 4, 1), // up
-	SpriteAnimation(spriteMap, 16, 32, 0, 1, 4, 1)) // down
+	spriteAnimation(spriteMap, 96), // left
+	spriteAnimation(spriteMap, 32), // right
+	spriteAnimation(spriteMap, 64), // up
+	spriteAnimation(spriteMap, 0) // down
+)
+
+fun spriteAnimation(
+	spriteMap: Bitmap,
+	marginTop: Int = 0,
+) = SpriteAnimation(spriteMap, spriteWidth, spriteHeight, marginTop, 1, 4, 1)
 
 fun Sprite.walkDirection(indexOfAnimation: Int, scale: Double = 1.0) {
 	val delta = 2 * scale
