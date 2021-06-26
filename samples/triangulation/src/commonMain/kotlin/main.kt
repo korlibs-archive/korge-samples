@@ -4,18 +4,21 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.vector.*
 import com.soywiz.korma.geom.*
+import com.soywiz.korma.geom.shape.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.triangle.triangulate.*
+import com.soywiz.korma.triangle.poly2tri.*
 
 suspend fun main() = Korge(width = 512, height = 512) {
 	val stage = this
-	textOld("Add Points by clicking with the mouse", 14.0).position(5.0, 5.0)
+	text("Add Points by clicking with the mouse", 14.0).position(5.0, 5.0)
 	graphics {
 		val graphics = this
 		graphics.useNativeRendering = false
 		position(100, 100)
 
-		val points = arrayListOf<Point>()
+		val _points = arrayListOf<Point>()
+		val pointLists = arrayListOf<List<Point>>()
 
 		var additionalPoint: Point? = null
 
@@ -28,7 +31,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 			}
 			 */
 
-			val edges = points + listOfNotNull(additionalPoint)
+			val edges = _points + listOfNotNull(additionalPoint)
 
 			for (point in edges) {
 				fill(Colors.RED) {
@@ -37,12 +40,28 @@ suspend fun main() = Korge(width = 512, height = 512) {
 			}
 
 			if (finished) {
-				println("Points: $points")
+				println("Points: $_points")
 			}
 
-			if (points.size >= 3) {
+			if (_points.size >= 3 || pointLists.isNotEmpty()) {
 				stroke(Colors.GREEN, StrokeInfo(thickness = 1.0)) {
-					for (triangle in points.triangulate()) {
+					val path = buildPath {
+						val pl: List<List<Point>> = pointLists + listOf(_points)
+						for (points in pl) {
+							var first = true
+							for (p in points) {
+								if (first) {
+									first = false
+									moveTo(p)
+								} else {
+									lineTo(p)
+								}
+							}
+							close()
+						}
+					}
+
+					for (triangle in path.triangulateSafe()) {
 						val p0 = Point(triangle.p0)
 						val p1 = Point(triangle.p1)
 						val p2 = Point(triangle.p2)
@@ -64,9 +83,14 @@ suspend fun main() = Korge(width = 512, height = 512) {
 		}
 
 		stage.mouse {
-			onClick {
-				points.add(graphics.localMouseXY(views))
-				repaint(finished = true)
+			click {
+				if (it.button.isRight) {
+					pointLists.add(_points.toList())
+					_points.clear()
+				} else {
+					_points.add(graphics.localMouseXY(views))
+					repaint(finished = true)
+				}
 				//println("CLICK")
 			}
 

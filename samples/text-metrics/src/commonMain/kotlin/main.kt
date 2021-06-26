@@ -2,6 +2,7 @@ import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.scene.*
 import com.soywiz.korge.ui.*
+import com.soywiz.korge.ui.korui.*
 import com.soywiz.korge.view.*
 import com.soywiz.korgw.*
 import com.soywiz.korim.bitmap.effect.*

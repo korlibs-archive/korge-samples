@@ -1,5 +1,6 @@
 import com.soywiz.korge.Korge
-import com.soywiz.korge.ui.korui
+import com.soywiz.korge.ui.*
+import com.soywiz.korge.ui.korui.*
 import com.soywiz.korge.view.fixedSizeContainer
 import com.soywiz.korgw.GameWindow
 import com.soywiz.korui.button

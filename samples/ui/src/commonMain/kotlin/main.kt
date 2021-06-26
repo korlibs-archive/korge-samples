@@ -65,11 +65,15 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI
 		position(480, 32)
 	}
 
-	uiScrollableArea(config = {
+	uiTextInput("A simple TextInput") {
+		position(480, 64)
+	}
+
+	uiScrollable(config = {
 		position(480, 128)
 	}) {
 		for (n in 0 until 16) {
-			uiButton(text = "HELLO $n").position(0, n * 64)
+			uiButton(text = "HELLO $n").position(n * 16, n * 32)
 		}
 	}
 
