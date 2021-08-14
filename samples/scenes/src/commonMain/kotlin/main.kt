@@ -1,8 +1,9 @@
+import com.soywiz.klock.*
 import com.soywiz.korge.Korge
 import com.soywiz.korge.input.*
-import com.soywiz.korge.scene.Module
-import com.soywiz.korge.scene.Scene
+import com.soywiz.korge.scene.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.filter.*
 import com.soywiz.korim.color.Colors
 import com.soywiz.korinject.AsyncInjector
 import kotlin.reflect.KClass
@@ -49,7 +50,10 @@ class MyScene1(private val myDependency: MyDependency) : Scene() {
             onOver { alpha = 1.0 }
             onOut { alpha = 0.7 }
             onClick {
-                sceneContainer.changeTo<MyScene2>()
+                sceneContainer.changeTo<MyScene2>(
+					//transition = MaskTransition(TransitionFilter.Transition.SWEEP),
+					//time = 1.seconds
+                )
             }
         }
     }
@@ -65,7 +69,11 @@ class MyScene2(private val myDependency: MyDependency) : Scene() {
         val blueSquare = solidRect(100, 100, Colors.BLUE) {
             position(200, 200)
             onClick {
-                sceneContainer.changeTo<MyScene1>(MyDependency("From MyScene2"))
+                sceneContainer.changeTo<MyScene1>(
+					MyDependency("From MyScene2"),
+					//transition = MaskTransition(TransitionFilter.Transition.CIRCULAR),
+					//time = 1.seconds
+				)
             }
         }
 

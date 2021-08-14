@@ -22,7 +22,7 @@ suspend fun main() = Korge {
 	fun play() = launchImmediately {
 		fun handler(event: LipSyncEvent) {
 			views.dispatch(event)
-			lips.bitmap = atlas["lisa-${event.lip}.png"]
+			lips.bitmapSrc = atlas["lisa-${event.lip}.png"]
 			playing = event.time > 0.milliseconds
 		}
 

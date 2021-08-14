@@ -1,5 +1,6 @@
 import com.soywiz.kmem.*
 import com.soywiz.korev.*
+import com.soywiz.korge.baseview.*
 import com.soywiz.korge.component.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
@@ -33,16 +34,18 @@ fun Container.addTouchGamepad(
 
 	fun <T : View> T.decorateButton(button: Int) = this.apply {
 		var pressing = false
-		onDown {
-			pressing = true
-			alpha = 0.3
-			onButton(button, true)
-		}
-		onUpAnywhere {
-			if (pressing) {
-				pressing = false
-				alpha = 0.2
-				onButton(button, false)
+		touch {
+			onDown {
+				pressing = true
+				alpha = 0.3
+				onButton(button, true)
+			}
+			onUpAnywhere {
+				if (pressing) {
+					pressing = false
+					alpha = 0.2
+					onButton(button, false)
+				}
 			}
 		}
 	}
@@ -56,25 +59,31 @@ fun Container.addTouchGamepad(
 		}
 	}
 
-	var dragging = false
-	val start = Point(0, 0)
+	view.addComponent(object : TouchComponent {
+		override val view: BaseView = view
 
-	view.addComponent(object : MouseComponent {
-		override val view: View = view
+		var dragging = false
+		val start = Point(0, 0)
 
-		override fun onMouseEvent(views: Views, event: MouseEvent) {
-			val px = view.globalMatrixInv.transformX(event.x.toDouble(), event.y.toDouble())
-			val py = view.globalMatrixInv.transformY(event.x.toDouble(), event.y.toDouble())
+		override fun onTouchEvent(views: Views, e: TouchEvent) {
+			val px = e.activeTouches.firstOrNull()?.x ?: 0.0
+			val py = e.activeTouches.firstOrNull()?.y ?: 0.0
 
-			when (event.type) {
-				MouseEvent.Type.DOWN -> {
+			when (e.type) {
+				TouchEvent.Type.START -> {
 					if (px >= width / 2) return
 					start.x = px
 					start.y = py
 					ball.alpha = 0.3
 					dragging = true
 				}
-				MouseEvent.Type.MOVE, MouseEvent.Type.DRAG -> {
+				TouchEvent.Type.END -> {
+					ball.position(0, 0)
+					ball.alpha = 0.2
+					dragging = false
+					onStick(0.0, 0.0)
+				}
+				TouchEvent.Type.MOVE -> {
 					if (dragging) {
 						val deltaX = px - start.x
 						val deltaY = py - start.y
@@ -87,13 +96,6 @@ fun Container.addTouchGamepad(
 						onStick(cos(angle) * lengthNormalized, sin(angle) * lengthNormalized)
 					}
 				}
-				MouseEvent.Type.UP -> {
-					ball.position(0, 0)
-					ball.alpha = 0.2
-					dragging = false
-					onStick(0.0, 0.0)
-				}
-				else -> Unit
 			}
 		}
 	})
