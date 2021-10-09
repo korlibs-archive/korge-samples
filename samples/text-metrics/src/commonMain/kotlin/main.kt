@@ -24,7 +24,7 @@ suspend fun main() {
     //GLOBAL_CHECK_GL = true
     Korge(width = 960, height = 720, bgcolor = DEFAULT_BG, clipBorders = false, scaleAnchor = Anchor.TOP_LEFT) {
         val font0 = resourcesVfs["clear_sans.fnt"].readFont()
-        val font1 = debugBmpFont
+        val font1 = debugBmpFont()
         val font2 = DefaultTtfFont
         val font3 = BitmapFont(DefaultTtfFont, 64.0)
         val font4 = BitmapFont(DefaultTtfFont, 64.0, paint = Colors.BLUEVIOLET, effect = BitmapEffect(
