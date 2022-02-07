@@ -14,7 +14,7 @@ import kotlin.random.Random
 /**
  * Interactive sample for the integrated [Box-2D](http://www.jbox2d.org) physic lib.
  *
- * Click on any place to span a new box!
+ * Click on any place to spawn a new box!
  */
 suspend fun main() = Korge(
 	width = 800, height = 800,
