@@ -8,6 +8,7 @@ import com.soywiz.korge.tiled.tiledMapView
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.camera.CameraContainer
 import com.soywiz.korge.view.camera.cameraContainer
+import com.soywiz.korge.view.tiles.BaseTileMap
 import com.soywiz.korim.color.Colors
 import com.soywiz.korio.file.std.resourcesVfs
 
@@ -35,29 +36,20 @@ suspend fun main() = Korge(width = 512, height = 512) {
 
 	addFixedUpdater(stage.gameWindow.fps.timesPerSecond, false, 1) {
 
+		collisionGroup.clear()
 		// you can use this to check whether your map contains all the required layers
-		val tiledMapCollisionLayer = tiledMapView["collision"].first
+		tiledMapView["collision"].first
 			.also { layer ->
 				if (layer is DummyView) {
 					views.gameWindow.close()
 					throw Exception("Check your collision layer lookup string.")
-				}
-			}
-
-		collisionGroup.clear()
-		tiledMapView?.let {
-			// [0] free [1] collision
-			val collisionMap = it.tiledMap.tileLayers[1].map.intData.getCollisionMap(
-				it.tiledMap.data.width,
-				it.tiledMap.data.height,
-			)
-			collisionGroup.addAll(
-				collisionMap.getCollisionItems(
-					tiledMapCollisionLayer.globalBounds.x,
-					tiledMapCollisionLayer.globalBounds.y
+				} else collisionGroup.addAll(
+					(layer as BaseTileMap).intMap.getCollisionItems(
+						layer.globalX,
+						layer.globalY
+					)
 				)
-			)
-		}
+			}
 
 		player?.apply {
 			when {
