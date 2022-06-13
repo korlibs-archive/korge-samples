@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.8" tiledversion="1.8.5" orientation="orthogonal" renderorder="right-down" width="6" height="6" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="1">
+ <tileset firstgid="1" source="32x32_ortho_dungeon_tile_Denzi111112-2.tsx"/>
+ <layer id="2" name="free" width="6" height="6">
+  <data encoding="csv">
+264,264,264,264,264,264,
+264,264,264,264,264,264,
+264,264,264,265,264,264,
+264,446,264,264,264,264,
+264,264,264,264,264,264,
+264,264,264,264,264,264
+</data>
+ </layer>
+ <layer id="1" name="collision" width="6" height="6">
+  <data encoding="csv">
+370,370,370,370,370,370,
+370,0,0,0,0,370,
+370,0,253,0,253,370,
+370,0,253,0,0,370,
+370,0,253,0,253,370,
+370,370,370,370,370,370
+</data>
+ </layer>
+</map>
