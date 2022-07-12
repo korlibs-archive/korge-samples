@@ -1,0 +1,1 @@
+commonMainApi: com.soywiz.korlibs.kbox2d:kbox2d:2.0.0-alpha
