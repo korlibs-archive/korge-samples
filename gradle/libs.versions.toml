@@ -1,0 +1,3 @@
+[plugins]
+korge = { id = "com.soywiz.korge", version = "3.0.0" }
+#korge = { id = "com.soywiz.korge", version = "2.0.0.999" }

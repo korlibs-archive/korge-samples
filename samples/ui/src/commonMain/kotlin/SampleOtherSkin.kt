@@ -1,6 +1,5 @@
 import com.soywiz.korge.Korge
 import com.soywiz.korge.input.onClick
-import com.soywiz.korge.service.process.NativeProcess
 import com.soywiz.korge.ui.*
 import com.soywiz.korge.view.position
 import com.soywiz.korgw.GameWindow
@@ -14,8 +13,6 @@ import com.soywiz.korio.file.std.resourcesVfs
 import com.soywiz.korio.util.AsyncOnce
 
 suspend fun main2() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "UI", width = 800, height = 400) {
-	val nativeProcess = NativeProcess(views)
-
 	uiSkin = OtherUISkin().also {
 		it.textFont = resourcesVfs["uifont.fnt"].readBitmapFont()
 	}

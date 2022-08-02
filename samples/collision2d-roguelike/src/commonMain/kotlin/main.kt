@@ -3,13 +3,13 @@ import com.soywiz.klock.timesPerSecond
 import com.soywiz.korev.Key
 import com.soywiz.korge.Korge
 import com.soywiz.korge.tiled.TiledMapView
-import com.soywiz.korge.tiled.readTiledMap
 import com.soywiz.korge.tiled.tiledMapView
 import com.soywiz.korge.view.*
 import com.soywiz.korge.view.camera.CameraContainer
 import com.soywiz.korge.view.camera.cameraContainer
-import com.soywiz.korge.view.tiles.BaseTileMap
+import com.soywiz.korge.view.tiles.*
 import com.soywiz.korim.color.Colors
+import com.soywiz.korim.tiles.tiled.*
 import com.soywiz.korio.file.std.resourcesVfs
 
 suspend fun main() = Korge(width = 512, height = 512) {

@@ -35,11 +35,11 @@ class TicTacToeMainScene : Scene() {
 	val board = Board(3, 3)
 	lateinit var game: Game
 
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		mainLibrary = resourcesVfs["main.ani"].readAni(AnLibrary.Context(views))
 	}
 
-	override suspend fun Container.sceneMain() {
+	suspend override fun SContainer.sceneMain() {
 
 		sceneView += mainLibrary.createMainTimeLine()
 

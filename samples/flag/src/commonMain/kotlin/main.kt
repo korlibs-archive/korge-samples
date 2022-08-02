@@ -44,6 +44,7 @@ suspend fun main() = Korge(width = 592, height = 592, bgcolor = Colors["#2b2b2b"
                 Key.UP -> flagFilter.crestCount = min(10.0, flagFilter.crestCount + 0.5)
                 Key.PLUS, Key.RIGHT_BRACKET, Key.CLOSE_BRACKET -> flagFilter.cyclesPerSecond = min(10.0, flagFilter.cyclesPerSecond + 0.5)
                 Key.MINUS, Key.LEFT_BRACKET, Key.OPEN_BRACKET -> flagFilter.cyclesPerSecond = max(0.0, flagFilter.cyclesPerSecond - 0.5)
+                else -> Unit
             }
             println("amplitude = ${flagFilter.amplitude}, crestCount = ${flagFilter.crestCount}, cyclesPerSecond = ${flagFilter.cyclesPerSecond}")
         }

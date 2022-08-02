@@ -6,10 +6,11 @@ import com.soywiz.korge.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.atlas.*
 import com.soywiz.korim.color.*
+import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
 
 suspend fun main() = Korge(width = 800, height = 800, bgcolor = Colors["#2b2b2b"]) {
-    val atlas = resourcesVfs["spineboy/spineboy-pma.atlas"].readAtlas(asumePremultiplied = true)
+    val atlas = resourcesVfs["spineboy/spineboy-pma.atlas"].readAtlas(ImageDecodingProps.DEFAULT.copy(asumePremultiplied = true))
     //val skeletonData = resourcesVfs["spineboy/spineboy-pro.json"].readSkeletonJson(atlas, 0.6f)
     val skeletonData = resourcesVfs["spineboy/spineboy-pro.skel"].readSkeletonBinary(atlas, 0.6f)
 

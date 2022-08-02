@@ -1,14 +1,14 @@
-import com.soywiz.korge.gradle.KorgeGradlePlugin
-import com.soywiz.korge.gradle.Orientation.LANDSCAPE
-import com.soywiz.korge.gradle.korge
+import com.soywiz.korge.gradle.*
 
-apply<KorgeGradlePlugin>()
+plugins {
+    alias(libs.plugins.korge)
+}
 
 korge {
 	id = "com.soywiz.sampleui"
 	name = "SampleUi"
 	description = "A sample using Korge and the gradle plugin"
-	orientation = LANDSCAPE
+	orientation = com.soywiz.korge.gradle.Orientation.LANDSCAPE
 
 	targetDefault()
 }

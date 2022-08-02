@@ -30,7 +30,7 @@ suspend fun main() = Korge {
 	//for (nchannel in 0 until 1) {
 		launchImmediately {
 			//AudioTone.generate(0.25.seconds, 440.0).playAndWait()
-			val stream = nativeSoundProvider.createAudioStream(44100)
+			val stream = nativeSoundProvider.createPlatformAudioOutput(44100)
 			stream.start()
 			while (true) {
 				//val samples = AudioSamples(1, 44100 * 6)

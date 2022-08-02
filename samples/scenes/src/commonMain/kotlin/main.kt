@@ -25,7 +25,7 @@ class MyDependency(val value: String)
 const val MARGIN = 10
 
 class MyScene1(private val myDependency: MyDependency) : Scene() {
-    override suspend fun Container.sceneInit() {
+    suspend override fun SContainer.sceneInit() {
         val mainText = text("MyScene1: ${myDependency.value}", 32.0) {
             smoothing = false
             position(MARGIN, MARGIN)
@@ -60,7 +60,7 @@ class MyScene1(private val myDependency: MyDependency) : Scene() {
 }
 
 class MyScene2(private val myDependency: MyDependency) : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
         text("MyScene2: ${myDependency.value}", 32.0) {
             smoothing = false
             position(MARGIN, 10)

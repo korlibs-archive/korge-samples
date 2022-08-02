@@ -10,11 +10,11 @@ import model.*
 class InGameScene(
 
 ) : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		addChild(resourcesVfs["board.ktree"].readKTree(views))
 	}
 
-	override suspend fun Container.sceneMain() {
+	suspend override fun SContainer.sceneMain() {
 		var model = TicTacToeModel()
 
 		setResultText("")

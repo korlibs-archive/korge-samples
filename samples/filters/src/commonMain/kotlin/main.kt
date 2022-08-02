@@ -28,7 +28,7 @@ suspend fun main() = Korge(width = 768, height = 512, bgcolor = Colors["#2b2b2b"
 
 	//val color = ColorMatrixFilter(ColorMatrixFilter.GRAYSCALE_MATRIX)
     //val color = TransitionFilter(TransitionFilter.Transition.DIAGONAL1, reversed = false)
-    val color = TransitionFilter(TransitionFilter.Transition.SWEEP, reversed = false, smooth = true)
+    val color = TransitionFilter(TransitionFilter.Transition.SWEEP, reversed = false)
     //val color = TransitionFilter(TransitionFilter.Transition.CIRCULAR, reversed = false)
     //val color = TransitionFilter(time = 1.0)
 	image(bitmap) {

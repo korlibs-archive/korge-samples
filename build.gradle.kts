@@ -1,13 +1,5 @@
-buildscript {
-	val korgePluginVersion: String by project
+import com.soywiz.korge.gradle.*
 
-	repositories {
-		mavenLocal()
-		mavenCentral()
-		google()
-		maven { url = uri("https://plugins.gradle.org/m2/") }
-	}
-	dependencies {
-		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:$korgePluginVersion")
-	}
+plugins {
+    alias(libs.plugins.korge) apply false
 }

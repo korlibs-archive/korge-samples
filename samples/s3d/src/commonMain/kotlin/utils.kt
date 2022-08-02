@@ -23,9 +23,11 @@ class Button(text: String, handler: suspend () -> Unit) : Container() {
 	val textField = Text(text, textSize = 32.0).apply { smoothing = false }
 	private val bounds = textField.textBounds
 	val g = Graphics().apply {
-		fill(Colors.DARKGREY, 0.7) {
-			roundRect(bounds.x, bounds.y, bounds.width + 16, bounds.height + 16, 8.0, 8.0)
-		}
+        updateShape {
+            fill(Colors.DARKGREY, 0.7) {
+                roundRect(bounds.x, bounds.y, bounds.width + 16, bounds.height + 16, 8.0, 8.0)
+            }
+        }
 	}
 	var enabledButton = true
 		set(value) {

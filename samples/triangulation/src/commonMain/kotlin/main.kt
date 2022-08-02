@@ -3,6 +3,7 @@ import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.vector.*
+import com.soywiz.korim.vector.renderer.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.shape.*
 import com.soywiz.korma.geom.vector.*
@@ -13,9 +14,9 @@ suspend fun main() = Korge(width = 512, height = 512) {
 	val stage = this
 	text("Add Points by clicking with the mouse", 14.0).position(5.0, 5.0)
 	graphics {
-		val graphics = this
-		graphics.useNativeRendering = false
-		position(100, 100)
+		val graphics = it
+		graphics.renderer = GraphicsRenderer.CPU
+		it.position(100, 100)
 
 		val _points = arrayListOf<Point>()
 		val pointLists = arrayListOf<List<Point>>()
@@ -45,7 +46,7 @@ suspend fun main() = Korge(width = 512, height = 512) {
 
 			if (_points.size >= 3 || pointLists.isNotEmpty()) {
 				stroke(Colors.GREEN, StrokeInfo(thickness = 1.0)) {
-					val path = buildPath {
+					val path = buildVectorPath {
 						val pl: List<List<Point>> = pointLists + listOf(_points)
 						for (points in pl) {
 							var first = true

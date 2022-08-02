@@ -5,7 +5,7 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 
 class MenuScene() : Scene() {
-	suspend override fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		// set a background color
 		views.clearColor = Colors.BLACK
 

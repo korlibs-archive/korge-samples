@@ -23,12 +23,12 @@ fun Container.addTouchGamepad(
 	container {
 		position(radius * 1.1, height - radius * 1.1)
 		graphics {
-			fill(Colors.BLACK) { circle(0.0, 0.0, radius) }
-			alpha(0.2)
+            fill(Colors.BLACK) { circle(0.0, 0.0, radius) }
+			it.alpha(0.2)
 		}
 		ball = graphics {
-			fill(Colors.WHITE) { circle(0.0, 0.0, radius * 0.7) }
-			alpha(0.2)
+            fill(Colors.WHITE) { circle(0.0, 0.0, radius * 0.7) }
+            it.alpha(0.2)
 		}
 	}
 
@@ -96,6 +96,7 @@ fun Container.addTouchGamepad(
 						onStick(cos(angle) * lengthNormalized, sin(angle) * lengthNormalized)
 					}
 				}
+                else -> Unit
 			}
 		}
 	})
