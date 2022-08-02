@@ -1,10 +1,11 @@
-/*
-for (file in rootDir.listFiles()) {
-	if (file.isDirectory() && file.name.startsWith("") && (new File(file, "build.gradle").exists() || new File(file, "build.gradle.kts").exists())) {
-		include(":${file.name}")
-	}
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+    }
 }
-*/
 
 String moduleName(File f) {
 	if (f.parentFile == rootDir || f.parentFile == null) {

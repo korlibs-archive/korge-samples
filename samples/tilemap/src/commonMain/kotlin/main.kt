@@ -4,6 +4,7 @@ import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.tiled.*
 import com.soywiz.korge.view.*
+import com.soywiz.korim.tiles.tiled.*
 import com.soywiz.korio.file.std.*
 import kotlin.math.pow
 

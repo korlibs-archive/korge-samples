@@ -101,9 +101,9 @@ class KorviView(val views: Views, val video: KorviVideo) : BaseImage(Bitmaps.tra
 					bitmap = bmp.slice()
 				}
 
-				if (!itData.data.ints.contentEquals(bmp.data.ints)) {
+				if (!itData.ints.contentEquals(bmp.ints)) {
 					bmp.lock {
-						arraycopy(itData.data, 0, bmp.data, 0, bmp.area)
+						com.soywiz.kmem.arraycopy(itData.ints, 0, bmp.ints, 0, bmp.area)
 					}
 				}
 			}

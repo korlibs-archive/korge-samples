@@ -1,4 +1,8 @@
-apply plugin: com.soywiz.korge.gradle.KorgeGradlePlugin
+import com.soywiz.korge.gradle.*
+
+plugins {
+    alias(libs.plugins.korge)
+}
 
 korge {
 	id = "com.soywiz.sample.connect4"

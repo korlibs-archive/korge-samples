@@ -8,6 +8,7 @@ import com.soywiz.korim.color.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.paint.*
 import com.soywiz.korim.text.*
+import com.soywiz.korio.lang.*
 import com.soywiz.korma.geom.*
 
 @OptIn(KorgeExperimental::class)
@@ -26,13 +27,13 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, width = 512
     var offset = 0.degrees
     addFixedUpdater(60.timesPerSecond) { offset += 10.degrees }
     var version = 0
-    text("Hello World!", font = font, textSize = 64.0, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer({ version++ }) { text, n, c, c1, g, advance ->
+    text("Hello World!", font = font, textSize = 64.0, alignment = TextAlignment.BASELINE_LEFT, renderer = CreateStringTextRenderer({ version++ }) { reader: WStringReader, c: Int, g: GlyphMetrics, advance: Double ->
         transform.identity()
-        val sin = sin(offset + (n * 360 / text.length).degrees)
+        val sin = sin(offset + (reader.position * 360 / reader.str.toString().length).degrees)
         transform.rotate(15.degrees)
         transform.translate(0.0, sin * 16)
         transform.scale(1.0, 1.0 + sin * 0.1)
-        put(c)
+        put(reader, c)
         advance(advance)
     }).position(100, 100)
 }

@@ -14,31 +14,32 @@ suspend fun main() = Korge(bgcolor = Colors["#111"], width = 300, height = 300) 
     val p2 = Point(210, 250)
     val p3 = Point(234, 49)
 
-    val graphics = sgraphics {
-        useNativeRendering = true
-        //useNativeRendering = false
+    val graphics = graphics(renderer = GraphicsRenderer.SYSTEM) {
     }
 
     fun updateGraphics() {
-        graphics.clear()
-        graphics.stroke(Colors.DIMGREY, info = StrokeInfo(thickness = 1.0)) {
-            moveTo(p0)
-            lineTo(p1)
-            lineTo(p2)
-            lineTo(p3)
-        }
-        graphics.stroke(Colors.WHITE, info = StrokeInfo(thickness = 2.0)) {
-            cubic(p0, p1, p2, p3)
-        }
-        var ratio = 0.3
-        val cubic2 = Bezier.Cubic().setToSplitFirst(Bezier.Cubic(p0, p1, p2, p3), ratio)
-        val cubic3 = Bezier.Cubic().setToSplitSecond(Bezier.Cubic(p0, p1, p2, p3), ratio)
+        graphics.updateShape {
+            clear()
+            stroke(Colors.DIMGREY, info = StrokeInfo(thickness = 1.0)) {
+                moveTo(p0)
+                lineTo(p1)
+                lineTo(p2)
+                lineTo(p3)
+            }
+            stroke(Colors.WHITE, info = StrokeInfo(thickness = 2.0)) {
+                cubic(p0, p1, p2, p3)
+            }
+            var ratio = 0.3
+            val parts = Bezier(p0, p1, p2, p3).split(ratio)
+            val cubic2 = parts.leftCurve
+            val cubic3 = parts.rightCurve
 
-        graphics.stroke(Colors.PURPLE.withAd(0.3), info = StrokeInfo(thickness = 4.0)) {
-            cubic(cubic2)
-        }
-        graphics.stroke(Colors.YELLOW.withAd(0.3), info = StrokeInfo(thickness = 4.0)) {
-            cubic(cubic3)
+            stroke(Colors.PURPLE.withAd(0.3), info = StrokeInfo(thickness = 4.0)) {
+                cubic(cubic2)
+            }
+            stroke(Colors.YELLOW.withAd(0.3), info = StrokeInfo(thickness = 4.0)) {
+                cubic(cubic3)
+            }
         }
     }
 

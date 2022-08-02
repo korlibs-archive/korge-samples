@@ -16,7 +16,7 @@ class CustomScene(private val widthParam: Int, private val heightParam: Int, val
 
     val ResourcesContainer.korge_png by resourceBitmap("korge.png")
 
-    override suspend fun Container.sceneInit() {
+    suspend override fun SContainer.sceneInit() {
 
         solidRect(widthParam, heightParam, Colors.GREEN) {
             position(0, 0)

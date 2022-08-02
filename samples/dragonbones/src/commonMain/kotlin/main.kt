@@ -81,7 +81,7 @@ suspend fun Stage.hello() {
 }
 
 class HelloScene : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		println("HelloScene.sceneInit[0]")
 		solidRect(100, 100, Colors.RED) {
 			position(100, 100)
@@ -128,7 +128,7 @@ abstract class MyBaseScene : Scene() {
 class MyScene : MyBaseScene() {
 	lateinit var buttonContainer: Container
 
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		//addEventListener<MouseEvent> {
 		//	println("MouseEvent: ${views.nativeWidth},${views.nativeHeight} :: ${views.virtualWidth},${views.virtualHeight} :: $it")
 		//}
@@ -174,9 +174,11 @@ class Button(text: String, handler: suspend () -> Unit) : Container() {
 	val textField = TextOld(text, textSize = 32.0).apply { filtering = false }
 	private val bounds = textField.textBounds
 	val g = Graphics().apply {
-		fill(Colors.DARKGREY, 0.7) {
-			roundRect(bounds.x, bounds.y, bounds.width + 16, bounds.height + 16, 8.0, 8.0)
-		}
+        updateShape {
+            fill(Colors.DARKGREY, 0.7) {
+                roundRect(bounds.x, bounds.y, bounds.width + 16, bounds.height + 16, 8.0, 8.0)
+            }
+        }
 	}
 	var enabledButton = true
 		set(value) {
@@ -217,7 +219,7 @@ class Button(text: String, handler: suspend () -> Unit) : Container() {
 
 class HelloWorldScene : BaseDbScene() {
 	val SCALE = 1.6
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		val skeDeferred = asyncImmediately { Json.parse(res["mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].readString())!! }
 		//val skeDeferred = asyncImmediately { MemBufferWrap(resources["mecha_1002_101d_show/mecha_1002_101d_show_ske.dbbin"].readBytes()) }
 		val texDeferred = asyncImmediately { res["mecha_1002_101d_show/mecha_1002_101d_show_tex.json"].readString() }
@@ -239,7 +241,7 @@ class HelloWorldScene : BaseDbScene() {
 }
 
 class ClassicDragonScene : BaseDbScene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		//val scale = 0.3
 		val scale = 0.8
 		val ske = asyncImmediately { res["Dragon/Dragon_ske.json"].readString() }
@@ -270,7 +272,7 @@ class EyeTrackingScene : BaseDbScene() {
 	val scale = 0.46
 	var totalTime = 0.0
 
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		try {
 			println("EyeTrackingScene[0]")
 
@@ -391,7 +393,7 @@ class SkinChangingScene : BaseDbScene() {
 	val SCALE = 0.42
 	val random = Random(0)
 
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		val suitConfigs = listOf(
 			listOf(
 				"2010600a", "2010600a_1",

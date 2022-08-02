@@ -74,13 +74,15 @@ suspend fun main() {
                 val currentBounds = text1.getLocalBounds()
                 if (cachedBounds != currentBounds) {
                     cachedBounds = currentBounds
-                    gbounds.clear()
-                    gbounds.stroke(Colors.RED, StrokeInfo(2.0)) {
-                        rect(text1.getLocalBounds())
-                    }
-                    gbounds.stroke(Colors.BLUE, StrokeInfo(2.0)) {
-                        line(-5, 0, +5, 0)
-                        line(0, -5, 0, +5)
+                    gbounds.updateShape {
+                        clear()
+                        stroke(Colors.RED, StrokeInfo(2.0)) {
+                            rect(text1.getLocalBounds())
+                        }
+                        stroke(Colors.BLUE, StrokeInfo(2.0)) {
+                            line(-5, 0, +5, 0)
+                            line(0, -5, 0, +5)
+                        }
                     }
                     val metrics = text1.font.getOrNull()!!.getFontMetrics(text1.fontSize)
                     baseLineLine.xy(0.0, -metrics.baseline)

@@ -16,11 +16,11 @@ data class TicTacToeModel(
 		})
 	}
 
-	override fun toString(): String = board.toString(mapOf(
-			CellKind.EMPTY to '.',
-			CellKind.CROSS to 'X',
-			CellKind.CIRCLE to 'O',
-	))
+	override fun toString(): String = board.toStringList({ when (it) {
+        CellKind.EMPTY -> '.'
+        CellKind.CROSS -> 'X'
+        CellKind.CIRCLE -> 'O'
+    }}).joinToString("\n")
 }
 
 enum class CellKind { CIRCLE, CROSS, EMPTY }

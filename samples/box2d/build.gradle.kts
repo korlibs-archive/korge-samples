@@ -1,7 +1,8 @@
-import com.soywiz.korge.gradle.KorgeGradlePlugin
-import com.soywiz.korge.gradle.korge
+import com.soywiz.korge.gradle.*
 
-apply<KorgeGradlePlugin>()
+plugins {
+    alias(libs.plugins.korge)
+}
 
 korge {
 	id = "com.soywiz.sample1"

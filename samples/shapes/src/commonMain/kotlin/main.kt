@@ -2,6 +2,7 @@ import com.soywiz.klock.*
 import com.soywiz.korge.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.Circle
 import com.soywiz.korgw.*
 import com.soywiz.korim.color.*
 import com.soywiz.korio.async.*
@@ -13,7 +14,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ko
 	setupRects()
 
 	solidRect(300, 200, Colors.DARKCYAN)
-	sgraphics {
+	graphics {
 		fill(Colors.DARKCYAN) {
 			rect(-1.0, -1.0, 3.0, 2.0)
 		}
@@ -23,7 +24,7 @@ suspend fun main() = Korge(quality = GameWindow.Quality.PERFORMANCE, title = "Ko
 		fill(Colors.AQUAMARINE) {
 			circle(1.0, 0.0, 1.0)
 		}
-		position(100, 100)
+		it.position(100, 100)
 	}.scale(100.0, 100.0).interactive()
 }
 

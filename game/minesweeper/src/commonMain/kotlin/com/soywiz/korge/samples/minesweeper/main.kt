@@ -3,7 +3,6 @@ package com.soywiz.korge.samples.minesweeper
 import com.soywiz.korev.*
 import com.soywiz.korge.*
 import com.soywiz.korge.component.docking.*
-import com.soywiz.korge.service.process.*
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.*
 
@@ -38,11 +37,10 @@ class MainProcess(parent: Container) : Process(parent) {
 		}
 
 		val board = Board(this, imageSet, images, click, boom, 22, 15, 40)
-		val nativeProcess = NativeProcess(views)
 
 		while (true) {
 			if (key[Key.ESCAPE]) {
-				nativeProcess.close()
+                views.gameWindow.close()
 			}
 			if (key[Key.UP]) {
 				lights += RandomLight(this, light)

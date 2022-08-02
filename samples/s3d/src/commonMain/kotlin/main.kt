@@ -37,7 +37,7 @@ class Korge3DSampleModule : KorgeModule(RootScene::class) {
 class RootScene : Scene() {
 	lateinit var contentSceneContainer: SceneContainer
 
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		contentSceneContainer = sceneContainer(views)
 
 		sceneButton<CratesScene>("Crates", 0)
@@ -56,7 +56,7 @@ class RootScene : Scene() {
 
 @Korge3DExperimental
 class CratesScene : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		val korgeTex = resourcesVfs["korge.png"].readNativeImage().mipmaps(false)
 		val crateTex = resourcesVfs["crate.jpg"].readNativeImage().mipmaps(true)
 		val crateMaterial = Material3D(diffuse = Material3D.LightTexture(crateTex))
@@ -103,7 +103,7 @@ class CratesScene : Scene() {
 
 @Korge3DExperimental
 class MonkeyScene : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		//delay(10.seconds)
 		//println("delay")
 		scene3D {
@@ -137,7 +137,7 @@ class MonkeyScene : Scene() {
 
 @Korge3DExperimental
 class SkinningScene : Scene() {
-	override suspend fun Container.sceneInit() {
+	suspend override fun SContainer.sceneInit() {
 		scene3D {
 			//val library = resourcesVfs["model.dae"].readColladaLibrary()
 			//val library = resourcesVfs["ball.dae"].readColladaLibrary()

@@ -1,7 +1,10 @@
 import com.soywiz.korge.gradle.*
 
+plugins {
+    alias(libs.plugins.korge)
+}
+
 // Ported from here: https://github.com/soywiz/lunea/tree/master/samples/busca
-apply(plugin = "com.soywiz.korge")
 
 //apply<KorgeGradlePlugin>()
 

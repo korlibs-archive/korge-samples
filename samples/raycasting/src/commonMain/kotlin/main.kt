@@ -47,7 +47,7 @@ suspend fun main() = Korge(width = 1280, height = 720, bgcolor = Colors["#2b2b2b
 	val statusText = text("", font = debugBmpFont())
 	var selectedRectangle = Rectangle(Point(100, 100) - Point(50, 50), Size(100, 100))
 	val rayLine = line(center, center + (dir * 1000), Colors.WHITE)
-	val selectedRect = outline(buildPath { rect(selectedRectangle) })
+	val selectedRect = outline(buildVectorPath { rect(selectedRectangle) })
 	//outline(buildPath { star(5, 50.0, 100.0, x = 100.0, y = 100.0) })
 	//debugLine(center, center + (dir * 1000), Colors.WHITE)
 	fun updateRay() {
@@ -83,11 +83,11 @@ suspend fun main() = Korge(width = 1280, height = 720, bgcolor = Colors["#2b2b2b
 	mouse {
 		onDown {
 			selectedRectangle = Rectangle(stage.mouseXY - Point(50, 50), Size(100, 100))
-			selectedRect.vectorPath = buildPath { rect(selectedRectangle) }
+			selectedRect.vectorPath = buildVectorPath { rect(selectedRectangle) }
 		}
 		onMouseDrag {
 			selectedRectangle = Rectangle(stage.mouseXY - Point(50, 50), Size(100, 100))
-			selectedRect.vectorPath = buildPath { rect(selectedRectangle) }
+			selectedRect.vectorPath = buildVectorPath { rect(selectedRectangle) }
 		}
 	}
 }
